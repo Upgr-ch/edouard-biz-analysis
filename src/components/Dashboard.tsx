@@ -152,6 +152,18 @@ const Dashboard = () => {
             onStepDetected={handleStepDetected}
           />
         </div>
+
+        {/* Footer legal links */}
+        <div className="px-4 py-2 border-t border-border bg-card/30 flex items-center justify-center gap-1 flex-wrap">
+          {["Politique de cookies", "Politique de confidentialité", "Mentions légales", "CVG", "CGU"].map((label, i, arr) => (
+            <span key={label} className="flex items-center">
+              <button className="text-[10px] text-muted-foreground/60 hover:text-muted-foreground transition-colors">
+                {label}
+              </button>
+              {i < arr.length - 1 && <span className="text-muted-foreground/30 mx-1 text-[10px]">|</span>}
+            </span>
+          ))}
+        </div>
       </div>
     </div>
   );

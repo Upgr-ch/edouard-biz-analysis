@@ -28,6 +28,20 @@ const Dashboard = () => {
     }
   };
 
+  const handleStepDetected = (step: number) => {
+    if (activeConversationId && step !== currentStep) {
+      updateStep(activeConversationId, step);
+      // Mark previous steps as completed
+      setCompletedSteps(prev => {
+        const newCompleted = [...prev];
+        for (let i = 0; i < step; i++) {
+          if (!newCompleted.includes(i)) newCompleted.push(i);
+        }
+        return newCompleted;
+      });
+    }
+  };
+
   const handleNewConversation = async () => {
     await createConversation();
   };
@@ -133,6 +147,7 @@ const Dashboard = () => {
             updateMessageContent={updateMessageContent}
             onUpdateTitle={updateTitle}
             onCreateConversation={createConversation}
+            onStepDetected={handleStepDetected}
           />
         </div>
       </div>

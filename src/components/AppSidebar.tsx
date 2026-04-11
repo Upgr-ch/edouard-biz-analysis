@@ -77,10 +77,7 @@ const AppSidebar = ({ currentStep, onStepChange, completedSteps }: AppSidebarPro
                 )}
               </div>
               {!collapsed && (
-                <>
-                  <span className="font-medium">{step.label}</span>
-                  <span className="ml-auto text-xs text-muted-foreground/60">{step.id}</span>
-                </>
+                <span className="font-medium">{step.label}</span>
               )}
             </button>
           );

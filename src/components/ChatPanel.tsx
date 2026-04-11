@@ -301,6 +301,11 @@ const ChatPanel = ({
           setStreamingMessage({ id: "streaming", role: "assistant", content: assistantSoFar });
           const step = detectStep(assistantSoFar);
           if (step !== null && onStepDetected) onStepDetected(step);
+          // Detect chosen conversation name
+          const chosenName = detectChosenName(assistantSoFar);
+          if (chosenName && convId) {
+            onUpdateTitle(convId, chosenName);
+          }
         },
         onDone: async () => {
           // Save assistant message

@@ -116,6 +116,9 @@ export function useConversations() {
       return null;
     }
 
+    // Add to local state
+    setMessages((prev) => [...prev, { ...data, role: data.role as "user" | "assistant" }]);
+
     // Touch updated_at on conversation
     await supabase.from("conversations").update({ updated_at: new Date().toISOString() }).eq("id", conversationId);
 

@@ -17,7 +17,7 @@ const ChatPanel = ({ stepContext }: ChatPanelProps) => {
     {
       id: "1",
       role: "assistant",
-      content: "Bienvenue. Je suis Édouard, ton consultant business. Décris-moi ton idée de projet et je t'aiderai à en évaluer la faisabilité et la rentabilité. Sois précis : quel problème résous-tu, pour qui, et comment comptes-tu acquérir tes clients ?",
+      content: "Bienvenue. Je suis Édouard. Avant toute analyse, j'ai besoin de comprendre ton projet. Décris-moi ton idée en quelques phrases : qu'est-ce que tu veux créer ou vendre, et quel problème ça résout ?",
     },
   ]);
   const [input, setInput] = useState("");

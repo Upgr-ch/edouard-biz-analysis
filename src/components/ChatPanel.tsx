@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Send, Brain, User, Paperclip, FileText, X } from "lucide-react";
+import { Send, Brain, User, Paperclip, FileText, X, Mic } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { parseDocument, getFileType, truncateIfNeeded, type SupportedFileType } from "@/lib/documentParser";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import type { ChatMessage } from "@/hooks/useConversations";
+import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 
 interface Message {
   id: string;

@@ -141,6 +141,8 @@ const Dashboard = () => {
           <ChatPanel
             stepContext={`Étape ${currentStep + 1}/9 — ${stepLabels[currentStep]}`}
             conversationId={activeConversationId}
+            conversationTitle={activeConversation?.title}
+            currentStep={currentStep}
             persistedMessages={messages}
             setPersistedMessages={setMessages}
             saveMessage={saveMessage}

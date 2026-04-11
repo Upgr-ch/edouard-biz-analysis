@@ -22,6 +22,17 @@ interface ChatPanelProps {
   updateMessageContent: (messageId: string, content: string) => Promise<void>;
   onUpdateTitle: (id: string, title: string) => Promise<void>;
   onCreateConversation: (title?: string) => Promise<string | null>;
+  onStepDetected?: (step: number) => void;
+}
+
+/** Extract step number from AI text like "Étape 3/9" or "**Étape 5/9 —" */
+function detectStep(text: string): number | null {
+  const match = text.match(/\*?\*?[ÉE]tape\s+(\d)\/9/i);
+  if (match) {
+    const n = parseInt(match[1], 10);
+    if (n >= 1 && n <= 9) return n - 1; // 0-indexed
+  }
+  return null;
 }
 
 interface PendingFile {
@@ -143,6 +154,7 @@ const ChatPanel = ({
   updateMessageContent,
   onUpdateTitle,
   onCreateConversation,
+  onStepDetected,
 }: ChatPanelProps) => {
   // Build display messages from persisted + welcome
   const displayMessages: Message[] = persistedMessages.length > 0
@@ -277,6 +289,8 @@ const ChatPanel = ({
         onDelta: (chunk) => {
           assistantSoFar += chunk;
           setStreamingMessage({ id: "streaming", role: "assistant", content: assistantSoFar });
+          const step = detectStep(assistantSoFar);
+          if (step !== null && onStepDetected) onStepDetected(step);
         },
         onDone: async () => {
           // Save assistant message

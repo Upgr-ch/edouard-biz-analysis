@@ -1,7 +1,8 @@
 import { useState } from "react";
 import AppSidebar from "@/components/AppSidebar";
 import ChatPanel from "@/components/ChatPanel";
-import { Menu, Brain } from "lucide-react";
+import { Menu, Brain, LogOut } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const stepLabels = ["Projet", "Cadrage", "Marché", "SWOT", "Objectifs", "Économie", "Faisabilité", "Acquisition", "Synthèse"];
 

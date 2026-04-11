@@ -167,6 +167,8 @@ async function streamChat({
 const ChatPanel = ({
   stepContext,
   conversationId,
+  conversationTitle,
+  currentStep,
   persistedMessages,
   saveMessage,
   updateMessageContent,

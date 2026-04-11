@@ -55,7 +55,8 @@ const ChatPanel = ({ stepContext }: ChatPanelProps) => {
   return (
     <div className="flex flex-col h-full bg-background">
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
+        <div className="max-w-3xl mx-auto space-y-4">
         {messages.map((msg) => (
           <div
             key={msg.id}

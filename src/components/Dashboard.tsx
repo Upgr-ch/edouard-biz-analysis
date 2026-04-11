@@ -1,11 +1,13 @@
 import { useState } from "react";
 import AppSidebar from "@/components/AppSidebar";
 import ChatPanel from "@/components/ChatPanel";
-import { Menu, Brain } from "lucide-react";
+import { Menu, Brain, LogOut } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const stepLabels = ["Projet", "Cadrage", "Marché", "SWOT", "Objectifs", "Économie", "Faisabilité", "Acquisition", "Synthèse"];
 
 const Dashboard = () => {
+  const { signOut } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -62,9 +64,18 @@ const Dashboard = () => {
           <span className="text-xs text-muted-foreground hidden sm:block">
             Consultant en faisabilité & rentabilité
           </span>
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full bg-decision-viable animate-pulse" />
-            <span className="text-xs text-muted-foreground">En ligne</span>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 rounded-full bg-decision-viable animate-pulse" />
+              <span className="text-xs text-muted-foreground">En ligne</span>
+            </div>
+            <button
+              onClick={signOut}
+              className="p-2 rounded-lg hover:bg-accent transition-colors text-muted-foreground"
+              title="Se déconnecter"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
           </div>
         </div>
 

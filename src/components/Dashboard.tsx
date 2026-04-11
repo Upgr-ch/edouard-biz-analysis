@@ -4,7 +4,7 @@ import ChatPanel from "@/components/ChatPanel";
 import { Menu, Brain, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
-const stepLabels = ["Projet", "Cadrage", "Marché", "SWOT", "Objectifs", "Économie", "Faisabilité", "Acquisition", "Synthèse"];
+const stepLabels = ["Projet", "Cadrage", "Marché", "Diagnostic", "Objectifs", "Économie", "Faisabilité", "Acquisition", "Synthèse"];
 
 const Dashboard = () => {
   const { signOut } = useAuth();

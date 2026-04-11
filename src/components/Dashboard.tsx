@@ -125,7 +125,7 @@ const Dashboard = () => {
         {/* Chat */}
         <div className="flex-1 min-h-0">
           <ChatPanel
-            stepContext={stepLabels[currentStep]}
+            stepContext={`Étape ${currentStep + 1}/9 — ${stepLabels[currentStep]}`}
             conversationId={activeConversationId}
             persistedMessages={messages}
             setPersistedMessages={setMessages}

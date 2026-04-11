@@ -42,7 +42,7 @@ const fileTypeLabels: Record<SupportedFileType, string> = {
 const WELCOME_MESSAGE: Message = {
   id: "welcome",
   role: "assistant",
-  content: "Bienvenue. Je suis Édouard. Avant toute analyse, j'ai besoin de comprendre ton projet. Décris-moi ton idée en quelques phrases : qu'est-ce que tu veux créer ou vendre, et quel problème ça résout ?",
+  content: "**Étape 1/9 — Projet**\n\nBienvenue. Je suis Édouard. Décris-moi ton idée en quelques phrases : qu'est-ce que tu veux créer ou vendre, et quel problème ça résout ?",
 };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;

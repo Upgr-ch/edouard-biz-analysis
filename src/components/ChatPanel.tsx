@@ -54,19 +54,6 @@ const ChatPanel = ({ stepContext }: ChatPanelProps) => {
 
   return (
     <div className="flex flex-col h-full bg-background">
-      {/* Header */}
-      <div className="px-4 py-3 border-b border-border flex items-center gap-2">
-        <div className="w-6 h-6 rounded-md gradient-primary flex items-center justify-center">
-          <Brain className="w-3 h-3 text-primary-foreground" />
-        </div>
-        <span className="text-sm font-medium text-foreground">Édouard</span>
-        <span className="text-xs text-muted-foreground ml-1">— {stepContext}</span>
-        <div className="ml-auto flex items-center gap-1">
-          <div className="w-2 h-2 rounded-full bg-decision-viable animate-pulse" />
-          <span className="text-xs text-muted-foreground">En ligne</span>
-        </div>
-      </div>
-
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
         {messages.map((msg) => (

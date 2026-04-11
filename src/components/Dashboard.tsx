@@ -1,20 +1,19 @@
 import { useState } from "react";
 import AppSidebar from "@/components/AppSidebar";
 import ChatPanel from "@/components/ChatPanel";
-import StepContent from "@/components/StepContent";
-import MobileNav from "@/components/MobileNav";
+import { Menu, Brain } from "lucide-react";
 
 const stepLabels = ["Projet", "Cadrage", "Marché", "SWOT", "Objectifs", "Économie", "Faisabilité", "Acquisition", "Synthèse"];
 
 const Dashboard = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
-  const [mobileView, setMobileView] = useState<"steps" | "chat">("steps");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="h-screen flex bg-background overflow-hidden">
-      {/* Desktop Sidebar */}
-      <div className="hidden md:block">
+    <div className="h-screen flex overflow-hidden bg-background">
+      {/* Desktop sidebar */}
+      <div className="hidden md:block shrink-0">
         <AppSidebar
           currentStep={currentStep}
           onStepChange={setCurrentStep}
@@ -22,39 +21,58 @@ const Dashboard = () => {
         />
       </div>
 
-      {/* Main content area */}
-      <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
-        {/* Step content */}
-        <div className={`flex-1 overflow-y-auto pb-20 md:pb-0 ${mobileView === "chat" ? "hidden md:block" : ""}`}>
-          {/* Mobile step selector */}
-          <div className="md:hidden p-4 border-b border-border overflow-x-auto">
-            <div className="flex gap-2">
-              {stepLabels.map((label, i) => (
-                <button
-                  key={i}
-                  onClick={() => setCurrentStep(i)}
-                  className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                    currentStep === i
-                      ? "bg-primary/15 text-primary border border-primary/30"
-                      : "bg-card text-muted-foreground border border-border"
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
+      {/* Mobile sidebar overlay */}
+      {sidebarOpen && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          <div
+            className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+            onClick={() => setSidebarOpen(false)}
+          />
+          <div className="absolute left-0 top-0 bottom-0 w-64 shadow-xl">
+            <AppSidebar
+              currentStep={currentStep}
+              onStepChange={(step) => {
+                setCurrentStep(step);
+                setSidebarOpen(false);
+              }}
+              completedSteps={completedSteps}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Main chat area */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Top bar */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-card/30 backdrop-blur-sm">
+          <div className="flex items-center gap-3">
+            <button
+              className="md:hidden p-2 rounded-lg hover:bg-accent transition-colors text-muted-foreground"
+              onClick={() => setSidebarOpen(true)}
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg gradient-primary flex items-center justify-center md:hidden">
+                <Brain className="w-4 h-4 text-primary-foreground" />
+              </div>
+              <h1 className="text-lg font-semibold text-foreground">Édouard</h1>
             </div>
           </div>
-          <StepContent currentStep={currentStep} />
+          <span className="text-xs text-muted-foreground hidden sm:block">
+            Consultant en faisabilité & rentabilité
+          </span>
+          <div className="flex items-center gap-1">
+            <div className="w-2 h-2 rounded-full bg-decision-viable animate-pulse" />
+            <span className="text-xs text-muted-foreground">En ligne</span>
+          </div>
         </div>
 
-        {/* Chat panel */}
-        <div className={`md:w-[420px] md:border-l border-border ${mobileView === "steps" ? "hidden md:flex md:flex-col" : "flex flex-col flex-1 pb-16 md:pb-0"}`}>
+        {/* Chat */}
+        <div className="flex-1 min-h-0">
           <ChatPanel stepContext={stepLabels[currentStep]} />
         </div>
       </div>
-
-      {/* Mobile bottom nav */}
-      <MobileNav view={mobileView} onViewChange={setMobileView} />
     </div>
   );
 };

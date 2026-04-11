@@ -35,12 +35,17 @@ function detectStep(text: string): number | null {
   return null;
 }
 
-/** Detect chosen conversation name from pattern like **[NOM_CHOISI]** */
+/** Detect chosen conversation name from pattern like **[NOM_CHOISI]** or **NOM_CHOISI** at start of response */
 function detectChosenName(text: string): string | null {
-  // Match a standalone **[Some Name]** pattern (the confirmation line)
-  const match = text.match(/\*\*\[([^\]]+)\]\*\*/);
-  if (match && match[1].length > 2 && match[1].length < 80) {
-    return match[1];
+  // Match **[Some Name]** pattern (brackets style)
+  const bracketMatch = text.match(/\*\*\[([^\]]+)\]\*\*/);
+  if (bracketMatch && bracketMatch[1].length > 2 && bracketMatch[1].length < 80) {
+    return bracketMatch[1];
+  }
+  // Match **Name** at the very start of the response (confirmation line without brackets)
+  const startMatch = text.match(/^\*\*([^*\n]{3,40})\*\*/);
+  if (startMatch) {
+    return startMatch[1];
   }
   return null;
 }

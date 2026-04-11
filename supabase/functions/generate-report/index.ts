@@ -47,7 +47,20 @@ Pour chaque cible (2-3 max) :
 **Volume nécessaire :** [nombre de clients]
 **Réinvestissement :** [stratégie]
 
-## 5. DERNIER CONSEIL D'ÉDOUARD
+## 5. INDICE DE FAISABILITÉ-RENTABILITÉ
+
+Évalue chaque dimension avec une pastille :
+🟢 Très faisable/rentable | 🔵 Faisable avec ajustements | 🟡 Incertain | 🟠 Difficile | 🔴 Très risqué | 🟣 Fortement déconseillé
+
+- **Faisabilité technique :** [pastille] [justification courte]
+- **Potentiel de marché :** [pastille] [justification courte]
+- **Rentabilité :** [pastille] [justification courte]
+- **Acquisition client :** [pastille] [justification courte]
+- **Risque global :** [pastille] [justification courte] (inversé : 🟢 = peu de risque)
+
+**VERDICT GLOBAL : [pastille unique] [phrase de conclusion]**
+
+## 6. DERNIER CONSEIL D'ÉDOUARD
 
 [Un paragraphe direct, percutant, sans langue de bois. Ton conseil le plus important.]
 

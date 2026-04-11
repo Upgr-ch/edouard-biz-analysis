@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Send, Brain, User, Paperclip, FileText, X, Mic } from "lucide-react";
+import { Send, Brain, User, Paperclip, FileText, X, Mic, Download } from "lucide-react";
+import { generateSynthesisReport } from "@/lib/generateReport";
 import { cn } from "@/lib/utils";
 import { parseDocument, getFileType, truncateIfNeeded, type SupportedFileType } from "@/lib/documentParser";
 import { toast } from "sonner";
@@ -16,6 +17,8 @@ interface Message {
 interface ChatPanelProps {
   stepContext: string;
   conversationId: string | null;
+  conversationTitle?: string;
+  currentStep?: number;
   persistedMessages: ChatMessage[];
   setPersistedMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
   saveMessage: (conversationId: string, role: "user" | "assistant", content: string) => Promise<string | null>;

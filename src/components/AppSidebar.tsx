@@ -9,7 +9,7 @@ const steps = [
   { id: 0, label: "Projet", icon: Brain, short: "PRJ" },
   { id: 1, label: "Cadrage", icon: Target, short: "CAD" },
   { id: 2, label: "Marché", icon: BarChart3, short: "MKT" },
-  { id: 3, label: "SWOT", icon: Grid3X3, short: "SWT" },
+  { id: 3, label: "Diagnostic", icon: Grid3X3, short: "DIA" },
   { id: 4, label: "Objectifs", icon: Flag, short: "OBJ" },
   { id: 5, label: "Économie", icon: Calculator, short: "ECO" },
   { id: 6, label: "Faisabilité", icon: TrendingUp, short: "FEA" },

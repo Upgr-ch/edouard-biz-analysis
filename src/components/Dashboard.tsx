@@ -3,24 +3,64 @@ import AppSidebar from "@/components/AppSidebar";
 import ChatPanel from "@/components/ChatPanel";
 import { Menu, Brain, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useConversations } from "@/hooks/useConversations";
 
 const stepLabels = ["Projet", "Cadrage", "Marché", "Diagnostic", "Objectifs", "Économie", "Faisabilité", "Acquisition", "Synthèse"];
 
 const Dashboard = () => {
   const { signOut } = useAuth();
-  const [currentStep, setCurrentStep] = useState(0);
+  const {
+    conversations, activeConversation, activeConversationId,
+    messages, setMessages,
+    loading,
+    createConversation, deleteConversation, updateTitle, updateStep,
+    saveMessage, updateMessageContent, switchConversation,
+  } = useConversations();
+
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const currentStep = activeConversation?.current_step ?? 0;
+
+  const handleStepChange = (step: number) => {
+    if (activeConversationId) {
+      updateStep(activeConversationId, step);
+    }
+  };
+
+  const handleNewConversation = async () => {
+    await createConversation();
+  };
+
+  const sidebarProps = {
+    currentStep,
+    onStepChange: handleStepChange,
+    completedSteps,
+    conversations,
+    activeConversationId,
+    onNewConversation: handleNewConversation,
+    onSwitchConversation: switchConversation,
+    onDeleteConversation: deleteConversation,
+  };
+
+  if (loading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-background">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center animate-pulse">
+            <Brain className="w-4 h-4 text-primary-foreground" />
+          </div>
+          <span className="text-muted-foreground text-sm">Chargement…</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen flex overflow-hidden bg-background">
       {/* Desktop sidebar */}
       <div className="hidden md:block shrink-0">
-        <AppSidebar
-          currentStep={currentStep}
-          onStepChange={setCurrentStep}
-          completedSteps={completedSteps}
-        />
+        <AppSidebar {...sidebarProps} />
       </div>
 
       {/* Mobile sidebar overlay */}
@@ -32,12 +72,15 @@ const Dashboard = () => {
           />
           <div className="absolute left-0 top-0 bottom-0 w-64 shadow-xl">
             <AppSidebar
-              currentStep={currentStep}
+              {...sidebarProps}
               onStepChange={(step) => {
-                setCurrentStep(step);
+                handleStepChange(step);
                 setSidebarOpen(false);
               }}
-              completedSteps={completedSteps}
+              onSwitchConversation={(id) => {
+                switchConversation(id);
+                setSidebarOpen(false);
+              }}
             />
           </div>
         </div>
@@ -81,7 +124,16 @@ const Dashboard = () => {
 
         {/* Chat */}
         <div className="flex-1 min-h-0">
-          <ChatPanel stepContext={stepLabels[currentStep]} />
+          <ChatPanel
+            stepContext={stepLabels[currentStep]}
+            conversationId={activeConversationId}
+            persistedMessages={messages}
+            setPersistedMessages={setMessages}
+            saveMessage={saveMessage}
+            updateMessageContent={updateMessageContent}
+            onUpdateTitle={updateTitle}
+            onCreateConversation={createConversation}
+          />
         </div>
       </div>
     </div>

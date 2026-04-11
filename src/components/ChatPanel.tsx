@@ -1,9 +1,10 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Send, Brain, User, Paperclip, FileText, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { parseDocument, getFileType, truncateIfNeeded, type SupportedFileType } from "@/lib/documentParser";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
+import type { ChatMessage } from "@/hooks/useConversations";
 
 interface Message {
   id: string;
@@ -13,6 +14,13 @@ interface Message {
 
 interface ChatPanelProps {
   stepContext: string;
+  conversationId: string | null;
+  persistedMessages: ChatMessage[];
+  setPersistedMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
+  saveMessage: (conversationId: string, role: "user" | "assistant", content: string) => Promise<string | null>;
+  updateMessageContent: (messageId: string, content: string) => Promise<void>;
+  onUpdateTitle: (id: string, title: string) => Promise<void>;
+  onCreateConversation: (title?: string) => Promise<string | null>;
 }
 
 interface PendingFile {
@@ -28,6 +36,12 @@ const fileTypeLabels: Record<SupportedFileType, string> = {
   csv: "CSV",
   txt: "Texte",
   unsupported: "",
+};
+
+const WELCOME_MESSAGE: Message = {
+  id: "welcome",
+  role: "assistant",
+  content: "Bienvenue. Je suis Édouard. Avant toute analyse, j'ai besoin de comprendre ton projet. Décris-moi ton idée en quelques phrases : qu'est-ce que tu veux créer ou vendre, et quel problème ça résout ?",
 };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
@@ -101,7 +115,6 @@ async function streamChat({
     }
   }
 
-  // Flush remaining
   if (textBuffer.trim()) {
     for (let raw of textBuffer.split("\n")) {
       if (!raw) continue;
@@ -121,14 +134,21 @@ async function streamChat({
   onDone();
 }
 
-const ChatPanel = ({ stepContext }: ChatPanelProps) => {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "1",
-      role: "assistant",
-      content: "Bienvenue. Je suis Édouard. Avant toute analyse, j'ai besoin de comprendre ton projet. Décris-moi ton idée en quelques phrases : qu'est-ce que tu veux créer ou vendre, et quel problème ça résout ?",
-    },
-  ]);
+const ChatPanel = ({
+  stepContext,
+  conversationId,
+  persistedMessages,
+  saveMessage,
+  updateMessageContent,
+  onUpdateTitle,
+  onCreateConversation,
+}: ChatPanelProps) => {
+  // Build display messages from persisted + welcome
+  const displayMessages: Message[] = persistedMessages.length > 0
+    ? persistedMessages.map((m) => ({ id: m.id, role: m.role, content: m.content }))
+    : [WELCOME_MESSAGE];
+
+  const [streamingMessage, setStreamingMessage] = useState<Message | null>(null);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [pendingFile, setPendingFile] = useState<PendingFile | null>(null);
@@ -137,9 +157,13 @@ const ChatPanel = ({ stepContext }: ChatPanelProps) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const allMessages = streamingMessage
+    ? [...displayMessages, streamingMessage]
+    : displayMessages;
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [allMessages]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -160,9 +184,7 @@ const ChatPanel = ({ stepContext }: ChatPanelProps) => {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const removePendingFile = () => {
-    setPendingFile(null);
-  };
+  const removePendingFile = () => setPendingFile(null);
 
   const handleSend = async () => {
     if (isLoading || isParsing) return;
@@ -189,56 +211,65 @@ const ChatPanel = ({ stepContext }: ChatPanelProps) => {
 
     if (!messageContent) return;
 
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      role: "user",
-      content: messageContent,
-    };
-    setMessages((prev) => [...prev, userMessage]);
+    // Ensure we have a conversation
+    let convId = conversationId;
+    if (!convId) {
+      // Auto-create a conversation with first 50 chars as title
+      const title = messageContent.slice(0, 50).replace(/\n/g, " ");
+      convId = await onCreateConversation(title);
+      if (!convId) return;
+    }
+
+    // Auto-title: if this is the first user message, update conversation title
+    const userMsgCount = persistedMessages.filter((m) => m.role === "user").length;
+    if (userMsgCount === 0) {
+      const title = messageContent.slice(0, 60).replace(/\n/g, " ");
+      onUpdateTitle(convId, title);
+    }
+
+    // Save user message to DB
+    const userMsgId = await saveMessage(convId, "user", messageContent);
+    if (!userMsgId) return;
+
     setInput("");
     if (textareaRef.current) textareaRef.current.style.height = "auto";
     setIsLoading(true);
 
-    const allMessages = [...messages, userMessage].map((m) => ({
-      role: m.role,
-      content: m.content,
-    }));
+    // Build messages for AI (include welcome as system-like context)
+    const aiMessages = [
+      ...persistedMessages.map((m) => ({ role: m.role, content: m.content })),
+      { role: "user" as const, content: messageContent },
+    ];
 
     let assistantSoFar = "";
+    let assistantDbId: string | null = null;
 
     try {
       await streamChat({
-        messages: allMessages,
+        messages: aiMessages,
         stepContext,
         onDelta: (chunk) => {
           assistantSoFar += chunk;
-          const currentContent = assistantSoFar;
-          setMessages((prev) => {
-            const last = prev[prev.length - 1];
-            if (last?.role === "assistant" && last.id === "streaming") {
-              return prev.map((m, i) =>
-                i === prev.length - 1 ? { ...m, content: currentContent } : m
-              );
-            }
-            return [...prev, { id: "streaming", role: "assistant", content: currentContent }];
-          });
+          setStreamingMessage({ id: "streaming", role: "assistant", content: assistantSoFar });
         },
-        onDone: () => {
-          setMessages((prev) =>
-            prev.map((m) =>
-              m.id === "streaming" ? { ...m, id: Date.now().toString() } : m
-            )
-          );
+        onDone: async () => {
+          // Save assistant message
+          if (convId && assistantSoFar) {
+            assistantDbId = await saveMessage(convId, "assistant", assistantSoFar);
+          }
+          setStreamingMessage(null);
           setIsLoading(false);
         },
         onError: (error) => {
           toast.error(error);
+          setStreamingMessage(null);
           setIsLoading(false);
         },
       });
     } catch (e) {
       console.error(e);
       toast.error("Erreur de connexion. Réessaie.");
+      setStreamingMessage(null);
       setIsLoading(false);
     }
   };
@@ -262,7 +293,7 @@ const ChatPanel = ({ stepContext }: ChatPanelProps) => {
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
         <div className="max-w-3xl mx-auto space-y-4">
-          {messages.map((msg) => (
+          {allMessages.map((msg) => (
             <div
               key={msg.id}
               className={cn(
@@ -299,7 +330,7 @@ const ChatPanel = ({ stepContext }: ChatPanelProps) => {
             </div>
           ))}
 
-          {isLoading && !messages.some((m) => m.id === "streaming") && (
+          {isLoading && !streamingMessage && (
             <div className="flex gap-3 animate-fade-in">
               <div className="w-7 h-7 rounded-lg gradient-primary flex items-center justify-center flex-shrink-0">
                 <Brain className="w-3.5 h-3.5 text-primary-foreground" />

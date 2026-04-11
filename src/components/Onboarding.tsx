@@ -29,7 +29,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
               Je vais t'aider à analyser ton idée de business avec structure et honnêteté.
             </p>
             <p>
-              Je m'exprime de manière <span className="font-semibold text-foreground">ferme, assertive et juste</span>.
+              Je m'exprime de manière <span className="font-semibold text-foreground">ferme, assertive et juste</span>, ne le prends pas pour toi.
               Mon travail est de te dire la vérité business, pas de te flatter.
             </p>
             <p>

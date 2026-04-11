@@ -42,7 +42,7 @@ const fileTypeLabels: Record<SupportedFileType, string> = {
 const WELCOME_MESSAGE: Message = {
   id: "welcome",
   role: "assistant",
-  content: "**Étape 1/9 — Projet**\n\nBienvenue. Je suis Édouard. Décris-moi ton idée en quelques phrases : qu'est-ce que tu veux créer ou vendre, et quel problème ça résout ?",
+  content: "Je suis Édouard. Avant de commencer, j'ai besoin de savoir où tu en es. Choisis le profil qui te correspond :\n\n- 🟢 **Novice** — \"C'est mon tout premier projet, je pars de zéro\"\n- 🟡 **Intermédiaire** — \"J'ai déjà lancé un projet, je connais les bases\"\n- 🔴 **Confirmé** — \"J'ai plusieurs projets à mon actif, je veux aller vite\"",
 };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;

@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 const stepLabels = ["Projet", "Cadrage", "Marché", "SWOT", "Objectifs", "Économie", "Faisabilité", "Acquisition", "Synthèse"];
 
 const Dashboard = () => {
+  const { signOut } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);

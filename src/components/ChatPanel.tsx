@@ -409,6 +409,27 @@ const ChatPanel = ({
               </div>
             </div>
           )}
+
+          {/* PDF Download button at step 9 */}
+          {currentStep === 8 && persistedMessages.length > 0 && !isLoading && (
+            <div className="flex justify-center animate-fade-in py-4">
+              <button
+                onClick={() => {
+                  const name = conversationTitle || "Analyse";
+                  generateSynthesisReport({
+                    projectName: name,
+                    messages: persistedMessages.map((m) => ({ role: m.role, content: m.content })),
+                  });
+                  toast.success("Rapport PDF téléchargé !");
+                }}
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20"
+              >
+                <Download className="w-4 h-4" />
+                Télécharger la synthèse PDF
+              </button>
+            </div>
+          )}
+
           <div ref={messagesEndRef} />
         </div>
       </div>

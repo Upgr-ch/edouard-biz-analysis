@@ -64,9 +64,18 @@ const Dashboard = () => {
           <span className="text-xs text-muted-foreground hidden sm:block">
             Consultant en faisabilité & rentabilité
           </span>
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full bg-decision-viable animate-pulse" />
-            <span className="text-xs text-muted-foreground">En ligne</span>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 rounded-full bg-decision-viable animate-pulse" />
+              <span className="text-xs text-muted-foreground">En ligne</span>
+            </div>
+            <button
+              onClick={signOut}
+              className="p-2 rounded-lg hover:bg-accent transition-colors text-muted-foreground"
+              title="Se déconnecter"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
           </div>
         </div>
 

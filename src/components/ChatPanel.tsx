@@ -35,6 +35,16 @@ function detectStep(text: string): number | null {
   return null;
 }
 
+/** Detect chosen conversation name from pattern like **[NOM_CHOISI]** */
+function detectChosenName(text: string): string | null {
+  // Match a standalone **[Some Name]** pattern (the confirmation line)
+  const match = text.match(/\*\*\[([^\]]+)\]\*\*/);
+  if (match && match[1].length > 2 && match[1].length < 80) {
+    return match[1];
+  }
+  return null;
+}
+
 interface PendingFile {
   file: File;
   name: string;
@@ -291,6 +301,11 @@ const ChatPanel = ({
           setStreamingMessage({ id: "streaming", role: "assistant", content: assistantSoFar });
           const step = detectStep(assistantSoFar);
           if (step !== null && onStepDetected) onStepDetected(step);
+          // Detect chosen conversation name
+          const chosenName = detectChosenName(assistantSoFar);
+          if (chosenName && convId) {
+            onUpdateTitle(convId, chosenName);
+          }
         },
         onDone: async () => {
           // Save assistant message

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Send, Brain, User, Paperclip, FileText, X, Mic, Download } from "lucide-react";
-import { generateSynthesisReport } from "@/lib/generateReport";
+import { fetchSynthesis, renderReportPdf } from "@/lib/generateReport";
 import { cn } from "@/lib/utils";
 import { parseDocument, getFileType, truncateIfNeeded, type SupportedFileType } from "@/lib/documentParser";
 import { toast } from "sonner";
@@ -414,15 +414,25 @@ const ChatPanel = ({
           {currentStep === 8 && persistedMessages.length > 0 && !isLoading && (
             <div className="flex justify-center animate-fade-in py-4">
               <button
-                onClick={() => {
+                onClick={async () => {
                   const name = conversationTitle || "Analyse";
-                  generateSynthesisReport({
-                    projectName: name,
-                    messages: persistedMessages.map((m) => ({ role: m.role, content: m.content })),
-                  });
-                  toast.success("Rapport PDF téléchargé !");
+                  const btn = document.activeElement as HTMLButtonElement;
+                  if (btn) btn.disabled = true;
+                  toast.info("Génération du rapport en cours…");
+                  try {
+                    const report = await fetchSynthesis(
+                      persistedMessages.map((m) => ({ role: m.role, content: m.content })),
+                      name,
+                    );
+                    renderReportPdf(report, name);
+                    toast.success("Rapport PDF téléchargé !");
+                  } catch (err: any) {
+                    toast.error(err.message || "Erreur lors de la génération du rapport");
+                  } finally {
+                    if (btn) btn.disabled = false;
+                  }
                 }}
-                className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20"
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20 disabled:opacity-50"
               >
                 <Download className="w-4 h-4" />
                 Télécharger la synthèse PDF

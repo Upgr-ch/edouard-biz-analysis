@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import AppSidebar from "@/components/AppSidebar";
 import ChatPanel from "@/components/ChatPanel";
 import { Menu, Brain, LogOut } from "lucide-react";
@@ -155,11 +156,17 @@ const Dashboard = () => {
 
         {/* Footer legal links */}
         <div className="px-4 py-2 border-t border-border bg-card/30 flex items-center justify-center gap-1 flex-wrap">
-          {["Politique de cookies", "Politique de confidentialité", "Mentions légales", "CVG", "CGU"].map((label, i, arr) => (
-            <span key={label} className="flex items-center">
-              <button className="text-[10px] text-muted-foreground/60 hover:text-muted-foreground transition-colors">
-                {label}
-              </button>
+          {[
+            { label: "Politique de cookies", path: "/cookies" },
+            { label: "Politique de confidentialité", path: "/confidentialite" },
+            { label: "Mentions légales", path: "/mentions-legales" },
+            { label: "CGV", path: "/cgv" },
+            { label: "CGU", path: "/cgu" },
+          ].map((item, i, arr) => (
+            <span key={item.path} className="flex items-center">
+              <Link to={item.path} target="_blank" className="text-[10px] text-muted-foreground/60 hover:text-muted-foreground transition-colors">
+                {item.label}
+              </Link>
               {i < arr.length - 1 && <span className="text-muted-foreground/30 mx-1 text-[10px]">|</span>}
             </span>
           ))}

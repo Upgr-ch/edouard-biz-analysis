@@ -412,15 +412,58 @@ const ChatPanel = ({
 
           <textarea
             ref={textareaRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
+            value={isListening ? input + (interimTranscript ? (input ? " " : "") + interimTranscript : "") : input}
+            onChange={(e) => { if (!isListening) setInput(e.target.value); }}
             onInput={handleInput}
             onKeyDown={handleKeyDown}
-            placeholder={isParsing ? "Analyse du document en cours…" : pendingFile ? "Ajoutez un commentaire (optionnel)…" : "Décris ton idée de business..."}
+            placeholder={isListening ? "🎙️ Parlez maintenant…" : isParsing ? "Analyse du document en cours…" : pendingFile ? "Ajoutez un commentaire (optionnel)…" : "Décris ton idée de business..."}
             rows={1}
-            className="flex-1 resize-none bg-card border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all"
+            className={cn(
+              "flex-1 resize-none bg-card border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all",
+              isListening ? "border-primary/60 ring-1 ring-primary/30" : "border-border"
+            )}
+            readOnly={isListening}
             disabled={isParsing}
           />
+          {isSpeechSupported && (
+            <div className="relative shrink-0">
+              {isListening && (
+                <span className="absolute inset-0 rounded-xl bg-destructive/30 animate-pulse pointer-events-none" />
+              )}
+              <button
+                type="button"
+                onPointerDown={handleMicDown}
+                onPointerUp={handleMicUp}
+                onPointerLeave={handleMicUp}
+                onContextMenu={(e) => e.preventDefault()}
+                disabled={isLoading || isParsing}
+                className={cn(
+                  "p-3 rounded-xl relative z-10 transition-colors select-none touch-none disabled:opacity-40",
+                  isListening
+                    ? "text-destructive bg-destructive/10 hover:bg-destructive/15"
+                    : "text-muted-foreground hover:text-primary hover:bg-primary/5"
+                )}
+                title="Maintenez pour dicter"
+              >
+                {isListening ? (
+                  <div className="flex items-center justify-center gap-[3px]">
+                    {[0, 1, 2, 3].map((i) => (
+                      <span
+                        key={i}
+                        className="w-[3px] rounded-full bg-destructive animate-pulse"
+                        style={{
+                          height: "14px",
+                          animationDelay: `${i * 0.15}s`,
+                        }}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <Mic className="w-4 h-4" />
+                )}
+              </button>
+            </div>
+          )}
           <button
             onClick={handleSend}
             disabled={(!input.trim() && !pendingFile) || isLoading || isParsing}

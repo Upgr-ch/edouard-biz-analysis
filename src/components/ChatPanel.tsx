@@ -105,11 +105,12 @@ const ChatPanel = ({ stepContext }: ChatPanelProps) => {
           </div>
         )}
         <div ref={messagesEndRef} />
+        </div>
       </div>
 
       {/* Input */}
-      <div className="p-4 border-t border-border">
-        <div className="flex gap-2">
+      <div className="p-4 border-t border-border bg-card/50 backdrop-blur-sm">
+        <div className="flex gap-2 max-w-3xl mx-auto">
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}

@@ -53,7 +53,7 @@ export function useConversations() {
       console.error("Error loading messages:", error);
       return;
     }
-    setMessages(data || []);
+    setMessages((data || []).map((m) => ({ ...m, role: m.role as "user" | "assistant" })));
   }, []);
 
   // Create new conversation

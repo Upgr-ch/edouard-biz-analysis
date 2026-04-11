@@ -158,6 +158,31 @@ const ChatPanel = ({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const { isListening, transcript, interimTranscript, isSupported: isSpeechSupported, startListening, stopListening, resetTranscript } = useSpeechRecognition({
+    onPermissionDenied: () => {
+      toast.warning("Accès au microphone refusé. Autorisez le micro dans les paramètres de votre navigateur.");
+    },
+  });
+
+  // Append finalized speech transcript to input
+  useEffect(() => {
+    if (transcript) {
+      setInput(prev => {
+        const separator = prev && !prev.endsWith(" ") ? " " : "";
+        return prev + separator + transcript;
+      });
+      resetTranscript();
+    }
+  }, [transcript, resetTranscript]);
+
+  const handleMicDown = () => {
+    if (!isLoading && !isParsing) startListening();
+  };
+
+  const handleMicUp = () => {
+    stopListening();
+  };
+
   const allMessages = streamingMessage
     ? [...displayMessages, streamingMessage]
     : displayMessages;

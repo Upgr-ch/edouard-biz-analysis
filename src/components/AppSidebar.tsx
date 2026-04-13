@@ -12,7 +12,7 @@ const steps = [
   { id: 2, label: "Marché", icon: BarChart3 },
   { id: 3, label: "Diagnostic", icon: Grid3X3 },
   { id: 4, label: "Objectifs", icon: Flag },
-  { id: 5, label: "Économie", icon: Calculator },
+  { id: 5, label: "Économie & Financement", icon: Calculator },
   { id: 6, label: "Faisabilité", icon: TrendingUp },
   { id: 7, label: "Acquisition", icon: Users },
   { id: 8, label: "Synthèse", icon: FileText },

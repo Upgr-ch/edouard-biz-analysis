@@ -6,7 +6,7 @@ import { Menu, Brain, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useConversations } from "@/hooks/useConversations";
 
-const stepLabels = ["Projet", "Cadrage", "Marché", "Diagnostic", "Objectifs", "Économie", "Faisabilité", "Acquisition", "Synthèse"];
+const stepLabels = ["Projet", "Cadrage", "Marché", "Diagnostic", "Objectifs", "Économie & Financement", "Faisabilité", "Acquisition", "Synthèse"];
 
 const Dashboard = () => {
   const { signOut } = useAuth();

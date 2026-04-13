@@ -1,10 +1,14 @@
+import { useState } from "react";
 import { ArrowRight, Brain } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface OnboardingProps {
   onComplete: () => void;
 }
 
 const Onboarding = ({ onComplete }: OnboardingProps) => {
+  const [accepted, setAccepted] = useState(false);
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="max-w-2xl w-full animate-fade-in">
@@ -48,9 +52,24 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
             </div>
           </div>
 
+          {/* Disclaimer checkbox */}
+          <div className="mt-8 p-4 rounded-xl border border-border bg-card/50">
+            <label className="flex items-start gap-3 cursor-pointer select-none">
+              <Checkbox
+                checked={accepted}
+                onCheckedChange={(checked) => setAccepted(checked === true)}
+                className="mt-0.5"
+              />
+              <span className="text-xs text-muted-foreground leading-relaxed">
+                <span className="font-semibold text-foreground">AVERTISSEMENT :</span> Les analyses sont fournies à titre informatif et consultatif uniquement. Elles ne constituent pas une garantie de résultat ni un conseil engageant. L'utilisation des informations et les décisions prises relèvent entièrement de la responsabilité de l'utilisateur.
+              </span>
+            </label>
+          </div>
+
           <button
             onClick={onComplete}
-            className="mt-10 w-full gradient-primary text-primary-foreground font-semibold py-4 px-6 rounded-xl hover:opacity-90 transition-all glow-primary flex items-center justify-center gap-2 text-base"
+            disabled={!accepted}
+            className="mt-10 w-full gradient-primary text-primary-foreground font-semibold py-4 px-6 rounded-xl hover:opacity-90 transition-all glow-primary flex items-center justify-center gap-2 text-base disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
           >
             Commencer l'analyse
             <ArrowRight className="w-5 h-5" />

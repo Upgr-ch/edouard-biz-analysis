@@ -140,21 +140,31 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Chat */}
+        {/* Chat or Fiscal Disclaimer */}
         <div className="flex-1 min-h-0">
-          <ChatPanel
-            stepContext={`Étape ${currentStep + 1}/9 — ${stepLabels[currentStep]}`}
-            conversationId={activeConversationId}
-            conversationTitle={activeConversation?.title}
-            currentStep={currentStep}
-            persistedMessages={messages}
-            setPersistedMessages={setMessages}
-            saveMessage={saveMessage}
-            updateMessageContent={updateMessageContent}
-            onUpdateTitle={updateTitle}
-            onCreateConversation={createConversation}
-            onStepDetected={handleStepDetected}
-          />
+          {currentStep === 6 ? (
+            <FiscalDisclaimer
+              onContinue={() => {
+                if (activeConversationId) {
+                  updateStep(activeConversationId, 7);
+                }
+              }}
+            />
+          ) : (
+            <ChatPanel
+              stepContext={`Étape ${currentStep + 1}/10 — ${stepLabels[currentStep]}`}
+              conversationId={activeConversationId}
+              conversationTitle={activeConversation?.title}
+              currentStep={currentStep}
+              persistedMessages={messages}
+              setPersistedMessages={setMessages}
+              saveMessage={saveMessage}
+              updateMessageContent={updateMessageContent}
+              onUpdateTitle={updateTitle}
+              onCreateConversation={createConversation}
+              onStepDetected={handleStepDetected}
+            />
+          )}
         </div>
 
         {/* Footer legal links */}

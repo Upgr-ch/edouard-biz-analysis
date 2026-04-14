@@ -30,10 +30,10 @@ interface ChatPanelProps {
 
 /** Extract step number from AI text like "Étape 3/9" or "**Étape 5/9 —" */
 function detectStep(text: string): number | null {
-  const match = text.match(/\*?\*?[ÉE]tape\s+(\d)\/9/i);
+  const match = text.match(/\*?\*?[ÉE]tape\s+(\d{1,2})\/10/i);
   if (match) {
     const n = parseInt(match[1], 10);
-    if (n >= 1 && n <= 9) return n - 1; // 0-indexed
+    if (n >= 1 && n <= 10) return n - 1; // 0-indexed
   }
   return null;
 }
@@ -411,7 +411,7 @@ const ChatPanel = ({
           )}
 
           {/* PDF Download button at step 9 */}
-          {currentStep === 8 && persistedMessages.length > 0 && !isLoading && (
+          {currentStep === 9 && persistedMessages.length > 0 && !isLoading && (
             <div className="flex justify-center animate-fade-in py-4">
               <button
                 onClick={async () => {

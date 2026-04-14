@@ -13,8 +13,8 @@ const FiscalDisclaimer = ({ onContinue }: FiscalDisclaimerProps) => {
     <div className="flex-1 flex items-center justify-center p-6">
       <div className="max-w-lg w-full animate-fade-in">
         <div className="flex items-center justify-center mb-8">
-          <div className="w-14 h-14 rounded-2xl bg-amber-500/15 flex items-center justify-center">
-            <Scale className="w-7 h-7 text-amber-400" />
+          <div className="w-14 h-14 rounded-2xl bg-primary/15 flex items-center justify-center">
+            <Scale className="w-7 h-7 text-primary" />
           </div>
         </div>
 

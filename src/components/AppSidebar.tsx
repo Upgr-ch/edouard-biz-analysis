@@ -1,10 +1,4 @@
-import { cn } from "@/lib/utils";
-import {
-  Target, BarChart3, Grid3X3, Flag, Calculator, TrendingUp, Users, FileText,
-  Brain, ChevronLeft, ChevronRight, Plus, Trash2, MessageSquare, Check
-} from "lucide-react";
-import { useState } from "react";
-import type { Conversation } from "@/hooks/useConversations";
+
 
 import { cn } from "@/lib/utils";
 import {

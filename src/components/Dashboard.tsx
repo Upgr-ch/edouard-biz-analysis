@@ -1,10 +1,4 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import AppSidebar from "@/components/AppSidebar";
-import ChatPanel from "@/components/ChatPanel";
-import { Menu, Brain, LogOut } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
-import { useConversations } from "@/hooks/useConversations";
+
 
 import { useState } from "react";
 import { Link } from "react-router-dom";

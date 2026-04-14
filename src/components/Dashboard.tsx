@@ -6,7 +6,16 @@ import { Menu, Brain, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useConversations } from "@/hooks/useConversations";
 
-const stepLabels = ["Projet", "Cadrage", "Marché", "Diagnostic", "Objectifs", "Économie & Financement", "Faisabilité", "Acquisition", "Synthèse"];
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import AppSidebar from "@/components/AppSidebar";
+import ChatPanel from "@/components/ChatPanel";
+import FiscalDisclaimer from "@/components/FiscalDisclaimer";
+import { Menu, Brain, LogOut } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useConversations } from "@/hooks/useConversations";
+
+const stepLabels = ["Projet", "Cadrage", "Marché", "Diagnostic", "Objectifs", "Économie & Financement", "Statut et Fiscalité", "Faisabilité", "Acquisition", "Synthèse"];
 
 const Dashboard = () => {
   const { signOut } = useAuth();

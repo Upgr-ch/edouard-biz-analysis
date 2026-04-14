@@ -6,6 +6,14 @@ import {
 import { useState } from "react";
 import type { Conversation } from "@/hooks/useConversations";
 
+import { cn } from "@/lib/utils";
+import {
+  Target, BarChart3, Grid3X3, Flag, Calculator, TrendingUp, Users, FileText,
+  Brain, ChevronLeft, ChevronRight, Plus, Trash2, MessageSquare, Check, Scale
+} from "lucide-react";
+import { useState } from "react";
+import type { Conversation } from "@/hooks/useConversations";
+
 const steps = [
   { id: 0, label: "Projet", icon: Brain },
   { id: 1, label: "Cadrage", icon: Target },
@@ -13,9 +21,10 @@ const steps = [
   { id: 3, label: "Diagnostic", icon: Grid3X3 },
   { id: 4, label: "Objectifs", icon: Flag },
   { id: 5, label: "Économie & Financement", icon: Calculator },
-  { id: 6, label: "Faisabilité", icon: TrendingUp },
-  { id: 7, label: "Acquisition", icon: Users },
-  { id: 8, label: "Synthèse", icon: FileText },
+  { id: 6, label: "Statut et Fiscalité", icon: Scale },
+  { id: 7, label: "Faisabilité", icon: TrendingUp },
+  { id: 8, label: "Acquisition", icon: Users },
+  { id: 9, label: "Synthèse", icon: FileText },
 ];
 
 interface AppSidebarProps {

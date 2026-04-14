@@ -1,12 +1,15 @@
+
+
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import AppSidebar from "@/components/AppSidebar";
 import ChatPanel from "@/components/ChatPanel";
+import FiscalDisclaimer from "@/components/FiscalDisclaimer";
 import { Menu, Brain, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useConversations } from "@/hooks/useConversations";
 
-const stepLabels = ["Projet", "Cadrage", "Marché", "Diagnostic", "Objectifs", "Économie & Financement", "Faisabilité", "Acquisition", "Synthèse"];
+const stepLabels = ["Projet", "Cadrage", "Marché", "Diagnostic", "Objectifs", "Économie & Financement", "Statut et Fiscalité", "Faisabilité", "Acquisition", "Synthèse"];
 
 const Dashboard = () => {
   const { signOut } = useAuth();
@@ -137,21 +140,31 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Chat */}
+        {/* Chat or Fiscal Disclaimer */}
         <div className="flex-1 min-h-0">
-          <ChatPanel
-            stepContext={`Étape ${currentStep + 1}/9 — ${stepLabels[currentStep]}`}
-            conversationId={activeConversationId}
-            conversationTitle={activeConversation?.title}
-            currentStep={currentStep}
-            persistedMessages={messages}
-            setPersistedMessages={setMessages}
-            saveMessage={saveMessage}
-            updateMessageContent={updateMessageContent}
-            onUpdateTitle={updateTitle}
-            onCreateConversation={createConversation}
-            onStepDetected={handleStepDetected}
-          />
+          {currentStep === 6 ? (
+            <FiscalDisclaimer
+              onContinue={() => {
+                if (activeConversationId) {
+                  updateStep(activeConversationId, 7);
+                }
+              }}
+            />
+          ) : (
+            <ChatPanel
+              stepContext={`Étape ${currentStep + 1}/10 — ${stepLabels[currentStep]}`}
+              conversationId={activeConversationId}
+              conversationTitle={activeConversation?.title}
+              currentStep={currentStep}
+              persistedMessages={messages}
+              setPersistedMessages={setMessages}
+              saveMessage={saveMessage}
+              updateMessageContent={updateMessageContent}
+              onUpdateTitle={updateTitle}
+              onCreateConversation={createConversation}
+              onStepDetected={handleStepDetected}
+            />
+          )}
         </div>
 
         {/* Footer legal links */}

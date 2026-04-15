@@ -120,12 +120,39 @@ const StepContent = ({ currentStep }: StepContentProps) => {
 
       {/* Decision badges preview */}
       {currentStep === 8 && (
-        <div className="glass-card rounded-xl p-6 mb-6">
-          <h3 className="text-sm font-semibold text-foreground mb-4">Système de Décision</h3>
-          <div className="flex flex-wrap gap-2">
-            {["très viable", "viable ajusté", "incertain", "non viable", "critique"].map((s) => (
-              <DecisionBadge key={s} status={s} />
-            ))}
+        <div className="space-y-4 mb-6">
+          <div className="glass-card rounded-xl p-6">
+            <h3 className="text-sm font-semibold text-foreground mb-4">Système de Décision</h3>
+            <div className="flex flex-wrap gap-2">
+              {["très viable", "viable ajusté", "incertain", "non viable", "critique"].map((s) => (
+                <DecisionBadge key={s} status={s} />
+              ))}
+            </div>
+          </div>
+
+          <div className="glass-card rounded-xl p-6">
+            <h3 className="text-sm font-semibold text-foreground mb-4">Légende des Pastilles</h3>
+            <div className="space-y-2.5 text-sm">
+              {[
+                { emoji: "🟢", label: "Très faisable / Très rentable", desc: "Tous les voyants sont au vert" },
+                { emoji: "🔵", label: "Faisable avec ajustements", desc: "Potentiel réel, corrections nécessaires" },
+                { emoji: "🟡", label: "Incertain / À valider", desc: "Trop d'inconnues, validation terrain requise" },
+                { emoji: "🟠", label: "Difficile / Peu rentable", desc: "Problèmes structurels identifiés" },
+                { emoji: "🔴", label: "Très risqué / Non rentable", desc: "Risques rédhibitoires" },
+                { emoji: "🟣", label: "Fortement déconseillé", desc: "Le projet ne doit pas être lancé en l'état" },
+              ].map((item) => (
+                <div key={item.emoji} className="flex items-start gap-3">
+                  <span className="text-base leading-5 shrink-0">{item.emoji}</span>
+                  <div>
+                    <span className="font-medium text-foreground">{item.label}</span>
+                    <span className="text-muted-foreground"> — {item.desc}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground mt-4 border-t border-border/50 pt-3">
+              ⚠️ Pour le <strong>Risque global</strong>, l'échelle est inversée : 🟢 = peu de risque, 🟣 = risque extrême.
+            </p>
           </div>
         </div>
       )}

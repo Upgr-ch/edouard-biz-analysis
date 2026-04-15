@@ -410,6 +410,31 @@ const ChatPanel = ({
             </div>
           )}
 
+          {/* Legend for decision indicators at Synthèse step */}
+          {currentStep === 9 && (
+            <div className="mx-4 my-4 rounded-xl border border-border bg-card/60 p-4 animate-fade-in">
+              <h4 className="text-sm font-semibold text-foreground mb-3">Légende des pastilles</h4>
+              <div className="space-y-1.5 text-sm">
+                {[
+                  { emoji: "🟢", label: "Très faisable / Très rentable", desc: "Tous les voyants sont au vert" },
+                  { emoji: "🔵", label: "Faisable avec ajustements", desc: "Potentiel réel, corrections nécessaires" },
+                  { emoji: "🟡", label: "Incertain / À valider", desc: "Trop d'inconnues, validation terrain requise" },
+                  { emoji: "🟠", label: "Difficile / Peu rentable", desc: "Problèmes structurels identifiés" },
+                  { emoji: "🔴", label: "Très risqué / Non rentable", desc: "Risques rédhibitoires" },
+                  { emoji: "🟣", label: "Fortement déconseillé", desc: "Le projet ne doit pas être lancé en l'état" },
+                ].map((item) => (
+                  <div key={item.emoji} className="flex items-start gap-2">
+                    <span className="text-base leading-5 shrink-0">{item.emoji}</span>
+                    <span><span className="font-medium text-foreground">{item.label}</span><span className="text-muted-foreground"> — {item.desc}</span></span>
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground mt-3 pt-2 border-t border-border/50">
+                ⚠️ Pour le <strong>Risque global</strong>, l'échelle est inversée : 🟢 = peu de risque, 🟣 = risque extrême.
+              </p>
+            </div>
+          )}
+
           {/* PDF Download button at step 9 */}
           {currentStep === 9 && persistedMessages.length > 0 && !isLoading && (
             <div className="flex justify-center animate-fade-in py-4">

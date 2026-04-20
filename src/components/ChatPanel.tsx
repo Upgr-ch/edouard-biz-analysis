@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   ANON_MAX_MESSAGES,
   appendAnonMessage,
+  getAnonMessages,
   getAnonUserMessageCount,
   setPendingMessage,
 } from "@/lib/anonymousChat";

@@ -243,9 +243,36 @@ serve(async (req) => {
     // ===== Optimisation : ne garder que les N derniers messages =====
     const trimmed = sanitized.slice(-MAX_HISTORY_MESSAGES);
 
+    // ===== Détection géographique implicite (via headers de la requête) =====
+    const country =
+      req.headers.get("cf-ipcountry") ||
+      req.headers.get("x-vercel-ip-country") ||
+      req.headers.get("x-country-code") ||
+      "";
+    const city =
+      req.headers.get("cf-ipcity") ||
+      req.headers.get("x-vercel-ip-city") ||
+      "";
+
+    // Mapping pays → monnaie locale par défaut
+    const currencyMap: Record<string, string> = {
+      CH: "CHF",
+      FR: "EUR", BE: "EUR", LU: "EUR", DE: "EUR", IT: "EUR", ES: "EUR", PT: "EUR", NL: "EUR", AT: "EUR", IE: "EUR", FI: "EUR", GR: "EUR",
+      SN: "XOF", CI: "XOF", BJ: "XOF", BF: "XOF", ML: "XOF", NE: "XOF", TG: "XOF", GW: "XOF",
+      CM: "XAF", GA: "XAF", CG: "XAF", TD: "XAF", CF: "XAF", GQ: "XAF",
+      MA: "MAD", TN: "TND", DZ: "DZD", MR: "MRU",
+      CD: "CDF", RW: "RWF", BI: "BIF", MG: "MGA",
+      CA: "CAD", US: "USD", GB: "GBP",
+    };
+    const currency = country && currencyMap[country] ? currencyMap[country] : "EUR";
+
+    const geoBlock = country
+      ? `\n\n## Contexte géographique de l'utilisateur (à utiliser implicitement, sans jamais le mentionner)\n- Pays : ${country}${city ? `\n- Ville : ${city}` : ""}\n- Monnaie de référence pour toutes les projections chiffrées : ${currency}\n- Adapte ton analyse (coûts, marché, logistique, financement, acquisition) à cette réalité locale.`
+      : "";
+
     const systemContent = stepContext
-      ? `${SYSTEM_PROMPT}\n\n## Étape actuelle : ${stepContext}\nConcentre ton analyse sur cette étape.`
-      : SYSTEM_PROMPT;
+      ? `${SYSTEM_PROMPT}${geoBlock}\n\n## Étape actuelle : ${stepContext}\nConcentre ton analyse sur cette étape.`
+      : `${SYSTEM_PROMPT}${geoBlock}`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

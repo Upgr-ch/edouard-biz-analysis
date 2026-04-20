@@ -1,20 +1,27 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Brain } from "lucide-react";
 
 const Auth = () => {
-  const [mode, setMode] = useState<"login" | "signup" | "forgot">("login");
+  const [mode, setMode] = useState<"signup" | "login" | "forgot">("signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [acceptMarketing, setAcceptMarketing] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  const requiresTerms = mode === "signup";
+  const submitDisabled = loading || (requiresTerms && !acceptTerms);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitDisabled) return;
     setLoading(true);
 
     try {
@@ -33,7 +40,10 @@ const Auth = () => {
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: window.location.origin },
+          options: {
+            emailRedirectTo: window.location.origin,
+            data: { marketing_consent: acceptMarketing },
+          },
         });
         if (error) throw error;
         toast.success("Vérifiez votre email pour confirmer votre inscription.");
@@ -46,17 +56,17 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      <div className="w-full max-w-sm space-y-8">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-8">
+      <div className="w-full max-w-md space-y-8">
         <div className="text-center space-y-3">
-          <div className="w-20 h-20 rounded-2xl gradient-primary flex items-center justify-center mx-auto">
+          <div className="w-20 h-20 rounded-2xl gradient-primary flex items-center justify-center mx-auto glow-primary">
             <Brain className="w-10 h-10 text-primary-foreground" />
           </div>
-          <h1 className="text-3xl font-bold text-foreground">Édouard</h1>
-          <p className="text-muted-foreground text-sm">
+          <h1 className="text-3xl font-bold text-foreground">Authentification</h1>
+          <p className="text-muted-foreground text-sm leading-relaxed px-2">
             {mode === "forgot"
               ? "Réinitialisation du mot de passe"
-              : "Consultant en faisabilité & rentabilité"}
+              : "Afin de garantir la continuité de votre service et de sécuriser l'historique de vos échanges, la création d'un compte est nécessaire pour poursuivre cette session."}
           </p>
         </div>
 
@@ -83,14 +93,51 @@ const Auth = () => {
             )}
           </div>
 
-          <Button type="submit" className="w-full gradient-primary text-primary-foreground" disabled={loading}>
+          {mode === "signup" && (
+            <div className="space-y-3 pt-1">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <Checkbox
+                  checked={acceptTerms}
+                  onCheckedChange={(v) => setAcceptTerms(v === true)}
+                  className="mt-0.5"
+                />
+                <span className="text-xs text-muted-foreground leading-relaxed">
+                  J'accepte les{" "}
+                  <Link to="/cgu" target="_blank" className="text-primary hover:underline">
+                    Conditions Générales d'Utilisation
+                  </Link>{" "}
+                  et la{" "}
+                  <Link to="/confidentialite" target="_blank" className="text-primary hover:underline">
+                    Politique de Confidentialité
+                  </Link>
+                  . <span className="text-destructive">*</span>
+                </span>
+              </label>
+              <label className="flex items-start gap-3 cursor-pointer">
+                <Checkbox
+                  checked={acceptMarketing}
+                  onCheckedChange={(v) => setAcceptMarketing(v === true)}
+                  className="mt-0.5"
+                />
+                <span className="text-xs text-muted-foreground leading-relaxed">
+                  J'accepte de recevoir les emails d'Édouard.
+                </span>
+              </label>
+            </div>
+          )}
+
+          <Button
+            type="submit"
+            className="w-full gradient-primary text-primary-foreground"
+            disabled={submitDisabled}
+          >
             {loading
               ? "Chargement..."
               : mode === "forgot"
               ? "Envoyer le lien"
               : mode === "login"
               ? "Se connecter"
-              : "S'inscrire"}
+              : "Valider et continuer"}
           </Button>
         </form>
 

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Send, Brain, User, Paperclip, FileText, X, Mic, Download } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Send, Brain, User, Paperclip, FileText, X, Mic, Download, Lock } from "lucide-react";
 import { fetchSynthesis, renderReportPdf } from "@/lib/generateReport";
 import { cn } from "@/lib/utils";
 import { parseDocument, getFileType, truncateIfNeeded, type SupportedFileType } from "@/lib/documentParser";
@@ -7,7 +8,15 @@ import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import type { ChatMessage } from "@/hooks/useConversations";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
+import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  ANON_MAX_MESSAGES,
+  appendAnonMessage,
+  getAnonMessages,
+  getAnonUserMessageCount,
+  setPendingMessage,
+} from "@/lib/anonymousChat";
 
 interface Message {
   id: string;
@@ -181,10 +190,24 @@ const ChatPanel = ({
   onCreateConversation,
   onStepDetected,
 }: ChatPanelProps) => {
-  // Build display messages from persisted + welcome
-  const displayMessages: Message[] = persistedMessages.length > 0
-    ? persistedMessages.map((m) => ({ id: m.id, role: m.role, content: m.content }))
-    : [WELCOME_MESSAGE];
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const isAnonymous = !user;
+
+  // Local anon messages (mirrors localStorage) — only used when not authenticated
+  const [anonMessages, setAnonMessages] = useState<Message[]>(() =>
+    getAnonMessages().map((m, i) => ({ id: `anon-${i}`, role: m.role, content: m.content }))
+  );
+
+  // Build display messages
+  const displayMessages: Message[] = isAnonymous
+    ? (anonMessages.length > 0 ? anonMessages : [WELCOME_MESSAGE])
+    : (persistedMessages.length > 0
+        ? persistedMessages.map((m) => ({ id: m.id, role: m.role, content: m.content }))
+        : [WELCOME_MESSAGE]);
+
+  const anonUserCount = isAnonymous ? anonMessages.filter((m) => m.role === "user").length : 0;
+  const anonLimitReached = isAnonymous && anonUserCount >= ANON_MAX_MESSAGES;
 
   const [streamingMessage, setStreamingMessage] = useState<Message | null>(null);
   const [input, setInput] = useState("");
@@ -274,10 +297,73 @@ const ChatPanel = ({
 
     if (!messageContent) return;
 
+    // ===== ANONYMOUS MODE =====
+    if (isAnonymous) {
+      const currentCount = getAnonUserMessageCount();
+      // 9th message → block, persist as pending, redirect to /auth
+      if (currentCount >= ANON_MAX_MESSAGES) {
+        setPendingMessage(messageContent);
+        toast.info("Crée ton compte pour continuer la conversation.");
+        navigate("/auth");
+        return;
+      }
+
+      // Append user message locally
+      appendAnonMessage("user", messageContent);
+      const newAnon = getAnonMessages().map((m, i) => ({
+        id: `anon-${i}`, role: m.role, content: m.content,
+      }));
+      setAnonMessages(newAnon);
+      setInput("");
+      if (textareaRef.current) textareaRef.current.style.height = "auto";
+      setIsLoading(true);
+
+      const aiMessages = newAnon.map((m) => ({ role: m.role, content: m.content }));
+      let assistantSoFar = "";
+
+      try {
+        await streamChat({
+          messages: aiMessages,
+          stepContext,
+          onDelta: (chunk) => {
+            assistantSoFar += chunk;
+            setStreamingMessage({ id: "streaming", role: "assistant", content: assistantSoFar });
+            const step = detectStep(assistantSoFar);
+            if (step !== null && onStepDetected) onStepDetected(step);
+          },
+          onDone: () => {
+            if (assistantSoFar) {
+              appendAnonMessage("assistant", assistantSoFar);
+              setAnonMessages(getAnonMessages().map((m, i) => ({
+                id: `anon-${i}`, role: m.role, content: m.content,
+              })));
+            }
+            setStreamingMessage(null);
+            setIsLoading(false);
+            // If user has now reached the limit, hint them
+            if (getAnonUserMessageCount() >= ANON_MAX_MESSAGES) {
+              toast.info("Tu as atteint la limite gratuite. Crée un compte pour continuer.");
+            }
+          },
+          onError: (error) => {
+            toast.error(error);
+            setStreamingMessage(null);
+            setIsLoading(false);
+          },
+        });
+      } catch (e) {
+        console.error(e);
+        toast.error("Erreur de connexion. Réessaie.");
+        setStreamingMessage(null);
+        setIsLoading(false);
+      }
+      return;
+    }
+
+    // ===== AUTHENTICATED MODE =====
     // Ensure we have a conversation
     let convId = conversationId;
     if (!convId) {
-      // Auto-create a conversation with first 50 chars as title
       const title = messageContent.slice(0, 50).replace(/\n/g, " ");
       convId = await onCreateConversation(title);
       if (!convId) return;
@@ -298,7 +384,6 @@ const ChatPanel = ({
     if (textareaRef.current) textareaRef.current.style.height = "auto";
     setIsLoading(true);
 
-    // Build messages for AI (include welcome as system-like context)
     const aiMessages = [
       ...persistedMessages.map((m) => ({ role: m.role, content: m.content })),
       { role: "user" as const, content: messageContent },
@@ -316,14 +401,12 @@ const ChatPanel = ({
           setStreamingMessage({ id: "streaming", role: "assistant", content: assistantSoFar });
           const step = detectStep(assistantSoFar);
           if (step !== null && onStepDetected) onStepDetected(step);
-          // Detect chosen conversation name
           const chosenName = detectChosenName(assistantSoFar);
           if (chosenName && convId) {
             onUpdateTitle(convId, chosenName);
           }
         },
         onDone: async () => {
-          // Save assistant message
           if (convId && assistantSoFar) {
             assistantDbId = await saveMessage(convId, "assistant", assistantSoFar);
           }
@@ -476,6 +559,27 @@ const ChatPanel = ({
 
       {/* Input */}
       <div className="p-4 border-t border-border bg-card/50 backdrop-blur-sm">
+        {isAnonymous && (
+          <div className="max-w-3xl mx-auto mb-3">
+            {anonLimitReached ? (
+              <button
+                onClick={() => {
+                  if (input.trim()) setPendingMessage(input.trim());
+                  navigate("/auth");
+                }}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-primary/10 hover:bg-primary/20 border border-primary/30 text-primary text-sm font-medium transition-colors"
+              >
+                <Lock className="w-4 h-4" />
+                Crée ton compte pour continuer la conversation
+              </button>
+            ) : (
+              <p className="text-xs text-muted-foreground text-center">
+                {ANON_MAX_MESSAGES - anonUserCount} message{ANON_MAX_MESSAGES - anonUserCount > 1 ? "s" : ""} gratuit{ANON_MAX_MESSAGES - anonUserCount > 1 ? "s" : ""} restant{ANON_MAX_MESSAGES - anonUserCount > 1 ? "s" : ""} avant inscription.
+              </p>
+            )}
+          </div>
+        )}
+
         {pendingFile && (
           <div className="max-w-3xl mx-auto mb-2">
             <div className="inline-flex items-center gap-2 bg-secondary border border-border rounded-lg px-3 py-1.5 text-xs text-foreground">

@@ -73,6 +73,33 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          app_source: string
+          created_at: string
+          email: string
+          id: string
+          marketing_consent: boolean
+          updated_at: string
+        }
+        Insert: {
+          app_source?: string
+          created_at?: string
+          email: string
+          id: string
+          marketing_consent?: boolean
+          updated_at?: string
+        }
+        Update: {
+          app_source?: string
+          created_at?: string
+          email?: string
+          id?: string
+          marketing_consent?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

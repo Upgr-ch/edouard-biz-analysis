@@ -6,8 +6,18 @@ import { getAnonUserMessageCount, ANON_MAX_MESSAGES } from "@/lib/anonymousChat"
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const { activeConversationId, messages, saveMessage, createConversation, updateMessageContent, onUpdateTitle } =
-    useConversations();
+  const {
+    activeConversationId,
+    conversations, // On récupère la liste pour trouver le titre
+    messages,
+    saveMessage,
+    createConversation,
+    updateMessageContent,
+    onUpdateTitle,
+  } = useConversations();
+
+  // On trouve la conversation active pour extraire son titre actuel
+  const activeConversation = conversations.find((c) => c.id === activeConversationId);
 
   // État pour suivre le quota en temps réel
   const [anonCount, setAnonCount] = useState(getAnonUserMessageCount());
@@ -19,11 +29,12 @@ const Dashboard = () => {
         <ChatPanel
           stepContext=""
           conversationId={activeConversationId}
+          conversationTitle={activeConversation?.title} // CRUCIAL : On envoie le titre à ChatPanel
           persistedMessages={messages || []}
-          setPersistedMessages={() => {}} // Pour éviter les erreurs de type
+          setPersistedMessages={() => {}}
           saveMessage={saveMessage}
           updateMessageContent={updateMessageContent}
-          onUpdateTitle={onUpdateTitle}
+          onUpdateTitle={onUpdateTitle} // On passe la fonction de mise à jour
           onCreateConversation={createConversation}
           nextMessageNumber={(messages?.length || 0) + 1}
           isQuotaReached={isQuotaReached}

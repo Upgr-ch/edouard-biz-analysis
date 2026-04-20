@@ -189,10 +189,24 @@ const ChatPanel = ({
   onCreateConversation,
   onStepDetected,
 }: ChatPanelProps) => {
-  // Build display messages from persisted + welcome
-  const displayMessages: Message[] = persistedMessages.length > 0
-    ? persistedMessages.map((m) => ({ id: m.id, role: m.role, content: m.content }))
-    : [WELCOME_MESSAGE];
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const isAnonymous = !user;
+
+  // Local anon messages (mirrors localStorage) — only used when not authenticated
+  const [anonMessages, setAnonMessages] = useState<Message[]>(() =>
+    getAnonMessages().map((m, i) => ({ id: `anon-${i}`, role: m.role, content: m.content }))
+  );
+
+  // Build display messages
+  const displayMessages: Message[] = isAnonymous
+    ? (anonMessages.length > 0 ? anonMessages : [WELCOME_MESSAGE])
+    : (persistedMessages.length > 0
+        ? persistedMessages.map((m) => ({ id: m.id, role: m.role, content: m.content }))
+        : [WELCOME_MESSAGE]);
+
+  const anonUserCount = isAnonymous ? anonMessages.filter((m) => m.role === "user").length : 0;
+  const anonLimitReached = isAnonymous && anonUserCount >= ANON_MAX_MESSAGES;
 
   const [streamingMessage, setStreamingMessage] = useState<Message | null>(null);
   const [input, setInput] = useState("");

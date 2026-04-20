@@ -1,25 +1,34 @@
 
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import AppSidebar from "@/components/AppSidebar";
 import ChatPanel from "@/components/ChatPanel";
 import FiscalDisclaimer from "@/components/FiscalDisclaimer";
-import { Menu, Brain, LogOut } from "lucide-react";
+import { Menu, Brain, LogOut, LogIn } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useConversations } from "@/hooks/useConversations";
+import { useAnonMigration } from "@/hooks/useAnonMigration";
 
 const stepLabels = ["Projet", "Cadrage", "Marché", "Diagnostic", "Objectifs", "Économie & Financement", "Statut et Fiscalité", "Faisabilité", "Acquisition", "Synthèse"];
 
 const Dashboard = () => {
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const isAnonymous = !user;
   const {
     conversations, activeConversation, activeConversationId,
     messages, setMessages,
     loading,
     createConversation, deleteConversation, updateTitle, updateStep,
     saveMessage, updateMessageContent, switchConversation,
+    loadConversations,
   } = useConversations();
+
+  // Migrate anonymous chat into a real conversation on first login
+  useAnonMigration(async () => {
+    await loadConversations();
+  });
 
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);

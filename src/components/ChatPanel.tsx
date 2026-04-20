@@ -1,15 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Send, Brain, User, Paperclip, FileText, X, Mic, Download, Lock } from "lucide-react";
-import { fetchSynthesis, renderReportPdf } from "@/lib/generateReport";
+import { Send, Brain, User, Paperclip } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { parseDocument, getFileType, truncateIfNeeded, type SupportedFileType } from "@/lib/documentParser";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
-import type { ChatMessage } from "@/hooks/useConversations";
-import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
 import {
   ANON_MAX_MESSAGES,
   appendAnonMessage,
@@ -18,94 +13,32 @@ import {
   setPendingMessage,
 } from "@/lib/anonymousChat";
 
-interface Message {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-  number?: number;
-}
-
-interface ChatPanelProps {
-  stepContext: string;
-  conversationId: string | null;
-  conversationTitle?: string;
-  currentStep?: number;
-  persistedMessages: ChatMessage[];
-  setPersistedMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
-  saveMessage: (conversationId: string, role: "user" | "assistant", content: string) => Promise<string | null>;
-  updateMessageContent: (messageId: string, content: string) => Promise<void>;
-  onUpdateTitle: (id: string, title: string) => Promise<void>;
-  onCreateConversation: (title?: string) => Promise<string | null>;
-  onStepDetected?: (step: number) => void;
-  nextMessageNumber: number;
-  isQuotaReached: boolean;
-}
-
-const WELCOME_MESSAGE: Message = {
-  id: "welcome",
-  role: "assistant",
-  content:
-    "Je suis Édouard. Je m'exprime de manière ferme et juste. Mon travail est de te dire la vérité business.\n\nChoisis ton profil :\n\n- **A. Novice**\n- **B. Intermédiaire**\n- **C. Confirmé**",
-  number: 0,
-};
-
-const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
-
 const ChatPanel = ({
-  stepContext,
   conversationId,
-  conversationTitle,
-  currentStep,
   persistedMessages = [],
   saveMessage,
-  onUpdateTitle,
   onCreateConversation,
-  onStepDetected,
-  nextMessageNumber = 1,
   isQuotaReached = false,
-}: ChatPanelProps) => {
+  nextMessageNumber = 1
+}: any) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const isAnonymous = !user;
 
-  const [anonMessages, setAnonMessages] = useState<Message[]>(() =>
-    getAnonMessages().map((m, i) => ({
-      id: `anon-${i}`,
-      role: m.role as "user" | "assistant",
-      content: m.content,
-      number: i + 1,
-    })),
+  // Initialisation des messages
+  const [anonMessages, setAnonMessages] = useState<any[]>(() =>
+    getAnonMessages().map((m, i) => ({ ...m, id: `anon-${i}`, number: i + 1 }))
   );
 
-  const displayMessages: Message[] = isAnonymous
-    ? anonMessages.length > 0
-      ? anonMessages
-      : [WELCOME_MESSAGE]
-    : persistedMessages.length > 0
-      ? persistedMessages.map((m, i) => ({
-          id: m.id,
-          role: m.role as "user" | "assistant",
-          content: m.content,
-          number: i + 1,
-        }))
-      : [WELCOME_MESSAGE];
-
-  const [streamingMessage, setStreamingMessage] = useState<Message | null>(null);
+  const [streamingMessage, setStreamingMessage] = useState<any>(null);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [pendingFile, setPendingFile] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const {
-    isListening,
-    startListening,
-    stopListening,
-    isSupported: isSpeechSupported,
-  } = useSpeechRecognition({
-    onPermissionDenied: () => toast.warning("Microphone refusé."),
-  });
+  // Fusion des messages pour l'affichage
+  const displayMessages = isAnonymous
+    ? (anonMessages.length > 0 ? anonMessages : [{ id: "welcome", role: "assistant", content: "Bonjour, je suis Édouard. Je vais analyser ton projet.", number: 0 }])
+    : persistedMessages.map((m: any, i: number) => ({ ...m, number: i + 1 }));
 
   const allMessages = streamingMessage ? [...displayMessages, streamingMessage] : displayMessages;
 
@@ -114,11 +47,14 @@ const ChatPanel = ({
   }, [allMessages]);
 
   const handleSend = async () => {
-    if (isLoading || isQuotaReached || (!input.trim() && !pendingFile)) return;
+    if (isLoading || isQuotaReached || !input.trim()) return;
 
-    let messageContent = input.trim();
+    const messageContent = input.trim();
+    
+    // Barrière d'inscription au 6ème message
     if (isAnonymous && getAnonUserMessageCount() >= ANON_MAX_MESSAGES) {
       setPendingMessage(messageContent);
+      toast.info("Crée ton compte pour voir la suite !");
       navigate("/auth");
       return;
     }
@@ -128,31 +64,18 @@ const ChatPanel = ({
 
     if (isAnonymous) {
       appendAnonMessage("user", messageContent);
-      const updated = getAnonMessages().map((m, i) => ({
-        id: `anon-${i}`,
-        role: m.role as "user" | "assistant",
-        content: m.content,
-        number: i + 1,
-      }));
+      const updated = getAnonMessages().map((m, i) => ({ ...m, id: `anon-${i}`, number: i + 1 }));
       setAnonMessages(updated);
-      // Logique simplifiée pour le test
+      
+      // Simulation IA simple pour le test
       setTimeout(() => {
-        appendAnonMessage("assistant", "Bien reçu. Je traite l'information.");
-        setAnonMessages(
-          getAnonMessages().map((m, i) => ({
-            id: `anon-${i}`,
-            role: m.role as "user" | "assistant",
-            content: m.content,
-            number: i + 1,
-          })),
-        );
+        appendAnonMessage("assistant", "Analyse en cours... Inscris-toi pour débloquer mon expertise complète.");
+        setAnonMessages(getAnonMessages().map((m, i) => ({ ...m, id: `anon-${i}`, number: i + 1 })));
         setIsLoading(false);
       }, 1000);
     } else {
       let convId = conversationId;
-      if (!convId) {
-        convId = (await onCreateConversation(messageContent.slice(0, 50))) || "";
-      }
+      if (!convId) convId = await onCreateConversation(messageContent.slice(0, 30));
       await saveMessage(convId, "user", messageContent);
       setIsLoading(false);
     }
@@ -160,43 +83,33 @@ const ChatPanel = ({
 
   return (
     <div className="flex flex-col h-full bg-background">
-      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6">
+      {/* Flux de messages */}
+      <div className="flex-1 overflow-y-auto px-4 py-6">
         <div className="max-w-3xl mx-auto space-y-6">
-          {allMessages.map((msg, idx) => (
-            <div
-              key={msg.id || idx}
-              className={cn("flex flex-col animate-fade-in", msg.role === "user" ? "items-end" : "items-start")}
-            >
-              <div className="flex items-center gap-2 mb-1 px-1">
-                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                  {msg.role === "assistant" ? "Édouard" : "Vous"} — Message #{msg.number ?? idx}
-                </span>
-              </div>
+          {allMessages.map((msg: any, idx: number) => (
+            <div key={msg.id || idx} className={cn("flex flex-col animate-fade-in", msg.role === "user" ? "items-end" : "items-start")}>
+              
+              {/* NUMÉROTATION VISIBLE PAR L'UTILISATEUR */}
+              <span className="text-[10px] font-bold text-muted-foreground uppercase mb-1 px-1 tracking-tighter">
+                {msg.role === "assistant" ? "Édouard" : "Vous"} — Message #{msg.number ?? (idx + 1)}
+              </span>
+
               <div className={cn("flex gap-3 w-full", msg.role === "user" ? "flex-row-reverse" : "")}>
-                <div
-                  className={cn(
-                    "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
-                    msg.role === "assistant" ? "gradient-primary" : "bg-accent",
-                  )}
-                >
-                  {msg.role === "assistant" ? (
-                    <Brain className="w-4 h-4 text-primary-foreground" />
-                  ) : (
-                    <User className="w-4 h-4 text-muted-foreground" />
-                  )}
+                <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center shrink-0 shadow-sm", msg.role === "assistant" ? "bg-primary text-white" : "bg-muted")}>
+                  {msg.role === "assistant" ? <Brain size={16} /> : <User size={16} />}
                 </div>
-                <div
-                  className={cn(
-                    "max-w-[85%] rounded-2xl px-4 py-3 text-sm",
-                    msg.role === "assistant"
-                      ? "bg-card border border-border/50 text-foreground"
-                      : "bg-primary/10 text-foreground",
-                  )}
-                >
+
+                <div className={cn(
+                  "max-w-[85%] rounded-2xl px-4 py-3 text-sm shadow-sm", 
+                  msg.role === "assistant" ? "bg-card border border-border" : "bg-primary/10 border border-primary/5"
+                )}>
                   {msg.role === "assistant" ? (
-                    <ReactMarkdown className="prose prose-sm prose-invert">{msg.content}</ReactMarkdown>
+                    /* FIX: div parente pour éviter l'erreur de ReactMarkdown */
+                    <div className="prose prose-sm prose-invert max-w-none">
+                      <ReactMarkdown>{msg.content}</ReactMarkdown>
+                    </div>
                   ) : (
-                    msg.content
+                    <div className="whitespace-pre-wrap">{msg.content}</div>
                   )}
                 </div>
               </div>
@@ -206,27 +119,14 @@ const ChatPanel = ({
         </div>
       </div>
 
-      <div className="p-4 border-t border-border bg-card/50">
-        <div className="flex items-end gap-2 max-w-3xl mx-auto bg-background/50 p-2 rounded-2xl border border-border">
+      {/* Barre de saisie */}
+      <div className="p-4 border-t border-border bg-card/30 backdrop-blur-md">
+        <div className={cn(
+          "flex items-end gap-2 max-w-3xl mx-auto p-2 rounded-2xl border transition-all",
+          isQuotaReached ? "opacity-50 bg-muted" : "bg-background shadow-inner border-border focus-within:border-primary/50"
+        )}>
           <textarea
-            ref={textareaRef}
             value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleSend())}
-            placeholder="Échangez avec Édouard..."
-            className="flex-1 min-h-[40px] max-h-32 bg-transparent border-none focus:ring-0 text-sm py-2 resize-none"
-          />
-          <button
-            onClick={handleSend}
-            disabled={isLoading}
-            className="bg-primary text-primary-foreground p-2.5 rounded-xl disabled:opacity-30"
-          >
-            <Send className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default ChatPanel;
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleSend())}
+            placeholder={isQuotaReached ? "Limite journalière atteinte." : "Échange

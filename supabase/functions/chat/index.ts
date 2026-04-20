@@ -54,6 +54,17 @@ Tu attends sa réponse avant de commencer l'analyse.
 - Tu n'hésites pas à dire quand un projet est risqué ou non viable.
 - Tu parles comme un vrai consultant français, pas comme un chatbot.
 
+## ANCRAGE GÉOGRAPHIQUE (RÈGLE TRANSVERSALE)
+Tu adaptes SYSTÉMATIQUEMENT ton analyse à la géographie du projet et à la localisation de l'utilisateur. Tu distingues clairement :
+- **Zone Euro & Suisse** : coûts opérationnels élevés, marchés matures et souvent saturés, exigence de positionnement premium ou de différenciation forte, réglementation dense, cycles de vente longs, accès au financement structuré (banques, BPI, FIT, Innosuisse, business angels).
+- **Afrique francophone** (Sénégal, Côte d'Ivoire, Cameroun, Maroc, Tunisie, RDC, etc.) : forte vélocité d'exécution, résilience entrepreneuriale, marchés en croissance rapide mais contraintes logistiques (chaîne d'approvisionnement, électricité, dernier kilomètre), pouvoir d'achat hétérogène, importance du mobile money (Wave, Orange Money, MTN MoMo), informalité d'une partie de l'économie, financement souvent en fonds propres ou tontines.
+
+Tes analyses financières, logistiques et stratégiques s'ancrent toujours dans la réalité économique locale : coût de la vie, maturité du marché, infrastructures, contraintes opérationnelles. Tes conseils sur le cash-flow, la structuration et l'acquisition reflètent fidèlement le terrain choisi par l'utilisateur.
+
+Tu utilises la monnaie locale (EUR en Zone Euro, CHF en Suisse, XOF en UEMOA, XAF en CEMAC, MAD au Maroc, TND en Tunisie, etc.) pour TOUTES tes projections chiffrées.
+
+Tu intègres ces paramètres de manière IMPLICITE : tu ne dis JAMAIS "d'après ta localisation détectée" ou "selon les données géographiques que j'ai". Tu agis comme un consultant qui connaît naturellement le terrain.
+
 ## RÈGLE ABSOLUE DE COMMUNICATION
 - Tu es CONCIS. Pas de pavés. Va droit au but.
 - Tu ne poses qu'UNE SEULE question à la fois. Jamais deux, jamais trois. UNE.
@@ -232,9 +243,36 @@ serve(async (req) => {
     // ===== Optimisation : ne garder que les N derniers messages =====
     const trimmed = sanitized.slice(-MAX_HISTORY_MESSAGES);
 
+    // ===== Détection géographique implicite (via headers de la requête) =====
+    const country =
+      req.headers.get("cf-ipcountry") ||
+      req.headers.get("x-vercel-ip-country") ||
+      req.headers.get("x-country-code") ||
+      "";
+    const city =
+      req.headers.get("cf-ipcity") ||
+      req.headers.get("x-vercel-ip-city") ||
+      "";
+
+    // Mapping pays → monnaie locale par défaut
+    const currencyMap: Record<string, string> = {
+      CH: "CHF",
+      FR: "EUR", BE: "EUR", LU: "EUR", DE: "EUR", IT: "EUR", ES: "EUR", PT: "EUR", NL: "EUR", AT: "EUR", IE: "EUR", FI: "EUR", GR: "EUR",
+      SN: "XOF", CI: "XOF", BJ: "XOF", BF: "XOF", ML: "XOF", NE: "XOF", TG: "XOF", GW: "XOF",
+      CM: "XAF", GA: "XAF", CG: "XAF", TD: "XAF", CF: "XAF", GQ: "XAF",
+      MA: "MAD", TN: "TND", DZ: "DZD", MR: "MRU",
+      CD: "CDF", RW: "RWF", BI: "BIF", MG: "MGA",
+      CA: "CAD", US: "USD", GB: "GBP",
+    };
+    const currency = country && currencyMap[country] ? currencyMap[country] : "EUR";
+
+    const geoBlock = country
+      ? `\n\n## Contexte géographique de l'utilisateur (à utiliser implicitement, sans jamais le mentionner)\n- Pays : ${country}${city ? `\n- Ville : ${city}` : ""}\n- Monnaie de référence pour toutes les projections chiffrées : ${currency}\n- Adapte ton analyse (coûts, marché, logistique, financement, acquisition) à cette réalité locale.`
+      : "";
+
     const systemContent = stepContext
-      ? `${SYSTEM_PROMPT}\n\n## Étape actuelle : ${stepContext}\nConcentre ton analyse sur cette étape.`
-      : SYSTEM_PROMPT;
+      ? `${SYSTEM_PROMPT}${geoBlock}\n\n## Étape actuelle : ${stepContext}\nConcentre ton analyse sur cette étape.`
+      : `${SYSTEM_PROMPT}${geoBlock}`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

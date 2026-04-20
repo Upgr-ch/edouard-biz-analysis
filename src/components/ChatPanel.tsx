@@ -6,7 +6,6 @@ import ReactMarkdown from "react-markdown";
 import { useAuth } from "@/hooks/useAuth";
 import { ANON_MAX_MESSAGES, getAnonMessages, getAnonUserMessageCount } from "@/lib/anonymousChat";
 
-// LE MESSAGE D'ACCUEIL MIS À JOUR
 const WELCOME_MESSAGE = {
   id: "welcome",
   role: "assistant",
@@ -16,9 +15,11 @@ const WELCOME_MESSAGE = {
 
 const ChatPanel = ({
   conversationId,
+  conversationTitle,
   persistedMessages = [],
   saveMessage,
   onCreateConversation,
+  onUpdateTitle,
   isQuotaReached = false,
 }: any) => {
   const { user } = useAuth();
@@ -31,7 +32,6 @@ const ChatPanel = ({
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Détermination des messages à afficher
   const displayMessages = isAnonymous
     ? getAnonMessages().length > 0
       ? getAnonMessages().map((m, i) => ({ ...m, id: `anon-${i}`, number: i + 1 }))
@@ -40,13 +40,49 @@ const ChatPanel = ({
       ? persistedMessages.map((m: any, i: number) => ({ ...m, number: i + 1 }))
       : [WELCOME_MESSAGE];
 
+  // EFFET : Mise à jour automatique du titre dans la Sidebar
+  useEffect(() => {
+    if (conversationId && displayMessages.length >= 2 && onUpdateTitle) {
+      const firstUserMsg = displayMessages.find((m) => m.role === "user");
+      // On ne met à jour que si le titre est générique ou vide
+      if (
+        firstUserMsg &&
+        (!conversationTitle || conversationTitle === "Nouvelle discussion" || conversationTitle === "New Conversation")
+      ) {
+        const newTitle = firstUserMsg.content.substring(0, 30) + (firstUserMsg.content.length > 30 ? "..." : "");
+        onUpdateTitle(conversationId, newTitle);
+      }
+    }
+  }, [displayMessages.length, conversationId, conversationTitle, onUpdateTitle]);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [displayMessages]);
 
+  const handleSend = async () => {
+    if (!input.trim() || isQuotaReached) return;
+
+    // SÉCURITÉ : Troncation à 1500 caractères avant envoi
+    const safeContent = input.trim().substring(0, 1500);
+
+    setInput("");
+
+    // Logique d'envoi (à adapter selon ton implémentation de saveMessage)
+    if (isAnonymous) {
+      // Ton code pour le chat anonyme ici
+    } else {
+      let currentId = conversationId;
+      if (!currentId && onCreateConversation) {
+        currentId = await onCreateConversation(safeContent.substring(0, 30));
+      }
+      if (saveMessage && currentId) {
+        await saveMessage(currentId, "user", safeContent);
+      }
+    }
+  };
+
   return (
     <div className="flex flex-col h-full bg-background font-sans">
-      {/* Liste des Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-8">
         <div className="max-w-3xl mx-auto space-y-8">
           {displayMessages.map((msg: any, idx: number) => (
@@ -54,13 +90,11 @@ const ChatPanel = ({
               key={msg.id || idx}
               className={cn("flex flex-col animate-fade-in", msg.role === "user" ? "items-end" : "items-start")}
             >
-              {/* Numérotation des messages */}
               <span className="text-[10px] font-bold text-muted-foreground uppercase mb-2 px-1 tracking-widest">
                 {msg.role === "assistant" ? "Édouard" : "Vous"} — Message #{msg.number ?? idx}
               </span>
 
               <div className={cn("flex gap-4 w-full", msg.role === "user" ? "flex-row-reverse" : "")}>
-                {/* Avatar Édouard vs Utilisateur */}
                 <div
                   className={cn(
                     "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-md",
@@ -72,7 +106,6 @@ const ChatPanel = ({
                   {msg.role === "assistant" ? <Brain size={20} /> : <User size={20} />}
                 </div>
 
-                {/* Bulle de texte */}
                 <div
                   className={cn(
                     "max-w-[80%] rounded-2xl px-5 py-4 text-[15px] leading-relaxed shadow-sm border",
@@ -96,7 +129,6 @@ const ChatPanel = ({
         </div>
       </div>
 
-      {/* Barre de saisie */}
       <div className="p-6 border-t border-border bg-card/50 backdrop-blur-lg">
         <div className="max-w-3xl mx-auto">
           <div
@@ -108,11 +140,13 @@ const ChatPanel = ({
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleSend())}
               disabled={isQuotaReached}
-              placeholder={isQuotaReached ? "Quota atteint..." : "Réponds à Édouard..."}
+              placeholder={isQuotaReached ? "Quota atteint, reviens demain !" : "Réponds à Édouard..."}
               className="flex-1 min-h-[45px] max-h-32 bg-transparent border-none focus:ring-0 text-[15px] py-2 resize-none outline-none"
             />
             <button
+              onClick={handleSend}
               disabled={isQuotaReached || !input.trim()}
               className="bg-primary hover:bg-primary/90 text-primary-foreground p-3 rounded-xl transition-all shadow-md active:scale-95 disabled:opacity-50"
             >

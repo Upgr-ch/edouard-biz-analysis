@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import type { ChatMessage } from "@/hooks/useConversations";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Message {
   id: string;

@@ -85,13 +85,15 @@ const Dashboard = () => {
 
   return (
     <div className="h-screen flex overflow-hidden bg-background">
-      {/* Desktop sidebar */}
-      <div className="hidden md:block shrink-0">
-        <AppSidebar {...sidebarProps} />
-      </div>
+      {/* Desktop sidebar — hidden for anonymous users */}
+      {!isAnonymous && (
+        <div className="hidden md:block shrink-0">
+          <AppSidebar {...sidebarProps} />
+        </div>
+      )}
 
-      {/* Mobile sidebar overlay */}
-      {sidebarOpen && (
+      {/* Mobile sidebar overlay — hidden for anonymous users */}
+      {!isAnonymous && sidebarOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div
             className="absolute inset-0 bg-background/80 backdrop-blur-sm"
@@ -118,14 +120,16 @@ const Dashboard = () => {
         {/* Top bar */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-card/30 backdrop-blur-sm">
           <div className="flex items-center gap-3">
-            <button
-              className="md:hidden p-2 rounded-lg hover:bg-accent transition-colors text-muted-foreground"
-              onClick={() => setSidebarOpen(true)}
-            >
-              <Menu className="h-5 w-5" />
-            </button>
+            {!isAnonymous && (
+              <button
+                className="md:hidden p-2 rounded-lg hover:bg-accent transition-colors text-muted-foreground"
+                onClick={() => setSidebarOpen(true)}
+              >
+                <Menu className="h-5 w-5" />
+              </button>
+            )}
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg gradient-primary flex items-center justify-center md:hidden">
+              <div className="w-7 h-7 rounded-lg gradient-primary flex items-center justify-center">
                 <Brain className="w-4 h-4 text-primary-foreground" />
               </div>
               <h1 className="text-lg font-semibold text-foreground">Édouard</h1>
@@ -139,13 +143,23 @@ const Dashboard = () => {
               <div className="w-2 h-2 rounded-full bg-decision-viable animate-pulse" />
               <span className="text-xs text-muted-foreground">En ligne</span>
             </div>
-            <button
-              onClick={signOut}
-              className="p-2 rounded-lg hover:bg-accent transition-colors text-muted-foreground"
-              title="Se déconnecter"
-            >
-              <LogOut className="h-4 w-4" />
-            </button>
+            {isAnonymous ? (
+              <button
+                onClick={() => navigate("/auth")}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary text-xs font-medium transition-colors"
+              >
+                <LogIn className="h-3.5 w-3.5" />
+                Se connecter
+              </button>
+            ) : (
+              <button
+                onClick={signOut}
+                className="p-2 rounded-lg hover:bg-accent transition-colors text-muted-foreground"
+                title="Se déconnecter"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            )}
           </div>
         </div>
 

@@ -559,6 +559,27 @@ const ChatPanel = ({
 
       {/* Input */}
       <div className="p-4 border-t border-border bg-card/50 backdrop-blur-sm">
+        {isAnonymous && (
+          <div className="max-w-3xl mx-auto mb-3">
+            {anonLimitReached ? (
+              <button
+                onClick={() => {
+                  if (input.trim()) setPendingMessage(input.trim());
+                  navigate("/auth");
+                }}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-primary/10 hover:bg-primary/20 border border-primary/30 text-primary text-sm font-medium transition-colors"
+              >
+                <Lock className="w-4 h-4" />
+                Crée ton compte pour continuer la conversation
+              </button>
+            ) : (
+              <p className="text-xs text-muted-foreground text-center">
+                {ANON_MAX_MESSAGES - anonUserCount} message{ANON_MAX_MESSAGES - anonUserCount > 1 ? "s" : ""} gratuit{ANON_MAX_MESSAGES - anonUserCount > 1 ? "s" : ""} restant{ANON_MAX_MESSAGES - anonUserCount > 1 ? "s" : ""} avant inscription.
+              </p>
+            )}
+          </div>
+        )}
+
         {pendingFile && (
           <div className="max-w-3xl mx-auto mb-2">
             <div className="inline-flex items-center gap-2 bg-secondary border border-border rounded-lg px-3 py-1.5 text-xs text-foreground">

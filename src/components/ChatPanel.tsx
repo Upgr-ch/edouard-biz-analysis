@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import type { ChatMessage } from "@/hooks/useConversations";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Message {
   id: string;
@@ -89,11 +90,15 @@ async function streamChat({
   onDone: () => void;
   onError: (error: string) => void;
 }) {
+  const { data: { session } } = await supabase.auth.getSession();
+  const accessToken = session?.access_token ?? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
   const resp = await fetch(CHAT_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+      Authorization: `Bearer ${accessToken}`,
+      apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
     },
     body: JSON.stringify({ messages, stepContext }),
   });

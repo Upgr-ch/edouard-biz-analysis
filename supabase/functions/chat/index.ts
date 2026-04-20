@@ -1,10 +1,17 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
+
+// Limites techniques (optimisation tokens & anti-abus)
+const MAX_HISTORY_MESSAGES = 8;     // n'envoyer que les 8 derniers messages au modèle
+const MAX_USER_CHARS = 1500;         // tronquer les messages utilisateurs trop longs
+const DAILY_USER_QUOTA = 60;         // quota gratuit : 60 messages/jour/utilisateur
+const MAX_OUTPUT_TOKENS = 600;       // longueur max des réponses
 
 const SYSTEM_PROMPT = `Tu es Édouard, un consultant senior en faisabilité et rentabilité de projets entrepreneuriaux. Tu es direct, exigeant et pragmatique. Tu ne fais jamais de compliments gratuits.
 
@@ -142,6 +149,24 @@ Puis tu donnes un **VERDICT GLOBAL** avec une seule pastille et une phrase de co
 - Tu ne reviens à une étape précédente que si l'utilisateur le demande explicitement.
 - Adapte tes questions et analyses à l'étape en cours indiquée dans le contexte.`;
 
+// Construit une réponse SSE simulant un message d'Édouard (utilisée pour le quota dépassé)
+function buildEdouardSseResponse(message: string): Response {
+  const stream = new ReadableStream({
+    start(controller) {
+      const encoder = new TextEncoder();
+      const chunk = {
+        choices: [{ delta: { content: message }, finish_reason: "stop" }],
+      };
+      controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`));
+      controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
+      controller.close();
+    },
+  });
+  return new Response(stream, {
+    headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+  });
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -151,6 +176,61 @@ serve(async (req) => {
     const { messages, stepContext } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+
+    // ===== Quota par utilisateur (60 messages utilisateur / jour) =====
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+    const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const authHeader = req.headers.get("Authorization") ?? "";
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    const { data: userData } = await supabase.auth.getUser();
+    const user = userData?.user;
+
+    if (user) {
+      const since = new Date();
+      since.setHours(0, 0, 0, 0);
+
+      // Compte les messages "user" du jour dans toutes les conversations de l'utilisateur
+      const { data: convs } = await supabase
+        .from("conversations")
+        .select("id")
+        .eq("user_id", user.id);
+
+      const convIds = (convs ?? []).map((c) => c.id);
+      if (convIds.length > 0) {
+        const { count } = await supabase
+          .from("chat_messages")
+          .select("*", { count: "exact", head: true })
+          .eq("role", "user")
+          .gte("created_at", since.toISOString())
+          .in("conversation_id", convIds);
+
+        if ((count ?? 0) >= DAILY_USER_QUOTA) {
+          return buildEdouardSseResponse(
+            `Désolé, tu as atteint la limite gratuite de ${DAILY_USER_QUOTA} messages pour aujourd'hui. ` +
+              `On reprend l'analyse demain — d'ici là, prends quelques minutes pour relire nos échanges et préparer tes réponses, ça nous fera gagner du temps. À demain. 👋`,
+          );
+        }
+      }
+    }
+
+    // ===== Optimisation : tronquer les messages user trop longs =====
+    const safeMessages = Array.isArray(messages) ? messages : [];
+    const sanitized = safeMessages.map((m: { role: string; content: string }) => {
+      if (m.role === "user" && typeof m.content === "string" && m.content.length > MAX_USER_CHARS) {
+        return {
+          ...m,
+          content: m.content.slice(0, MAX_USER_CHARS) + "\n\n[…message tronqué pour respecter la limite technique]",
+        };
+      }
+      return m;
+    });
+
+    // ===== Optimisation : ne garder que les N derniers messages =====
+    const trimmed = sanitized.slice(-MAX_HISTORY_MESSAGES);
 
     const systemContent = stepContext
       ? `${SYSTEM_PROMPT}\n\n## Étape actuelle : ${stepContext}\nConcentre ton analyse sur cette étape.`
@@ -166,9 +246,10 @@ serve(async (req) => {
         model: "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: systemContent },
-          ...messages,
+          ...trimmed,
         ],
         stream: true,
+        max_tokens: MAX_OUTPUT_TOKENS,
       }),
     });
 

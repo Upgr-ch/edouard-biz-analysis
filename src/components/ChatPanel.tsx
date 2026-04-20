@@ -4,7 +4,8 @@ import { Send, Brain, User, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import { useAuth } from "@/hooks/useAuth";
-import { ANON_MAX_MESSAGES, getAnonMessages, getAnonUserMessageCount } from "@/lib/anonymousChat";
+import { ANON_MAX_MESSAGES, getAnonMessages, getAnonUserMessageCount, appendAnonMessage } from "@/lib/anonymousChat";
+import { toast } from "sonner";
 
 const WELCOME_MESSAGE = {
   id: "welcome",
@@ -26,12 +27,14 @@ const ChatPanel = ({
   const navigate = useNavigate();
   const isAnonymous = !user;
 
-  const anonCount = getAnonUserMessageCount();
-  const messagesLeft = Math.max(0, ANON_MAX_MESSAGES - anonCount);
-
+  const [isLoading, setIsLoading] = useState(false);
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const anonCount = getAnonUserMessageCount();
+  const messagesLeft = Math.max(0, ANON_MAX_MESSAGES - anonCount);
+
+  // Détermination des messages à afficher
   const displayMessages = isAnonymous
     ? getAnonMessages().length > 0
       ? getAnonMessages().map((m, i) => ({ ...m, id: `anon-${i}`, number: i + 1 }))
@@ -44,7 +47,6 @@ const ChatPanel = ({
   useEffect(() => {
     if (conversationId && displayMessages.length >= 2 && onUpdateTitle) {
       const firstUserMsg = displayMessages.find((m) => m.role === "user");
-      // On ne met à jour que si le titre est générique ou vide
       if (
         firstUserMsg &&
         (!conversationTitle || conversationTitle === "Nouvelle discussion" || conversationTitle === "New Conversation")
@@ -59,25 +61,42 @@ const ChatPanel = ({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [displayMessages]);
 
+  // FONCTION D'ENVOI CORRIGÉE
   const handleSend = async () => {
-    if (!input.trim() || isQuotaReached) return;
+    if (!input.trim() || isQuotaReached || isLoading) return;
 
-    // SÉCURITÉ : Troncation à 1500 caractères avant envoi
     const safeContent = input.trim().substring(0, 1500);
-
     setInput("");
+    setIsLoading(true);
 
-    // Logique d'envoi (à adapter selon ton implémentation de saveMessage)
-    if (isAnonymous) {
-      // Ton code pour le chat anonyme ici
-    } else {
-      let currentId = conversationId;
-      if (!currentId && onCreateConversation) {
-        currentId = await onCreateConversation(safeContent.substring(0, 30));
+    try {
+      if (isAnonymous) {
+        // Logique Anonyme
+        appendAnonMessage("user", safeContent);
+        // Simulation réponse Édouard
+        setTimeout(() => {
+          appendAnonMessage(
+            "assistant",
+            "Analyse en cours... Crée un compte pour obtenir un diagnostic complet de ton projet.",
+          );
+          setIsLoading(false);
+        }, 1000);
+      } else {
+        // Logique Connectée
+        let currentId = conversationId;
+        if (!currentId && onCreateConversation) {
+          currentId = await onCreateConversation(safeContent.substring(0, 30));
+        }
+
+        if (saveMessage && currentId) {
+          await saveMessage(currentId, "user", safeContent);
+        }
+        setIsLoading(false);
       }
-      if (saveMessage && currentId) {
-        await saveMessage(currentId, "user", safeContent);
-      }
+    } catch (error) {
+      console.error("Chat Error:", error);
+      toast.error("Un problème est survenu lors de l'envoi.");
+      setIsLoading(false);
     }
   };
 
@@ -125,6 +144,11 @@ const ChatPanel = ({
               </div>
             </div>
           ))}
+          {isLoading && (
+            <div className="flex items-center gap-2 text-muted-foreground text-xs animate-pulse italic">
+              <Brain size={14} /> Édouard réfléchit...
+            </div>
+          )}
           <div ref={messagesEndRef} />
         </div>
       </div>
@@ -141,13 +165,13 @@ const ChatPanel = ({
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleSend())}
-              disabled={isQuotaReached}
+              disabled={isQuotaReached || isLoading}
               placeholder={isQuotaReached ? "Quota atteint, reviens demain !" : "Réponds à Édouard..."}
               className="flex-1 min-h-[45px] max-h-32 bg-transparent border-none focus:ring-0 text-[15px] py-2 resize-none outline-none"
             />
             <button
               onClick={handleSend}
-              disabled={isQuotaReached || !input.trim()}
+              disabled={isQuotaReached || !input.trim() || isLoading}
               className="bg-primary hover:bg-primary/90 text-primary-foreground p-3 rounded-xl transition-all shadow-md active:scale-95 disabled:opacity-50"
             >
               <Send size={18} />

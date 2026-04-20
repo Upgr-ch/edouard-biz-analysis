@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Send, Brain, User, Paperclip, FileText, X, Mic, Download } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Send, Brain, User, Paperclip, FileText, X, Mic, Download, Lock } from "lucide-react";
 import { fetchSynthesis, renderReportPdf } from "@/lib/generateReport";
 import { cn } from "@/lib/utils";
 import { parseDocument, getFileType, truncateIfNeeded, type SupportedFileType } from "@/lib/documentParser";
@@ -7,7 +8,14 @@ import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import type { ChatMessage } from "@/hooks/useConversations";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
+import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  ANON_MAX_MESSAGES,
+  appendAnonMessage,
+  getAnonUserMessageCount,
+  setPendingMessage,
+} from "@/lib/anonymousChat";
 
 interface Message {
   id: string;

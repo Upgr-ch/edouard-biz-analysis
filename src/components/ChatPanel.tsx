@@ -297,10 +297,73 @@ const ChatPanel = ({
 
     if (!messageContent) return;
 
+    // ===== ANONYMOUS MODE =====
+    if (isAnonymous) {
+      const currentCount = getAnonUserMessageCount();
+      // 9th message → block, persist as pending, redirect to /auth
+      if (currentCount >= ANON_MAX_MESSAGES) {
+        setPendingMessage(messageContent);
+        toast.info("Crée ton compte pour continuer la conversation.");
+        navigate("/auth");
+        return;
+      }
+
+      // Append user message locally
+      appendAnonMessage("user", messageContent);
+      const newAnon = getAnonMessages().map((m, i) => ({
+        id: `anon-${i}`, role: m.role, content: m.content,
+      }));
+      setAnonMessages(newAnon);
+      setInput("");
+      if (textareaRef.current) textareaRef.current.style.height = "auto";
+      setIsLoading(true);
+
+      const aiMessages = newAnon.map((m) => ({ role: m.role, content: m.content }));
+      let assistantSoFar = "";
+
+      try {
+        await streamChat({
+          messages: aiMessages,
+          stepContext,
+          onDelta: (chunk) => {
+            assistantSoFar += chunk;
+            setStreamingMessage({ id: "streaming", role: "assistant", content: assistantSoFar });
+            const step = detectStep(assistantSoFar);
+            if (step !== null && onStepDetected) onStepDetected(step);
+          },
+          onDone: () => {
+            if (assistantSoFar) {
+              appendAnonMessage("assistant", assistantSoFar);
+              setAnonMessages(getAnonMessages().map((m, i) => ({
+                id: `anon-${i}`, role: m.role, content: m.content,
+              })));
+            }
+            setStreamingMessage(null);
+            setIsLoading(false);
+            // If user has now reached the limit, hint them
+            if (getAnonUserMessageCount() >= ANON_MAX_MESSAGES) {
+              toast.info("Tu as atteint la limite gratuite. Crée un compte pour continuer.");
+            }
+          },
+          onError: (error) => {
+            toast.error(error);
+            setStreamingMessage(null);
+            setIsLoading(false);
+          },
+        });
+      } catch (e) {
+        console.error(e);
+        toast.error("Erreur de connexion. Réessaie.");
+        setStreamingMessage(null);
+        setIsLoading(false);
+      }
+      return;
+    }
+
+    // ===== AUTHENTICATED MODE =====
     // Ensure we have a conversation
     let convId = conversationId;
     if (!convId) {
-      // Auto-create a conversation with first 50 chars as title
       const title = messageContent.slice(0, 50).replace(/\n/g, " ");
       convId = await onCreateConversation(title);
       if (!convId) return;
@@ -321,7 +384,6 @@ const ChatPanel = ({
     if (textareaRef.current) textareaRef.current.style.height = "auto";
     setIsLoading(true);
 
-    // Build messages for AI (include welcome as system-like context)
     const aiMessages = [
       ...persistedMessages.map((m) => ({ role: m.role, content: m.content })),
       { role: "user" as const, content: messageContent },
@@ -339,14 +401,12 @@ const ChatPanel = ({
           setStreamingMessage({ id: "streaming", role: "assistant", content: assistantSoFar });
           const step = detectStep(assistantSoFar);
           if (step !== null && onStepDetected) onStepDetected(step);
-          // Detect chosen conversation name
           const chosenName = detectChosenName(assistantSoFar);
           if (chosenName && convId) {
             onUpdateTitle(convId, chosenName);
           }
         },
         onDone: async () => {
-          // Save assistant message
           if (convId && assistantSoFar) {
             assistantDbId = await saveMessage(convId, "assistant", assistantSoFar);
           }

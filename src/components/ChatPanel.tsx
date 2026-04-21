@@ -3,9 +3,11 @@ import { Send, Brain, User, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import { useAuth } from "@/hooks/useAuth";
-import { ANON_MAX_MESSAGES, getAnonMessages, getAnonUserMessageCount, appendAnonMessage } from "@/lib/anonymousChat";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+
+// Imports sécurisés des fonctions anonymes
+import * as AnonChat from "@/lib/anonymousChat";
 
 const WELCOME_MESSAGE = {
   id: "welcome",
@@ -28,13 +30,17 @@ const ChatPanel = ({
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Sécurité sur les fonctions anonymes
+  const getAnonMessages = () => (AnonChat as any).getAnonMessages?.() || [];
+  const getAnonCount = () => (AnonChat as any).getAnonUserMessageCount?.() || 0;
+  const maxAnon = (AnonChat as any).ANON_MAX_MESSAGES || 5;
+
   const isAnonymous = !user;
-  const anonCount = getAnonUserMessageCount();
-  const messagesLeft = Math.max(0, ANON_MAX_MESSAGES - anonCount);
+  const messagesLeft = Math.max(0, maxAnon - getAnonCount());
 
   const displayMessages = isAnonymous
     ? getAnonMessages().length > 0
-      ? getAnonMessages().map((m, i) => ({ ...m, id: `anon-${i}`, number: i + 1 }))
+      ? getAnonMessages().map((m: any, i: number) => ({ ...m, id: `anon-${i}`, number: i + 1 }))
       : [WELCOME_MESSAGE]
     : persistedMessages.length > 0
       ? persistedMessages.map((m: any, i: number) => ({ ...m, number: i + 1 }))
@@ -44,22 +50,14 @@ const ChatPanel = ({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [displayMessages, isLoading]);
 
-  // EFFET : Mise à jour automatique du titre
-  useEffect(() => {
-    if (conversationId && displayMessages.length >= 2 && onUpdateTitle) {
-      const firstUserMsg = displayMessages.find((m) => m.role === "user");
-      if (
-        firstUserMsg &&
-        (!conversationTitle || conversationTitle.includes("Nouvelle") || conversationTitle.includes("New"))
-      ) {
-        const newTitle = firstUserMsg.content.substring(0, 30) + (firstUserMsg.content.length > 30 ? "..." : "");
-        onUpdateTitle(conversationId, newTitle);
-      }
-    }
-  }, [displayMessages.length, conversationId, conversationTitle, onUpdateTitle]);
-
   const handleSend = async () => {
-    if (!input.trim() || isQuotaReached || isLoading) return;
+    if (!input.trim() || isLoading) return;
+
+    // Vérification du quota
+    if (isAnonymous && getAnonCount() >= maxAnon) {
+      toast.error("Quota atteint. Inscris-toi pour continuer !");
+      return;
+    }
 
     const userContent = input.trim().substring(0, 1500);
     setInput("");
@@ -67,25 +65,24 @@ const ChatPanel = ({
 
     try {
       if (isAnonymous) {
-        // 1. Sauvegarder le message de l'utilisateur localement
-        appendAnonMessage("user", userContent);
+        // 1. Sauvegarde locale
+        if ((AnonChat as any).appendAnonMessage) {
+          (AnonChat as any).appendAnonMessage("user", userContent);
+        }
 
-        // 2. Appeler l'IA via la Edge Function "eugene-chat"
+        // 2. Appel IA (eugene-chat ou chat)
         const { data, error } = await supabase.functions.invoke("eugene-chat", {
-          body: {
-            messages: [...getAnonMessages()],
-            userId: "anonymous",
-          },
+          body: { messages: [...getAnonMessages(), { role: "user", content: userContent }] },
         });
 
         if (error) throw error;
 
-        // 3. Sauvegarder la réponse d'Édouard localement
-        if (data?.content) {
-          appendAnonMessage("assistant", data.content);
+        // 3. Réponse IA
+        if (data?.content && (AnonChat as any).appendAnonMessage) {
+          (AnonChat as any).appendAnonMessage("assistant", data.content);
         }
       } else {
-        // Logique pour utilisateur connecté
+        // Mode connecté
         let currentId = conversationId;
         if (!currentId && onCreateConversation) {
           currentId = await onCreateConversation(userContent.substring(0, 30));
@@ -95,23 +92,20 @@ const ChatPanel = ({
         }
       }
     } catch (error: any) {
-      console.error("Erreur Chat:", error);
-      toast.error("Édouard a un problème de connexion. Vérifie tes crédits OpenAI.");
+      console.error("Erreur détaillée:", error);
+      toast.error("Édouard est indisponible. Vérifie tes logs Supabase.");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex flex-col h-full bg-background font-sans">
+    <div className="flex flex-col h-full bg-background">
       <div className="flex-1 overflow-y-auto px-4 py-8">
         <div className="max-w-3xl mx-auto space-y-8">
           {displayMessages.map((msg: any, idx: number) => (
-            <div
-              key={idx}
-              className={cn("flex flex-col animate-fade-in", msg.role === "user" ? "items-end" : "items-start")}
-            >
-              <span className="text-[10px] font-bold text-muted-foreground uppercase mb-2 px-1 tracking-widest">
+            <div key={idx} className={cn("flex flex-col", msg.role === "user" ? "items-end" : "items-start")}>
+              <span className="text-[10px] font-bold text-muted-foreground uppercase mb-2 tracking-widest">
                 {msg.role === "assistant" ? "Édouard" : "Vous"} — Message #{msg.number ?? idx}
               </span>
               <div className={cn("flex gap-4 w-full", msg.role === "user" ? "flex-row-reverse" : "")}>
@@ -127,13 +121,11 @@ const ChatPanel = ({
                 </div>
                 <div
                   className={cn(
-                    "max-w-[80%] rounded-2xl px-5 py-4 text-[15px] leading-relaxed shadow-sm border",
-                    msg.role === "assistant"
-                      ? "bg-card border-border/50 text-foreground"
-                      : "bg-primary/10 border-primary/20 text-foreground",
+                    "max-w-[80%] rounded-2xl px-5 py-4 text-[15px] border shadow-sm",
+                    msg.role === "assistant" ? "bg-card border-border/50" : "bg-primary/10 border-primary/20",
                   )}
                 >
-                  <div className="prose prose-sm prose-slate dark:prose-invert max-w-none">
+                  <div className="prose prose-sm dark:prose-invert max-w-none">
                     <ReactMarkdown>{msg.content}</ReactMarkdown>
                   </div>
                 </div>
@@ -142,33 +134,27 @@ const ChatPanel = ({
           ))}
           {isLoading && (
             <div className="flex items-center gap-2 text-muted-foreground text-xs animate-pulse italic">
-              <Brain size={14} className="animate-spin-slow" /> Édouard analyse ton projet...
+              <Brain size={14} className="animate-spin" /> Édouard analyse...
             </div>
           )}
           <div ref={messagesEndRef} />
         </div>
       </div>
 
-      <div className="p-6 border-t border-border bg-card/50 backdrop-blur-lg">
+      <div className="p-6 border-t bg-card/50 backdrop-blur-lg">
         <div className="max-w-3xl mx-auto">
-          <div
-            className={cn(
-              "flex items-end gap-3 bg-background p-3 rounded-2xl border border-border shadow-lg transition-all",
-              isQuotaReached ? "opacity-50" : "focus-within:ring-2 ring-primary/20",
-            )}
-          >
+          <div className="flex items-end gap-3 bg-background p-3 rounded-2xl border shadow-lg focus-within:ring-2 ring-primary/20">
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleSend())}
-              disabled={isQuotaReached || isLoading}
-              placeholder={isQuotaReached ? "Quota atteint !" : "Réponds à Édouard..."}
+              placeholder="Réponds à Édouard..."
               className="flex-1 min-h-[45px] max-h-32 bg-transparent border-none focus:ring-0 text-[15px] py-2 resize-none outline-none"
             />
             <button
               onClick={handleSend}
-              disabled={isQuotaReached || !input.trim() || isLoading}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground p-3 rounded-xl transition-all shadow-md active:scale-95 disabled:opacity-50"
+              disabled={isLoading || !input.trim()}
+              className="bg-primary text-primary-foreground p-3 rounded-xl shadow-md active:scale-95 disabled:opacity-50"
             >
               <Send size={18} />
             </button>

@@ -10,7 +10,7 @@ import { Link, useNavigate } from "react-router-dom";
 // Imports sécurisés des fonctions anonymes
 import * as AnonChat from "@/lib/anonymousChat";
 
-// --- FOOTER INTÉGRÉ ---
+// --- COMPOSANT FOOTER ---
 const Footer = () => (
   <footer className="w-full py-4 border-t bg-background/50">
     <div className="max-w-3xl mx-auto px-4 flex flex-wrap justify-center gap-x-5 gap-y-2 text-[10px] text-muted-foreground uppercase tracking-widest font-medium">
@@ -46,7 +46,7 @@ const ChatPanel = ({
   onCreateConversation,
   onUpdateTitle,
 }: any) => {
-  const { user } = useAuth(); // On ne prend que user ici
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [input, setInput] = useState("");
@@ -61,52 +61,14 @@ const ChatPanel = ({
   const messagesLeft = Math.max(0, maxAnon - getAnonCount());
 
   useEffect(() => {
-    const syncAnonymousMessages = async () => {
-      if (user && !syncProcessed.current) {
-        const anonMsgs = getAnonMessages();
-        if (anonMsgs.length > 0 && onCreateConversation && saveMessage) {
-          syncProcessed.current = true;
-          try {
-            const firstUserMsg = anonMsgs.find((m: any) => m.role === "user")?.content || "Conversation importée";
-            const newId = await onCreateConversation(firstUserMsg.substring(0, 30));
-            for (const msg of anonMsgs) {
-              await saveMessage(newId, msg.role, msg.content);
-            }
-            if ((AnonChat as any).clearAnonMessages) {
-              (AnonChat as any).clearAnonMessages();
-            }
-            toast.success("Conversation récupérée !");
-          } catch (err) {
-            console.error("Erreur de synchro:", err);
-          }
-        }
-      }
-    };
-    syncAnonymousMessages();
-  }, [user, onCreateConversation, saveMessage]);
-
-  const displayMessages = isAnonymous
-    ? getAnonMessages().length > 0
-      ? getAnonMessages().map((m: any, i: number) => ({ ...m, id: `anon-${i}`, number: i + 1 }))
-      : [WELCOME_MESSAGE]
-    : persistedMessages.length > 0
-      ? persistedMessages.map((m: any, i: number) => ({ ...m, number: i + 1 }))
-      : [WELCOME_MESSAGE];
-
-  useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [displayMessages, isLoading]);
+  }, [persistedMessages, isLoading]);
 
-  // FONCTION DE DÉCONNEXION DIRECTE VIA SUPABASE
   const handleManualSignOut = async () => {
-    try {
-      await supabase.auth.signOut();
-      toast.success("Déconnexion réussie");
-      navigate("/");
-      window.location.reload(); // Force le rafraîchissement pour nettoyer l'état
-    } catch (error) {
-      console.error("Erreur déconnexion:", error);
-    }
+    await supabase.auth.signOut();
+    toast.success("Déconnexion réussie");
+    navigate("/");
+    window.location.reload();
   };
 
   const handleSend = async () => {
@@ -120,16 +82,6 @@ const ChatPanel = ({
     }
 
     let userContent = input.trim();
-    const cleanInput = userContent.toLowerCase();
-
-    if (cleanInput === "aide-moi" || cleanInput === "aide moi" || cleanInput === "aide") {
-      userContent = "Aide-moi";
-    } else if (userContent.length === 1) {
-      if (cleanInput === "a") userContent = "A (Novice)";
-      if (cleanInput === "b") userContent = "B (Intermédiaire)";
-      if (cleanInput === "c") userContent = "C (Confirmé)";
-    }
-
     setInput("");
     setIsLoading(true);
 
@@ -152,8 +104,6 @@ const ChatPanel = ({
         }
         if (saveMessage && currentId) {
           await saveMessage(currentId, "user", userContent);
-        }
-        if (currentId) {
           const history = [
             ...persistedMessages.map((m: any) => ({ role: m.role, content: m.content })),
             { role: "user", content: userContent },
@@ -162,9 +112,7 @@ const ChatPanel = ({
             body: { messages: history },
           });
           if (error) throw error;
-          if (data?.content && saveMessage) {
-            await saveMessage(currentId, "assistant", data.content);
-          }
+          if (data?.content) await saveMessage(currentId, "assistant", data.content);
         }
       }
     } catch (error: any) {
@@ -174,20 +122,27 @@ const ChatPanel = ({
     }
   };
 
+  const displayMessages = isAnonymous
+    ? getAnonMessages().length > 0
+      ? getAnonMessages()
+      : [WELCOME_MESSAGE]
+    : persistedMessages.length > 0
+      ? persistedMessages
+      : [WELCOME_MESSAGE];
+
   return (
     <div className="flex flex-col h-full bg-background relative overflow-hidden">
-      {/* BOUTON DÉCONNEXION TEMPORAIRE - FORCÉ EN HAUT À DROITE */}
       {!isAnonymous && (
         <button
           onClick={handleManualSignOut}
-          className="fixed top-4 right-4 z-[9999] px-3 py-1 text-[10px] bg-red-500/20 text-red-600 hover:bg-red-500 hover:text-white border border-red-500/30 rounded-md transition-all font-mono uppercase font-bold shadow-sm"
+          className="fixed top-4 right-4 z-[9999] px-3 py-1 text-[10px] bg-red-500/20 text-red-600 hover:bg-red-500 hover:text-white border border-red-500/30 rounded-md transition-all font-mono uppercase font-bold"
         >
           Déconnexion (temp)
         </button>
       )}
 
       <div className="flex-1 overflow-y-auto px-4 py-8">
-        <div className="max-w-3xl mx-auto space-y-8">
+        <div className="max-w-3xl mx-auto space-y-8 pb-12">
           {displayMessages.map((msg: any, idx: number) => (
             <div key={idx} className={cn("flex flex-col", msg.role === "user" ? "items-end" : "items-start")}>
               <span className="text-[10px] font-bold text-muted-foreground mb-2 tracking-widest uppercase">
@@ -196,10 +151,8 @@ const ChatPanel = ({
               <div className={cn("flex gap-4 w-full", msg.role === "user" ? "flex-row-reverse" : "")}>
                 <div
                   className={cn(
-                    "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-md",
-                    msg.role === "assistant"
-                      ? "bg-gradient-to-br from-indigo-600 to-violet-700 text-white"
-                      : "bg-muted text-muted-foreground",
+                    "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
+                    msg.role === "assistant" ? "bg-indigo-600 text-white" : "bg-muted text-muted-foreground",
                   )}
                 >
                   {msg.role === "assistant" ? <Brain size={20} /> : <User size={20} />}
@@ -207,7 +160,7 @@ const ChatPanel = ({
                 <div
                   className={cn(
                     "max-w-[80%] rounded-2xl px-5 py-4 text-[15px] border shadow-sm",
-                    msg.role === "assistant" ? "bg-card border-border/50" : "bg-primary/10 border-primary/20",
+                    msg.role === "assistant" ? "bg-card border-border" : "bg-primary/10 border-primary/20",
                   )}
                 >
                   <div className="prose prose-sm dark:prose-invert max-w-none text-foreground">
@@ -217,18 +170,14 @@ const ChatPanel = ({
               </div>
             </div>
           ))}
-          {isLoading && (
-            <div className="animate-pulse italic text-xs text-muted-foreground flex items-center gap-2">
-              <Brain size={14} className="animate-spin" /> Édouard analyse...
-            </div>
-          )}
+          {isLoading && <div className="animate-pulse italic text-xs text-muted-foreground">Édouard analyse...</div>}
           <div ref={messagesEndRef} />
         </div>
       </div>
 
       <div className="p-6 border-t bg-card/50 backdrop-blur-lg">
         <div className="max-w-3xl mx-auto">
-          <div className="flex items-end gap-3 bg-background p-3 rounded-2xl border shadow-lg focus-within:ring-2 ring-primary/20">
+          <div className="flex items-end gap-3 bg-background p-3 rounded-2xl border shadow-lg">
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -239,7 +188,7 @@ const ChatPanel = ({
             <button
               onClick={handleSend}
               disabled={!input.trim() || isLoading}
-              className="bg-primary text-primary-foreground p-3 rounded-xl shadow-md active:scale-95 disabled:opacity-50"
+              className="bg-primary text-primary-foreground p-3 rounded-xl shadow-md disabled:opacity-50"
             >
               <Send size={18} />
             </button>
@@ -247,10 +196,7 @@ const ChatPanel = ({
           {isAnonymous && (
             <div className="flex items-center justify-center gap-2 mt-4 text-[12px] text-muted-foreground font-medium">
               <Lock size={14} className="text-amber-500" />
-              <span>
-                Il te reste <span className="text-foreground font-bold">{messagesLeft} messages</span> avant inscription
-                gratuite
-              </span>
+              <span>Il te reste {messagesLeft} messages avant inscription gratuite</span>
             </div>
           )}
         </div>

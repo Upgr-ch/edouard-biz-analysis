@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Brain, User, Lock } from "lucide-react";
+import { Send, Brain, User, Lock, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 // Imports sécurisés des fonctions anonymes
 import * as AnonChat from "@/lib/anonymousChat";
@@ -46,7 +46,8 @@ const ChatPanel = ({
   onCreateConversation,
   onUpdateTitle,
 }: any) => {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -96,6 +97,12 @@ const ChatPanel = ({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [displayMessages, isLoading]);
 
+  const handleSignOut = async () => {
+    await signOut();
+    toast.success("Déconnexion réussie");
+    navigate("/");
+  };
+
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
     const currentCount = getAnonCount();
@@ -103,7 +110,7 @@ const ChatPanel = ({
     if (isAnonymous && currentCount >= maxAnon) {
       toast.error("Quota atteint. Inscris-toi gratuitement pour continuer !");
       setTimeout(() => {
-        window.location.href = "/auth";
+        navigate("/auth");
       }, 1500);
       return;
     }
@@ -164,7 +171,20 @@ const ChatPanel = ({
   };
 
   return (
-    <div className="flex flex-col h-full bg-background">
+    <div className="flex flex-col h-full bg-background relative">
+      {/* BOUTON DE DÉCONNEXION */}
+      {!isAnonymous && (
+        <div className="absolute top-4 right-4 z-10">
+          <button
+            onClick={handleSignOut}
+            className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground bg-background/80 backdrop-blur-sm border rounded-lg transition-all shadow-sm"
+          >
+            <LogOut size={14} />
+            Déconnexion
+          </button>
+        </div>
+      )}
+
       <div className="flex-1 overflow-y-auto px-4 py-8">
         <div className="max-w-3xl mx-auto space-y-8">
           {displayMessages.map((msg: any, idx: number) => (
@@ -204,6 +224,7 @@ const ChatPanel = ({
           <div ref={messagesEndRef} />
         </div>
       </div>
+
       <div className="p-6 border-t bg-card/50 backdrop-blur-lg">
         <div className="max-w-3xl mx-auto">
           <div className="flex items-end gap-3 bg-background p-3 rounded-2xl border shadow-lg focus-within:ring-2 ring-primary/20">

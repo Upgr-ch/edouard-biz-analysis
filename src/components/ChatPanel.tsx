@@ -9,7 +9,6 @@ import { toast } from "sonner";
 // Imports sécurisés des fonctions anonymes
 import * as AnonChat from "@/lib/anonymousChat";
 
-// MISE À JOUR DU MESSAGE D'ACCUEIL AVEC L'OPTION "AIDE-MOI"
 const WELCOME_MESSAGE = {
   id: "welcome",
   role: "assistant",
@@ -88,18 +87,16 @@ const ChatPanel = ({
       return;
     }
 
-    // --- LOGIQUE DE RECONNAISSANCE UX (Majuscules/Minuscules/Aide) ---
     let userContent = input.trim();
     const cleanInput = userContent.toLowerCase();
 
     if (cleanInput === "aide-moi" || cleanInput === "aide moi" || cleanInput === "aide") {
-      userContent = "Aide-moi"; // Normalisation pour l'IA
+      userContent = "Aide-moi";
     } else if (userContent.length === 1) {
       if (cleanInput === "a") userContent = "A (Novice)";
       if (cleanInput === "b") userContent = "B (Intermédiaire)";
       if (cleanInput === "c") userContent = "C (Confirmé)";
     }
-    // ----------------------------------------------------------------
 
     setInput("");
     setIsLoading(true);
@@ -146,4 +143,13 @@ const ChatPanel = ({
   };
 
   return (
-    <div className="flex flex-col h-full bg-
+    <div className="flex flex-col h-full bg-background">
+      <div className="flex-1 overflow-y-auto px-4 py-8">
+        <div className="max-w-3xl mx-auto space-y-8">
+          {displayMessages.map((msg: any, idx: number) => (
+            <div key={idx} className={cn("flex flex-col", msg.role === "user" ? "items-end" : "items-start")}>
+              <span className="text-[10px] font-bold text-muted-foreground mb-2 tracking-widest uppercase">
+                {msg.role === "assistant" ? "Édouard" : "Vous"}
+              </span>
+              <div className={cn("flex gap-4 w-full", msg.role === "user" ? "flex-row-reverse" : "")}>
+                <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-md", msg.role === "assistant" ? "bg-gradient-to

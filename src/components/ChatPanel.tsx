@@ -59,11 +59,12 @@ const ChatPanel = ({ conversationId, persistedMessages = [], saveMessage, onCrea
     setDisclaimerAccepted(true);
     setIsLoading(true);
     try {
-      const initialPrompt = `Tu es Édouard. Tu dois répondre EXACTEMENT ceci, avec un saut de ligne entre chaque option A, B et C :
+      // TEXTE EXACT ET CONFIGURATION DES CHOIX (A, B, C)
+      const initialPrompt = `Tu es Édouard. Tu dois répondre EXACTEMENT ceci (avec un double retour à la ligne pour que A, B et C soient sur leur propre ligne) :
 
-Je suis Édouard, consultant senior spécialisé en faisabilité et rentabilité de projets. Je suis là pour analyser ton projet sans concession et te dire ce qu'il en est, objectivement.
+Je suis Édouard. Ne le prends pas pour toi, je m'exprime de manière ferme, assertive et juste. Mon travail est de te dire la vérité business, pas de te flatter.
 
-Très bien. Avant de commencer, dis-moi quel est ton niveau pour ce projet :
+Avant de commencer, j'ai besoin de savoir où tu en es. Choisis le profil qui te correspond :
 
 A. Novice — "C'est mon tout premier projet, je pars de zéro"
 
@@ -71,7 +72,7 @@ B. Intermédiaire — "J'ai déjà lancé un projet, je connais les bases"
 
 C. Confirmé — "J'ai plusieurs projets à mon actif, je veux aller vite"
 
-Si tu as un doute ou besoin de pistes concrètes pour trancher, réponds simplement 'Aide-moi' et je te proposerai trois options stratégiques (A, B ou C) adaptées à ton projet.`;
+Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A, B ou C), en majuscule ou en minuscule.`;
 
       if (isAnonymous) {
         const { data } = await supabase.functions.invoke("eugene-chat", {
@@ -82,7 +83,7 @@ Si tu as un doute ou besoin de pistes concrètes pour trancher, réponds simplem
         }
       } else {
         let currentId = conversationId;
-        if (!currentId && onCreateConversation) currentId = await onCreateConversation("Analyse de projet");
+        if (!currentId && onCreateConversation) currentId = await onCreateConversation("Démarrage Analyse");
         const { data } = await supabase.functions.invoke("eugene-chat", {
           body: { messages: [{ role: "user", content: initialPrompt }] },
         });
@@ -137,9 +138,9 @@ Si tu as un doute ou besoin de pistes concrètes pour trancher, réponds simplem
         </button>
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-start p-6 bg-[#0B0E14] text-slate-200 overflow-y-auto">
+      <div className="flex-1 flex flex-col items-center justify-start p-6 bg-[#0B0E14] text-slate-200 overflow-y-auto font-sans">
         {!disclaimerAccepted && displayMessages.length === 0 ? (
-          <div className="max-w-2xl w-full bg-[#161B22] border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-8 my-12">
+          <div className="max-w-2xl w-full bg-[#161B22] border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-8 my-12 animate-in fade-in zoom-in duration-500">
             <div className="space-y-1.5">
               <h1 className="text-4xl font-bold text-white tracking-tight">
                 Je suis <span className="text-indigo-500">Édouard.</span>
@@ -186,23 +187,26 @@ Si tu as un doute ou besoin de pistes concrètes pour trancher, réponds simplem
             <button
               disabled={!isChecked || isLoading}
               onClick={startConversation}
-              className="w-full py-4 bg-gradient-to-r from-indigo-600 to-violet-700 text-white rounded-2xl font-bold flex items-center justify-center gap-2 active:scale-95 disabled:opacity-30"
+              className="w-full py-4 bg-gradient-to-r from-indigo-600 to-violet-700 text-white rounded-2xl font-bold flex items-center justify-center gap-2 active:scale-95 disabled:opacity-30 transition-all"
             >
               {isLoading ? "Initialisation..." : "Commencer l'analyse"} <ArrowRight size={20} />
             </button>
           </div>
         ) : (
           <div className="max-w-2xl w-full flex-1 flex flex-col min-h-0 pb-24">
-            <div className="flex-1 space-y-6">
+            <div className="flex-1 space-y-6 overflow-y-visible">
               {displayMessages.map((msg: any, i: number) => (
                 <div
                   key={i}
-                  className={cn("flex flex-col animate-in fade-in", msg.role === "user" ? "items-end" : "items-start")}
+                  className={cn(
+                    "flex flex-col animate-in fade-in slide-in-from-bottom-2",
+                    msg.role === "user" ? "items-end" : "items-start",
+                  )}
                 >
                   <div className={cn("flex gap-3 max-w-[85%]", msg.role === "user" ? "flex-row-reverse" : "")}>
                     <div
                       className={cn(
-                        "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
+                        "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 shadow-sm",
                         msg.role === "assistant" ? "bg-indigo-600 text-white" : "bg-muted",
                       )}
                     >
@@ -232,9 +236,13 @@ Si tu as un doute ou besoin de pistes concrètes pour trancher, réponds simplem
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleSend())}
                   placeholder="Réponse..."
-                  className="flex-1 bg-[#161B22] border border-slate-800 rounded-xl p-3 resize-none h-12 outline-none text-sm text-white"
+                  className="flex-1 bg-[#161B22] border border-slate-800 rounded-xl p-3 resize-none h-12 outline-none text-sm focus:border-indigo-500/50 text-white"
                 />
-                <button onClick={() => handleSend()} className="bg-indigo-600 text-white px-4 rounded-xl shadow-lg">
+                <button
+                  onClick={() => handleSend()}
+                  disabled={!input.trim() || isLoading}
+                  className="bg-indigo-600 text-white px-4 rounded-xl shadow-lg hover:bg-indigo-700 transition-colors"
+                >
                   <Send size={18} />
                 </button>
               </div>

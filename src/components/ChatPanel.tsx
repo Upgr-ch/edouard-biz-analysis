@@ -56,6 +56,10 @@ const ChatPanel = ({ conversationId, persistedMessages = [], saveMessage, onCrea
   };
 
   const startConversation = async () => {
+    if (!isChecked) {
+      toast.error("Veuillez accepter l'avertissement.");
+      return;
+    }
     setDisclaimerAccepted(true);
     const edouardIntro = `Je suis Édouard. Ne le prends pas pour toi, je m'exprime de manière ferme, assertive et juste. Mon travail est de te dire la vérité business, pas de te flatter.
 
@@ -79,11 +83,8 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
 
-    // --- LOGIQUE DE REDIRECTION ---
-    // On autorise l'envoi tant qu'on n'a pas déjà envoyé 6 messages.
-    // Au clic pour le 7ème message, on redirige.
     if (isAnonymous && totalUserMessages >= 6) {
-      toast.info("Quota gratuit atteint. Inscris-toi pour sauvegarder ton analyse.");
+      toast.info("Quota gratuit atteint. Inscris-toi pour continuer.");
       localStorage.setItem("pending_anon_chat", JSON.stringify(displayMessages));
       setTimeout(() => navigate("/auth"), 1000);
       return;
@@ -94,7 +95,7 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
     setIsLoading(true);
 
     try {
-      const systemGuide = `Tu es Édouard. L'utilisateur répond "${content}". Si c'est A, B ou C, valide son profil et demande-lui de décrire son projet en détail. Ne répète jamais ton menu.`;
+      const systemGuide = `Tu es Édouard. L'utilisateur répond "${content}". Si c'est A, B ou C, valide son profil et demande-lui de décrire son projet.`;
 
       if (isAnonymous) {
         (AnonChat as any).appendAnonMessage("user", content);
@@ -122,7 +123,8 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
 
   return (
     <div className="flex flex-col h-screen bg-[#0B0E14] relative overflow-hidden font-sans">
-      <div className="fixed top-2 left-2 z-[100] opacity-30 hover:opacity-100 transition-opacity">
+      {/* RESET BTN */}
+      <div className="fixed top-2 left-2 z-[100] opacity-30 hover:opacity-100">
         <button
           onClick={handleForceSignOut}
           className="flex items-center gap-1.5 bg-red-950/40 text-red-100 px-2 py-1 rounded-md text-[9px] font-bold uppercase border border-red-500/20"
@@ -131,10 +133,10 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
         </button>
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-start p-6 overflow-y-auto scrollbar-none">
+      <div className="flex-1 flex flex-col items-center justify-start p-6 overflow-y-auto">
         {!disclaimerAccepted && displayMessages.length === 0 ? (
-          /* POPUP D'ACCUEIL CONFORME IMAGE */
-          <div className="max-w-2xl w-full bg-[#161B22] border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-8 my-auto animate-in fade-in zoom-in duration-500">
+          /* POPUP D'ACCUEIL */
+          <div className="max-w-2xl w-full bg-[#161B22] border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-8 my-auto">
             <div className="space-y-2">
               <h1 className="text-4xl font-bold text-white tracking-tight">
                 Je suis <span className="text-indigo-500">Édouard.</span>
@@ -143,77 +145,63 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
                 Consultant en faisabilité et rentabilité de projets business.
               </p>
             </div>
-
             <div className="space-y-5 text-slate-300 text-[15px] leading-relaxed">
               <p>Je vais t'aider à analyser ton idée de business avec structure et honnêteté.</p>
               <p>
                 Je m'exprime de manière <span className="font-semibold text-white">ferme, assertive et juste</span>, ne
                 le prends pas pour toi. Mon travail est de te dire la vérité business, pas de te flatter.
               </p>
-              <p>
-                Si ton idée n'est pas viable, je te le dirai clairement. Si elle est améliorable, je t'expliquerai
-                comment.
-              </p>
               <p className="text-blue-500 font-semibold text-[16px]">
                 Ma mission est de te faire gagner du temps et d'éviter les erreurs coûteuses.
               </p>
             </div>
-
             <div className="border-l-2 border-slate-700 pl-6 py-1 bg-slate-800/20 rounded-r-lg">
-              <p className="text-[13px] text-slate-400 leading-relaxed italic">
-                J'utilise uniquement des données réelles et vérifiables issues du web. Je n'invente jamais de chiffres,
-                de marché ou de tendances. Si une information fiable n'est pas disponible, je le dis clairement.
+              <p className="text-[13px] text-slate-400 italic">
+                J'utilise uniquement des données réelles et vérifiables issues du web.
               </p>
             </div>
-
             <div
               onClick={() => setIsChecked(!isChecked)}
               className={cn(
-                "p-6 rounded-2xl border cursor-pointer flex gap-4 bg-[#0B0E14]/50 transition-all",
-                isChecked ? "border-indigo-500/50 bg-[#0B0E14]" : "border-slate-800",
+                "p-6 rounded-2xl border cursor-pointer flex gap-4 bg-[#0B0E14]/50",
+                isChecked ? "border-indigo-500/50" : "border-slate-800",
               )}
             >
               <div
                 className={cn(
-                  "mt-1 w-5 h-5 rounded border flex items-center justify-center shrink-0 transition-colors",
+                  "mt-1 w-5 h-5 rounded border flex items-center justify-center shrink-0",
                   isChecked ? "bg-indigo-600 border-indigo-600 text-white" : "border-slate-700",
                 )}
               >
                 {isChecked && <Check size={12} />}
               </div>
-              <p className="text-[10px] text-slate-400 uppercase tracking-tight leading-normal">
+              <p className="text-[10px] text-slate-400 uppercase tracking-tight">
                 <span className="font-bold text-slate-200">AVERTISSEMENT :</span> Les analyses sont fournies à titre
-                informatif et consultatif uniquement. Elles ne constituent pas une garantie de résultat ni un conseil
-                engageant. L'utilisation des informations et les décisions prises relèvent entièrement de la
-                responsabilité de l'utilisateur.
+                informatif et consultatif uniquement.
               </p>
             </div>
-
             <button
               disabled={!isChecked || isLoading}
               onClick={startConversation}
-              className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-bold flex items-center justify-center gap-2 active:scale-95 disabled:opacity-30 transition-all shadow-lg shadow-indigo-500/20"
+              className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-500/20"
             >
               {isLoading ? "Initialisation..." : "Commencer l'analyse"} <ArrowRight size={20} />
             </button>
           </div>
         ) : (
-          /* CHAT PANEL */
-          <div className="max-w-2xl w-full flex-1 space-y-6 pb-10">
+          /* CHAT */
+          <div className="max-w-2xl w-full flex-1 space-y-6 pb-20">
             {displayMessages.map((msg: any, i: number) => {
               if (msg.role === "user") userMsgCounter++;
               return (
                 <div
                   key={i}
-                  className={cn(
-                    "flex flex-col animate-in fade-in slide-in-from-bottom-2",
-                    msg.role === "user" ? "items-end" : "items-start",
-                  )}
+                  className={cn("flex flex-col animate-in fade-in", msg.role === "user" ? "items-end" : "items-start")}
                 >
                   <div className={cn("flex gap-3 max-w-[85%]", msg.role === "user" ? "flex-row-reverse" : "")}>
                     <div
                       className={cn(
-                        "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 font-bold text-xs shadow-sm",
+                        "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 font-bold text-xs",
                         msg.role === "assistant"
                           ? "bg-indigo-600 text-white"
                           : "bg-slate-800 text-indigo-400 border border-indigo-500/30",
@@ -229,9 +217,9 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
                           : "bg-indigo-500/10 border-indigo-500/20 text-white",
                       )}
                     >
-                      <div className="prose prose-sm dark:prose-invert whitespace-pre-wrap font-sans text-slate-200">
-                        <ReactMarkdown>{msg.content}</ReactMarkdown>
-                      </div>
+                      <ReactMarkdown className="prose prose-sm dark:prose-invert whitespace-pre-wrap">
+                        {msg.content}
+                      </ReactMarkdown>
                     </div>
                   </div>
                 </div>
@@ -245,11 +233,12 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
         )}
       </div>
 
-      {disclaimerAccepted && (
-        <div className="bg-[#0B0E14] border-t border-slate-800 z-40 shrink-0">
+      {/* INPUT BAR (VISIBLE DÈS QUE LE CHAT COMMENCE) */}
+      {(disclaimerAccepted || displayMessages.length > 0) && (
+        <div className="bg-[#0B0E14] border-t border-slate-800 z-40">
           <div className="max-w-2xl mx-auto px-4 py-3">
             {isAnonymous && (
-              <div className="mb-2 text-[9px] font-bold uppercase tracking-[0.15em] text-indigo-400/80 pl-1">
+              <div className="mb-2 text-[9px] font-bold uppercase tracking-widest text-indigo-400/80">
                 Message {totalUserMessages} / 6 avant inscription gratuite
               </div>
             )}
@@ -258,16 +247,14 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleSend())}
-                placeholder={isAnonymous && totalUserMessages >= 6 ? "Inscription requise..." : "Écrivez ici..."}
-                className="flex-1 bg-[#161B22] border border-slate-800 rounded-xl p-3 resize-none h-12 outline-none text-sm text-white focus:border-indigo-500 transition-all shadow-inner"
+                placeholder={isAnonymous && totalUserMessages >= 6 ? "Inscription requise..." : "Répondez ici..."}
+                className="flex-1 bg-[#161B22] border border-slate-800 rounded-xl p-3 resize-none h-12 outline-none text-sm text-white focus:border-indigo-500 transition-all"
               />
               <button
                 onClick={handleSend}
                 className={cn(
                   "px-4 rounded-xl transition-colors shadow-lg",
-                  isAnonymous && totalUserMessages >= 6
-                    ? "bg-amber-600 hover:bg-amber-700"
-                    : "bg-indigo-600 hover:bg-indigo-700",
+                  isAnonymous && totalUserMessages >= 6 ? "bg-amber-600" : "bg-indigo-600",
                 )}
               >
                 {isAnonymous && totalUserMessages >= 6 ? (

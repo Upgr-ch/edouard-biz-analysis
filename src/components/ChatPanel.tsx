@@ -46,7 +46,7 @@ const ChatPanel = ({
   onCreateConversation,
   onUpdateTitle,
 }: any) => {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth(); // On ne prend que user ici
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [input, setInput] = useState("");
@@ -97,10 +97,16 @@ const ChatPanel = ({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [displayMessages, isLoading]);
 
-  const handleSignOut = async () => {
-    await signOut();
-    toast.success("Déconnecté (session terminée)");
-    navigate("/");
+  // FONCTION DE DÉCONNEXION DIRECTE VIA SUPABASE
+  const handleManualSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast.success("Déconnexion réussie");
+      navigate("/");
+      window.location.reload(); // Force le rafraîchissement pour nettoyer l'état
+    } catch (error) {
+      console.error("Erreur déconnexion:", error);
+    }
   };
 
   const handleSend = async () => {
@@ -108,10 +114,8 @@ const ChatPanel = ({
     const currentCount = getAnonCount();
 
     if (isAnonymous && currentCount >= maxAnon) {
-      toast.error("Quota atteint. Inscris-toi gratuitement pour continuer !");
-      setTimeout(() => {
-        navigate("/auth");
-      }, 1500);
+      toast.error("Quota atteint. Inscris-toi gratuitement !");
+      setTimeout(() => navigate("/auth"), 1500);
       return;
     }
 
@@ -171,17 +175,15 @@ const ChatPanel = ({
   };
 
   return (
-    <div className="flex flex-col h-full bg-background relative">
-      {/* BOUTON DÉCONNEXION TEMPORAIRE */}
+    <div className="flex flex-col h-full bg-background relative overflow-hidden">
+      {/* BOUTON DÉCONNEXION TEMPORAIRE - FORCÉ EN HAUT À DROITE */}
       {!isAnonymous && (
-        <div className="absolute top-2 right-2 z-50">
-          <button
-            onClick={handleSignOut}
-            className="px-2 py-1 text-[9px] bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white border border-red-500/20 rounded transition-all font-mono uppercase"
-          >
-            Déconnexion (temp)
-          </button>
-        </div>
+        <button
+          onClick={handleManualSignOut}
+          className="fixed top-4 right-4 z-[9999] px-3 py-1 text-[10px] bg-red-500/20 text-red-600 hover:bg-red-500 hover:text-white border border-red-500/30 rounded-md transition-all font-mono uppercase font-bold shadow-sm"
+        >
+          Déconnexion (temp)
+        </button>
       )}
 
       <div className="flex-1 overflow-y-auto px-4 py-8">

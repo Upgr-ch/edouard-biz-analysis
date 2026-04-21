@@ -28,7 +28,7 @@ const Footer = () => (
   </footer>
 );
 
-const ChatPanel = ({ conversationId, persistedMessages = [], saveMessage, onCreateConversation }: any) => {
+const ChatPanel = ({ conversationId, persistedMessages = [], saveMessage }: any) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
@@ -36,38 +36,39 @@ const ChatPanel = ({ conversationId, persistedMessages = [], saveMessage, onCrea
   const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const restorationStarted = useRef(false);
 
   const isAnonymous = !user;
   const displayMessages = isAnonymous ? (AnonChat as any).getAnonMessages?.() || [] : persistedMessages;
   const totalUserMessages = displayMessages.filter((m: any) => m.role === "user").length;
 
-  // --- LOGIQUE DE RÉCUPÉRATION APRÈS AUTHENTIFICATION ---
+  // --- LOGIQUE DE PERSISTANCE ---
   useEffect(() => {
-    const restorePendingChat = async () => {
-      if (user && !isAnonymous && conversationId) {
+    const restoreMessages = async () => {
+      // On ne restaure que si on a un user, un ID de conversation, et des messages en attente
+      if (user && conversationId && !restorationStarted.current) {
         const pendingData = localStorage.getItem("pending_anon_chat");
         if (pendingData) {
+          restorationStarted.current = true; // Empêche les doublons
           const messagesToRestore = JSON.parse(pendingData);
-          // On évite de restaurer si la conversation actuelle a déjà des messages
+
+          // On n'injecte que si la conversation en base est encore vide
           if (persistedMessages.length === 0) {
             for (const msg of messagesToRestore) {
               await saveMessage(conversationId, msg.role, msg.content);
             }
-            toast.success("Conversation restaurée !");
           }
-          localStorage.removeItem("pending_anon_chat"); // On nettoie après restauration
+          localStorage.removeItem("pending_anon_chat");
         }
       }
     };
-    restorePendingChat();
-  }, [user, conversationId]);
+    restoreMessages();
+  }, [user, conversationId, persistedMessages.length, saveMessage]);
 
-  // Redirection automatique après le 6ème message
+  // Redirection automatique
   useEffect(() => {
     if (isAnonymous && totalUserMessages === 6 && !isLoading) {
       const timer = setTimeout(() => {
-        toast.info("Analyse terminée. Inscription requise pour sauvegarder.");
-        // SAUVEGARDE CRUCIALE AVANT DÉPART
         localStorage.setItem("pending_anon_chat", JSON.stringify(displayMessages));
         navigate("/auth");
       }, 4000);
@@ -206,7 +207,7 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
             <button
               disabled={!isChecked || isLoading}
               onClick={startConversation}
-              className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-500/20 active:scale-95"
+              className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95"
             >
               {isLoading ? "Initialisation..." : "Commencer l'analyse"} <ArrowRight size={20} />
             </button>
@@ -273,7 +274,7 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
               />
               <button
                 onClick={handleSend}
-                className="px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all shadow-lg flex items-center justify-center active:scale-95"
+                className="px-4 bg-indigo-600 text-white rounded-xl transition-all shadow-lg flex items-center justify-center active:scale-95"
               >
                 <Send size={18} />
               </button>

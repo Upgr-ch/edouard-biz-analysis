@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Link, useNavigate } from "react-router-dom";
 import * as AnonChat from "@/lib/anonymousChat";
 
+// --- COMPOSANT FOOTER ---
 const Footer = () => (
   <footer className="w-full py-4 border-t bg-background/50 mt-auto">
     <div className="max-w-3xl mx-auto px-4 flex flex-wrap justify-center gap-x-5 gap-y-2 text-[10px] text-muted-foreground uppercase tracking-widest font-medium">
@@ -44,28 +45,35 @@ const ChatPanel = ({ conversationId, persistedMessages = [], saveMessage, onCrea
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [displayMessages, isLoading]);
 
-  // FONCTION POUR LANCER LA CONVERSATION AUTOMATIQUEMENT
+  // BOUTON DE SECOURS POUR TON ERREUR 23503
+  const handleForceSignOut = async () => {
+    await supabase.auth.signOut();
+    localStorage.clear();
+    toast.success("Session réinitialisée");
+    window.location.href = "/";
+  };
+
+  // LANCEMENT DE LA CONVERSATION APRÈS VALIDATION
   const startConversation = async () => {
     setDisclaimerAccepted(true);
     setIsLoading(true);
+    const initialPrompt = "Bonjour Édouard, je suis prêt pour l'analyse.";
 
     try {
-      // On envoie un message d'initialisation invisible ou on appelle directement l'IA
       if (isAnonymous) {
         const { data } = await supabase.functions.invoke("eugene-chat", {
-          body: { messages: [{ role: "user", content: "Bonjour Édouard, je suis prêt pour l'analyse." }] },
+          body: { messages: [{ role: "user", content: initialPrompt }] },
         });
         if (data?.content && (AnonChat as any).appendAnonMessage) {
           (AnonChat as any).appendAnonMessage("assistant", data.content);
         }
       } else {
-        // Pour les utilisateurs connectés
         let currentId = conversationId;
         if (!currentId && onCreateConversation) {
           currentId = await onCreateConversation("Nouvelle analyse");
         }
         const { data } = await supabase.functions.invoke("eugene-chat", {
-          body: { messages: [{ role: "user", content: "Bonjour Édouard, je suis prêt pour l'analyse." }] },
+          body: { messages: [{ role: "user", content: initialPrompt }] },
         });
         if (data?.content && saveMessage && currentId) {
           await saveMessage(currentId, "assistant", data.content);
@@ -78,28 +86,26 @@ const ChatPanel = ({ conversationId, persistedMessages = [], saveMessage, onCrea
     }
   };
 
-  const handleSend = async (forcedText?: string) => {
-    const textToSend = forcedText || input;
-    if (!textToSend.trim() || isLoading) return;
-
+  const handleSend = async () => {
+    if (!input.trim() || isLoading) return;
+    let content = input.trim();
     setInput("");
     setIsLoading(true);
-
     try {
       if (isAnonymous) {
-        if ((AnonChat as any).appendAnonMessage) (AnonChat as any).appendAnonMessage("user", textToSend);
+        if ((AnonChat as any).appendAnonMessage) (AnonChat as any).appendAnonMessage("user", content);
         const { data } = await supabase.functions.invoke("eugene-chat", {
-          body: { messages: [...((AnonChat as any).getAnonMessages?.() || []), { role: "user", content: textToSend }] },
+          body: { messages: [...((AnonChat as any).getAnonMessages?.() || []), { role: "user", content }] },
         });
         if (data?.content && (AnonChat as any).appendAnonMessage)
           (AnonChat as any).appendAnonMessage("assistant", data.content);
       } else {
         let currentId = conversationId;
-        if (!currentId && onCreateConversation) currentId = await onCreateConversation(textToSend.substring(0, 30));
+        if (!currentId && onCreateConversation) currentId = await onCreateConversation(content.substring(0, 30));
         if (saveMessage && currentId) {
-          await saveMessage(currentId, "user", textToSend);
+          await saveMessage(currentId, "user", content);
           const { data } = await supabase.functions.invoke("eugene-chat", {
-            body: { messages: [...persistedMessages, { role: "user", content: textToSend }] },
+            body: { messages: [...persistedMessages, { role: "user", content }] },
           });
           if (data?.content) await saveMessage(currentId, "assistant", data.content);
         }
@@ -111,10 +117,20 @@ const ChatPanel = ({ conversationId, persistedMessages = [], saveMessage, onCrea
     }
   };
 
-  // --- RENDU DU DISCLAIMER ---
+  // --- ÉCRAN D'ACCUEIL ÉDOUARD (DISCLAIMER) ---
   if (!disclaimerAccepted && displayMessages.length === 0) {
     return (
-      <div className="flex flex-col min-h-screen bg-[#0B0E14] items-center justify-center p-6 text-slate-200">
+      <div className="flex flex-col min-h-screen bg-[#0B0E14] items-center justify-center p-6 text-slate-200 relative">
+        {/* BOUTON DE DÉCONNEXION D'URGENCE */}
+        {user && (
+          <button
+            onClick={handleForceSignOut}
+            className="absolute top-4 right-4 bg-red-600/20 text-red-500 border border-red-500/50 px-3 py-1 rounded text-[10px] font-bold uppercase hover:bg-red-600 hover:text-white transition-all"
+          >
+            Réinitialiser Session
+          </button>
+        )}
+
         <div className="max-w-2xl w-full bg-[#161B22] border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-8 animate-in fade-in zoom-in duration-500">
           <div className="space-y-2">
             <h1 className="text-4xl font-bold text-white">
@@ -179,17 +195,16 @@ const ChatPanel = ({ conversationId, persistedMessages = [], saveMessage, onCrea
     );
   }
 
+  // --- INTERFACE DE CHAT ---
   return (
     <div className="flex flex-col h-screen bg-background relative">
-      {!isAnonymous && (
-        <div className="absolute top-4 right-4 z-50">
-          <button
-            onClick={handleManualSignOut}
-            className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors px-2 py-1"
-          >
-            Déconnexion
-          </button>
-        </div>
+      {user && (
+        <button
+          onClick={handleForceSignOut}
+          className="absolute top-4 right-4 z-50 bg-red-600/10 text-red-600 border border-red-600/20 px-2 py-1 rounded text-[9px] font-bold uppercase hover:bg-red-600 hover:text-white transition-all"
+        >
+          Déconnexion
+        </button>
       )}
 
       <div className="flex-1 overflow-y-auto p-4 pt-12 pb-12">
@@ -245,7 +260,7 @@ const ChatPanel = ({ conversationId, persistedMessages = [], saveMessage, onCrea
           <button
             onClick={() => handleSend()}
             disabled={!input.trim() || isLoading}
-            className="bg-indigo-600 text-white px-4 rounded-xl shadow-lg hover:bg-indigo-700 transition-colors disabled:opacity-50"
+            className="bg-indigo-600 text-white px-4 rounded-xl"
           >
             <Send size={18} />
           </button>

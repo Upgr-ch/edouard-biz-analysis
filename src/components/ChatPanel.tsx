@@ -66,6 +66,7 @@ const ChatPanel = ({
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
+    console.log("[Édouard] Tentative d'envoi...", { isAnonymous, conversationId });
 
     // MODIFICATION : On vérifie le compte réel avant de bloquer
     const currentCount = getAnonCount();
@@ -105,6 +106,21 @@ const ChatPanel = ({
         }
         if (saveMessage && currentId) {
           await saveMessage(currentId, "user", userContent);
+        }
+        // Appel IA pour user connecté
+        if (currentId) {
+          const history = [
+            ...persistedMessages.map((m: any) => ({ role: m.role, content: m.content })),
+            { role: "user", content: userContent },
+          ];
+          console.log("[Édouard] Appel eugene-chat (connecté)", { count: history.length });
+          const { data, error } = await supabase.functions.invoke("eugene-chat", {
+            body: { messages: history },
+          });
+          if (error) throw error;
+          if (data?.content && saveMessage) {
+            await saveMessage(currentId, "assistant", data.content);
+          }
         }
       }
     } catch (error: any) {

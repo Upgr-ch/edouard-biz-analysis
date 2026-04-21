@@ -42,38 +42,30 @@ const ChatPanel = ({ conversationId, persistedMessages = [], saveMessage }: any)
   const displayMessages = isAnonymous ? (AnonChat as any).getAnonMessages?.() || [] : persistedMessages;
   const totalUserMessages = displayMessages.filter((m: any) => m.role === "user").length;
 
-  // --- LOGIQUE DE RESTAURATION ULTRA-ROBUSTE ---
   useEffect(() => {
     const restorePendingMessages = async () => {
       const pendingData = localStorage.getItem("pending_anon_chat");
-
-      // On ne restaure que si : User OK + Conversation ID prêt + Données présentes + Pas déjà en cours
       if (user && conversationId && pendingData && !isRestoring.current) {
-        // On vérifie si la conversation est vide pour ne pas doublonner
         if (persistedMessages.length === 0) {
           isRestoring.current = true;
           const messagesToRestore = JSON.parse(pendingData);
-
           try {
-            console.log("Restauration de la session anonyme vers :", conversationId);
             for (const msg of messagesToRestore) {
               await saveMessage(conversationId, msg.role, msg.content);
             }
             localStorage.removeItem("pending_anon_chat");
             toast.success("Analyse récupérée !");
           } catch (error) {
-            console.error("Échec de la restauration :", error);
+            console.error("Échec restauration:", error);
           } finally {
             isRestoring.current = false;
           }
         }
       }
     };
-
     restorePendingMessages();
-  }, [user, conversationId, persistedMessages.length]); // Se déclenche quand l'ID arrive ou que le user change
+  }, [user, conversationId, persistedMessages.length, saveMessage]);
 
-  // Redirection automatique après le 6ème message
   useEffect(() => {
     if (isAnonymous && totalUserMessages === 6 && !isLoading) {
       const timer = setTimeout(() => {
@@ -120,17 +112,14 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
-
     if (isAnonymous && totalUserMessages >= 6) {
       localStorage.setItem("pending_anon_chat", JSON.stringify(displayMessages));
       navigate("/auth");
       return;
     }
-
     const content = input.trim();
     setInput("");
     setIsLoading(true);
-
     try {
       const systemGuide = `Tu es Édouard. L'utilisateur répond "${content}".`;
       if (isAnonymous) {
@@ -167,9 +156,9 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
           <LogOut size={12} /> Reset
         </button>
       </div>
+
       <div className="flex-1 flex flex-col items-center justify-start p-6 overflow-y-auto scrollbar-none">
         {!disclaimerAccepted && displayMessages.length === 0 ? (
-          /* POPUP D'ACCUEIL */
           <div className="max-w-2xl w-full bg-[#161B22] border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-8 my-auto animate-in fade-in zoom-in duration-500">
             <div className="space-y-2">
               <h1 className="text-4xl font-bold text-white tracking-tight">
@@ -221,7 +210,6 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
             </button>
           </div>
         ) : (
-          /* ZONE DE CHAT */
           <div className="max-w-2xl w-full flex-1 space-y-6 pb-20">
             {displayMessages.map((msg: any, i: number) => {
               if (msg.role === "user") userMsgCounter++;
@@ -264,7 +252,7 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
           </div>
         )}
       </div>
-      /* BARRE DE SAISIE */
+
       {(disclaimerAccepted || displayMessages.length > 0) && (
         <div className="bg-[#0B0E14] border-t border-slate-800 z-40">
           <div className="max-w-2xl mx-auto px-4 py-3">

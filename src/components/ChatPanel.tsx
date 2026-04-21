@@ -37,7 +37,7 @@ const ChatPanel = ({
   const isAnonymous = !user;
   const messagesLeft = Math.max(0, maxAnon - getAnonCount());
 
-  // Synchronisation des messages après authentification
+  // Migration des messages anonymes vers le compte utilisateur après connexion
   useEffect(() => {
     const syncAnonymousMessages = async () => {
       if (user && !syncProcessed.current) {
@@ -87,6 +87,7 @@ const ChatPanel = ({
       return;
     }
 
+    // Traitement intelligent de la saisie (UX)
     let userContent = input.trim();
     const cleanInput = userContent.toLowerCase();
 
@@ -190,7 +191,7 @@ const ChatPanel = ({
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleSend())}
-              placeholder="Réponds à Édouard (A, B, C ou Aide-moi)..."
+              placeholder="Réponse"
               className="flex-1 min-h-[45px] max-h-32 bg-transparent border-none focus:ring-0 text-[15px] py-2 resize-none outline-none"
             />
             <button

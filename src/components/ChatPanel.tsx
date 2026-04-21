@@ -9,7 +9,7 @@ import { Link } from "react-router-dom";
 import * as AnonChat from "@/lib/anonymousChat";
 
 const Footer = () => (
-  <footer className="w-full py-4 border-t border-slate-800 bg-[#0B0E14] z-50">
+  <footer className="w-full py-3 border-t border-slate-800 bg-[#0B0E14] z-50 shrink-0">
     <div className="max-w-3xl mx-auto px-4 flex flex-wrap justify-center gap-x-5 gap-y-2 text-[10px] text-muted-foreground uppercase tracking-widest font-medium">
       <Link to="/mentions-legales" className="hover:text-primary transition-colors">
         Mentions Légales
@@ -145,8 +145,8 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
         </button>
       </div>
 
-      {/* ZONE PRINCIPALE DE CONTENU (SCROLLABLE) */}
-      <div className="flex-1 flex flex-col items-center justify-start p-6 overflow-y-auto font-sans">
+      {/* ZONE DE CONTENU PRINCIPALE */}
+      <div className="flex-1 flex flex-col items-center justify-start p-6 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800">
         {!disclaimerAccepted && displayMessages.length === 0 ? (
           /* ACCUEIL / DISCLAIMER */
           <div className="max-w-2xl w-full bg-[#161B22] border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-8 my-auto animate-in fade-in zoom-in duration-500">
@@ -188,30 +188,23 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
             <button
               disabled={!isChecked || isLoading}
               onClick={startConversation}
-              className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold flex items-center justify-center gap-2 active:scale-95 disabled:opacity-30"
+              className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold flex items-center justify-center gap-2 active:scale-95 disabled:opacity-30 transition-all"
             >
               {isLoading ? "Initialisation..." : "Commencer l'analyse"} <ArrowRight size={20} />
             </button>
           </div>
         ) : (
-          /* CHAT */
-          <div className="max-w-2xl w-full flex-1 flex flex-col min-h-0 pb-32">
-            {isAnonymous && (
-              <div className="mb-6 text-center sticky top-0 z-10 pt-2">
-                <span
-                  className={cn(
-                    "px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border bg-[#0B0E14]",
-                    remainingMessages <= 1 ? "border-red-500 text-red-500" : "border-indigo-500/50 text-indigo-400",
-                  )}
-                >
-                  {remainingMessages} message{remainingMessages > 1 ? "s" : ""} restant
-                  {remainingMessages > 1 ? "s" : ""}
-                </span>
-              </div>
-            )}
+          /* CHAT MESSAGES */
+          <div className="max-w-2xl w-full flex-1 flex flex-col min-h-0 pb-10">
             <div className="flex-1 space-y-6">
               {displayMessages.map((msg: any, i: number) => (
-                <div key={i} className={cn("flex flex-col", msg.role === "user" ? "items-end" : "items-start")}>
+                <div
+                  key={i}
+                  className={cn(
+                    "flex flex-col animate-in fade-in slide-in-from-bottom-2",
+                    msg.role === "user" ? "items-end" : "items-start",
+                  )}
+                >
                   <div className={cn("flex gap-3 max-w-[85%]", msg.role === "user" ? "flex-row-reverse" : "")}>
                     <div
                       className={cn(
@@ -245,28 +238,47 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
         )}
       </div>
 
-      {/* INPUT (FIXÉ AU DESSUS DU FOOTER) */}
+      {/* ZONE BASSE (FIXÉ) : COMPTEUR + INPUT + FOOTER */}
       {disclaimerAccepted && (
-        <div className="bg-[#0B0E14] border-t border-slate-800 px-4 pt-4 pb-2 z-40">
-          <div className="max-w-2xl mx-auto flex gap-2">
-            <textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleSend())}
-              placeholder="Écrivez votre réponse..."
-              className="flex-1 bg-[#161B22] border border-slate-800 rounded-xl p-3 resize-none h-12 outline-none text-sm text-white focus:border-indigo-500"
-            />
-            <button
-              onClick={() => handleSend()}
-              className="bg-indigo-600 text-white px-4 rounded-xl shadow-lg hover:bg-indigo-700 transition-colors"
-            >
-              <Send size={18} />
-            </button>
+        <div className="bg-[#0B0E14] border-t border-slate-800 z-40 shrink-0">
+          <div className="max-w-2xl mx-auto px-4 py-3">
+            {/* COMPTEUR JUSTE AU DESSUS DE LA BULLE */}
+            {isAnonymous && (
+              <div className="mb-2 flex justify-start pl-1">
+                <span
+                  className={cn(
+                    "text-[9px] font-bold uppercase tracking-[0.15em]",
+                    remainingMessages <= 1 ? "text-red-500 animate-pulse" : "text-indigo-400/80",
+                  )}
+                >
+                  {remainingMessages} message{remainingMessages > 1 ? "s" : ""} avant inscription gratuite
+                </span>
+              </div>
+            )}
+
+            {/* BULLE DE CHAT / TEXTAREA */}
+            <div className="flex gap-2">
+              <textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleSend())}
+                placeholder={isAnonymous && messageCount >= 6 ? "Limite atteinte..." : "Écrivez votre réponse..."}
+                disabled={isAnonymous && messageCount >= 6}
+                className="flex-1 bg-[#161B22] border border-slate-800 rounded-xl p-3 resize-none h-12 outline-none text-sm text-white focus:border-indigo-500 transition-colors"
+              />
+              <button
+                onClick={() => handleSend()}
+                disabled={!input.trim() || isLoading || (isAnonymous && messageCount >= 6)}
+                className="bg-indigo-600 text-white px-4 rounded-xl shadow-lg hover:bg-indigo-700 transition-colors disabled:opacity-30"
+              >
+                <Send size={18} />
+              </button>
+            </div>
           </div>
         </div>
       )}
 
-      {/* FOOTER TOUJOURS VISIBLE */}
+      {/* FOOTER TOUJOURS VISIBLE TOUT EN BAS */}
       <Footer />
     </div>
   );

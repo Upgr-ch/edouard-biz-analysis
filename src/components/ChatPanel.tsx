@@ -59,7 +59,6 @@ const ChatPanel = ({ conversationId, persistedMessages = [], saveMessage, onCrea
     setDisclaimerAccepted(true);
     setIsLoading(true);
     try {
-      // PROMPT MIS À JOUR AVEC TON TEXTE EXACT ET FORÇAGE DE LIGNE
       const initialPrompt = `Tu es Édouard. Tu dois répondre EXACTEMENT ceci, avec un saut de ligne entre chaque option A, B et C :
 
 Je suis Édouard, consultant senior spécialisé en faisabilité et rentabilité de projets. Je suis là pour analyser ton projet sans concession et te dire ce qu'il en est, objectivement.
@@ -129,7 +128,7 @@ Si tu as un doute ou besoin de pistes concrètes pour trancher, réponds simplem
 
   return (
     <div className="flex flex-col h-screen bg-background relative overflow-hidden">
-      {/* BOUTON RESET SESSION MAINTENU EN HAUT À GAUCHE */}
+      {/* BOUTON RESET MAINTENU */}
       <div className="fixed top-2 left-2 z-[100] opacity-50 hover:opacity-100 transition-opacity">
         <button
           onClick={handleForceSignOut}
@@ -139,14 +138,18 @@ Si tu as un doute ou besoin de pistes concrètes pour trancher, réponds simplem
         </button>
       </div>
 
-      {!disclaimerAccepted && displayMessages.length === 0 ? (
-        <div className="flex-1 flex flex-col items-center justify-start md:justify-center p-6 bg-[#0B0E14] text-slate-200 overflow-y-auto">
+      <div className="flex-1 flex flex-col items-center justify-start p-6 bg-[#0B0E14] text-slate-200 overflow-y-auto">
+        {!disclaimerAccepted && displayMessages.length === 0 ? (
           <div className="max-w-2xl w-full bg-[#161B22] border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-8 my-12 animate-in fade-in zoom-in duration-500">
+            {/* TITRE ÉDOUARD - TEXTE EXACT DEMANDÉ */}
             <div className="space-y-1.5">
               <h1 className="text-4xl font-bold text-white tracking-tight">
                 Je suis <span className="text-indigo-500">Édouard.</span>
               </h1>
-              <p className="text-slate-400 text-lg">Consultant en faisabilité et rentabilité de projets business.</p>
+              <p className="text-slate-300 text-lg leading-snug">
+                Consultant senior spécialisé en faisabilité et rentabilité de projets. Je suis là pour analyser ton
+                projet sans concession et te dire ce qu'il en est, objectivement.
+              </p>
             </div>
 
             <div className="space-y-6 text-slate-300 leading-relaxed text-[15px]">
@@ -155,20 +158,16 @@ Si tu as un doute ou besoin de pistes concrètes pour trancher, réponds simplem
                 Je m'exprime de manière <span className="font-semibold text-white">ferme, assertive et juste</span>, ne
                 le prends pas pour toi. Mon travail est de te dire la vérité business, pas de te flatter.
               </p>
-              <p>
-                Si ton idée n'est pas viable, je te le dirai clairement. Si elle est améliorable, je t'expliquerai
-                comment.
-              </p>
               <p className="text-[#3b82f6] font-medium text-[15px]">
                 Ma mission est de te faire gagner du temps et d'éviter les erreurs coûteuses.
               </p>
-
               <div className="pl-4 border-l-2 border-indigo-500/40 py-1 text-slate-400 text-[13px] italic bg-indigo-500/5">
                 J'utilise uniquement des données réelles et vérifiables issues du web. Je n'invente jamais de chiffres,
                 de marché ou de tendances. Si une information fiable n'est pas disponible, je le dis clairement.
               </div>
             </div>
 
+            {/* AVERTISSEMENT */}
             <div
               onClick={() => setIsChecked(!isChecked)}
               className={cn(
@@ -200,12 +199,10 @@ Si tu as un doute ou besoin de pistes concrètes pour trancher, réponds simplem
               {isLoading ? "Initialisation..." : "Commencer l'analyse"} <ArrowRight size={20} />
             </button>
           </div>
-          <Footer />
-        </div>
-      ) : (
-        <>
-          <div className="flex-1 overflow-y-auto p-4 pt-16 pb-12">
-            <div className="max-w-3xl mx-auto space-y-6">
+        ) : (
+          /* ZONE DE CHAT */
+          <div className="max-w-2xl w-full flex-1 flex flex-col min-h-0 pb-24">
+            <div className="flex-1 space-y-6 overflow-y-visible">
               {displayMessages.map((msg: any, i: number) => (
                 <div
                   key={i}
@@ -226,10 +223,10 @@ Si tu as un doute ou besoin de pistes concrètes pour trancher, réponds simplem
                     <div
                       className={cn(
                         "rounded-2xl px-4 py-3 text-sm border shadow-sm",
-                        msg.role === "assistant" ? "bg-card" : "bg-primary/5",
+                        msg.role === "assistant" ? "bg-[#161B22] border-slate-800" : "bg-primary/5",
                       )}
                     >
-                      <div className="prose prose-sm dark:prose-invert">
+                      <div className="prose prose-sm dark:prose-invert whitespace-pre-wrap">
                         <ReactMarkdown>{msg.content}</ReactMarkdown>
                       </div>
                     </div>
@@ -243,29 +240,29 @@ Si tu as un doute ou besoin de pistes concrètes pour trancher, réponds simplem
               )}
               <div ref={messagesEndRef} />
             </div>
-          </div>
 
-          <div className="p-4 bg-background border-t">
-            <div className="max-w-3xl mx-auto flex gap-2">
-              <textarea
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleSend())}
-                placeholder="Réponse..."
-                className="flex-1 bg-muted/50 border rounded-xl p-3 resize-none h-12 outline-none text-sm focus:border-indigo-500/50"
-              />
-              <button
-                onClick={() => handleSend()}
-                disabled={!input.trim() || isLoading}
-                className="bg-indigo-600 text-white px-4 rounded-xl shadow-lg hover:bg-indigo-700 transition-colors"
-              >
-                <Send size={18} />
-              </button>
+            <div className="fixed bottom-0 left-0 right-0 bg-[#0B0E14] border-t border-slate-800 p-4 z-50">
+              <div className="max-w-2xl mx-auto flex gap-2">
+                <textarea
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleSend())}
+                  placeholder="Réponse..."
+                  className="flex-1 bg-[#161B22] border border-slate-800 rounded-xl p-3 resize-none h-12 outline-none text-sm focus:border-indigo-500/50 text-white"
+                />
+                <button
+                  onClick={() => handleSend()}
+                  disabled={!input.trim() || isLoading}
+                  className="bg-indigo-600 text-white px-4 rounded-xl shadow-lg hover:bg-indigo-700 transition-colors"
+                >
+                  <Send size={18} />
+                </button>
+              </div>
             </div>
           </div>
-          <Footer />
-        </>
-      )}
+        )}
+        <Footer />
+      </div>
     </div>
   );
 };

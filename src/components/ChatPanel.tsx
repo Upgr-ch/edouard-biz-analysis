@@ -39,8 +39,8 @@ const ChatPanel = ({ conversationId, persistedMessages = [], saveMessage, onCrea
   const isAnonymous = !user;
   const displayMessages = isAnonymous ? (AnonChat as any).getAnonMessages?.() || [] : persistedMessages;
 
-  const messageCount = isAnonymous ? displayMessages.filter((m: any) => m.role === "user").length : 0;
-  const remainingMessages = Math.max(0, 6 - messageCount);
+  // Nombre total de messages utilisateur pour la limite
+  const totalUserMessages = displayMessages.filter((m: any) => m.role === "user").length;
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -100,7 +100,7 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
-    if (isAnonymous && messageCount >= 6) {
+    if (isAnonymous && totalUserMessages >= 6) {
       toast.error("Limite atteinte.");
       return;
     }
@@ -133,9 +133,11 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
     }
   };
 
+  // Variable pour suivre l'index croissant des messages UX
+  let userMsgCounter = 0;
+
   return (
     <div className="flex flex-col h-screen bg-[#0B0E14] relative overflow-hidden">
-      {/* RESET SESSION */}
       <div className="fixed top-2 left-2 z-[100] opacity-30 hover:opacity-100 transition-opacity">
         <button
           onClick={handleForceSignOut}
@@ -145,10 +147,8 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
         </button>
       </div>
 
-      {/* ZONE DE CONTENU PRINCIPALE */}
       <div className="flex-1 flex flex-col items-center justify-start p-6 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800">
         {!disclaimerAccepted && displayMessages.length === 0 ? (
-          /* ACCUEIL / DISCLAIMER */
           <div className="max-w-2xl w-full bg-[#161B22] border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-8 my-auto animate-in fade-in zoom-in duration-500">
             <div className="space-y-1.5">
               <h1 className="text-4xl font-bold text-white tracking-tight">
@@ -182,7 +182,7 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
                 {isChecked && <Check size={12} />}
               </div>
               <p className="text-[11px] text-slate-400 leading-snug uppercase">
-                AVERTISSEMENT : Les analyses sont informatives et ne constituent pas une garantie.
+                AVERTISSEMENT : Les analyses sont informatives.
               </p>
             </div>
             <button
@@ -194,41 +194,45 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
             </button>
           </div>
         ) : (
-          /* CHAT MESSAGES */
           <div className="max-w-2xl w-full flex-1 flex flex-col min-h-0 pb-10">
             <div className="flex-1 space-y-6">
-              {displayMessages.map((msg: any, i: number) => (
-                <div
-                  key={i}
-                  className={cn(
-                    "flex flex-col animate-in fade-in slide-in-from-bottom-2",
-                    msg.role === "user" ? "items-end" : "items-start",
-                  )}
-                >
-                  <div className={cn("flex gap-3 max-w-[85%]", msg.role === "user" ? "flex-row-reverse" : "")}>
-                    <div
-                      className={cn(
-                        "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 shadow-sm",
-                        msg.role === "assistant" ? "bg-indigo-600 text-white" : "bg-slate-700",
-                      )}
-                    >
-                      {msg.role === "assistant" ? <Brain size={18} /> : <User size={18} />}
-                    </div>
-                    <div
-                      className={cn(
-                        "rounded-2xl px-4 py-3 text-sm border",
-                        msg.role === "assistant"
-                          ? "bg-[#161B22] border-slate-800"
-                          : "bg-indigo-500/10 border-indigo-500/20",
-                      )}
-                    >
-                      <div className="prose prose-sm dark:prose-invert whitespace-pre-wrap">
-                        <ReactMarkdown>{msg.content}</ReactMarkdown>
+              {displayMessages.map((msg: any, i: number) => {
+                if (msg.role === "user") userMsgCounter++;
+                return (
+                  <div
+                    key={i}
+                    className={cn(
+                      "flex flex-col animate-in fade-in slide-in-from-bottom-2",
+                      msg.role === "user" ? "items-end" : "items-start",
+                    )}
+                  >
+                    <div className={cn("flex gap-3 max-w-[85%]", msg.role === "user" ? "flex-row-reverse" : "")}>
+                      <div
+                        className={cn(
+                          "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 shadow-sm",
+                          msg.role === "assistant"
+                            ? "bg-indigo-600 text-white"
+                            : "bg-slate-700 text-slate-300 font-bold text-xs",
+                        )}
+                      >
+                        {msg.role === "assistant" ? <Brain size={18} /> : userMsgCounter}
+                      </div>
+                      <div
+                        className={cn(
+                          "rounded-2xl px-4 py-3 text-sm border",
+                          msg.role === "assistant"
+                            ? "bg-[#161B22] border-slate-800"
+                            : "bg-indigo-500/10 border-indigo-500/20",
+                        )}
+                      >
+                        <div className="prose prose-sm dark:prose-invert whitespace-pre-wrap">
+                          <ReactMarkdown>{msg.content}</ReactMarkdown>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
               {isLoading && (
                 <div className="text-xs animate-pulse ml-11 text-indigo-500 italic">Édouard analyse...</div>
               )}
@@ -238,38 +242,28 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
         )}
       </div>
 
-      {/* ZONE BASSE (FIXÉ) : COMPTEUR + INPUT + FOOTER */}
       {disclaimerAccepted && (
         <div className="bg-[#0B0E14] border-t border-slate-800 z-40 shrink-0">
           <div className="max-w-2xl mx-auto px-4 py-3">
-            {/* COMPTEUR JUSTE AU DESSUS DE LA BULLE */}
             {isAnonymous && (
               <div className="mb-2 flex justify-start pl-1">
-                <span
-                  className={cn(
-                    "text-[9px] font-bold uppercase tracking-[0.15em]",
-                    remainingMessages <= 1 ? "text-red-500 animate-pulse" : "text-indigo-400/80",
-                  )}
-                >
-                  {remainingMessages} message{remainingMessages > 1 ? "s" : ""} avant inscription gratuite
+                <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-indigo-400/80">
+                  {6 - totalUserMessages} messages avant inscription gratuite
                 </span>
               </div>
             )}
-
-            {/* BULLE DE CHAT / TEXTAREA */}
             <div className="flex gap-2">
               <textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleSend())}
-                placeholder={isAnonymous && messageCount >= 6 ? "Limite atteinte..." : "Écrivez votre réponse..."}
-                disabled={isAnonymous && messageCount >= 6}
+                placeholder="Écrivez votre réponse..."
+                disabled={isAnonymous && totalUserMessages >= 6}
                 className="flex-1 bg-[#161B22] border border-slate-800 rounded-xl p-3 resize-none h-12 outline-none text-sm text-white focus:border-indigo-500 transition-colors"
               />
               <button
                 onClick={() => handleSend()}
-                disabled={!input.trim() || isLoading || (isAnonymous && messageCount >= 6)}
-                className="bg-indigo-600 text-white px-4 rounded-xl shadow-lg hover:bg-indigo-700 transition-colors disabled:opacity-30"
+                className="bg-indigo-600 text-white px-4 rounded-xl shadow-lg hover:bg-indigo-700 transition-colors"
               >
                 <Send size={18} />
               </button>
@@ -277,8 +271,6 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
           </div>
         </div>
       )}
-
-      {/* FOOTER TOUJOURS VISIBLE TOUT EN BAS */}
       <Footer />
     </div>
   );

@@ -65,6 +65,8 @@ const ChatPanel = ({
   }, [displayMessages, isLoading]);
 
   const handleSend = async () => {
+    console.log("BOUTON CLIQUÉ");
+
     if (!input.trim() || isLoading) return;
     console.log("[Édouard] Tentative d'envoi...", { isAnonymous, conversationId });
 
@@ -185,8 +187,9 @@ const ChatPanel = ({
               className="flex-1 min-h-[45px] max-h-32 bg-transparent border-none focus:ring-0 text-[15px] py-2 resize-none outline-none"
             />
             <button
+              type="button"
               onClick={handleSend}
-              disabled={isLoading || !input.trim()}
+              disabled={!input.trim()}
               className="bg-primary text-primary-foreground p-3 rounded-xl shadow-md active:scale-95 disabled:opacity-50"
             >
               <Send size={18} />

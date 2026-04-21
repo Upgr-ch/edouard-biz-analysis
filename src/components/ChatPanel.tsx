@@ -30,7 +30,6 @@ const Footer = () => (
 
 const ChatPanel = ({ conversationId, persistedMessages = [], saveMessage, onCreateConversation }: any) => {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [input, setInput] = useState("");
   const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
@@ -115,64 +114,67 @@ const ChatPanel = ({ conversationId, persistedMessages = [], saveMessage, onCrea
   };
 
   return (
-    <div className="flex flex-col h-screen bg-background relative">
-      <div className="fixed top-2 right-2 z-[9999]">
+    <div className="flex flex-col h-screen bg-background relative overflow-hidden">
+      {/* BOUTON RESET - Ne masque pas le titre */}
+      <div className="fixed top-2 right-2 z-[100] opacity-70 hover:opacity-100 transition-opacity">
         <button
           onClick={handleForceSignOut}
-          className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-[10px] font-bold uppercase shadow-2xl transition-all"
+          className="flex items-center gap-1.5 bg-red-950/40 hover:bg-red-800 text-red-100 px-2 py-1.5 rounded-lg text-[9px] font-bold uppercase border border-red-500/20"
         >
-          <LogOut size={14} /> Reset Session
+          <LogOut size={12} /> Reset Session
         </button>
       </div>
 
       {!disclaimerAccepted && displayMessages.length === 0 ? (
-        <div className="flex-1 flex flex-col items-center justify-center p-6 bg-[#0B0E14] text-slate-200 overflow-y-auto">
-          <div className="max-w-2xl w-full bg-[#161B22] border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-8 my-8">
-            <div className="space-y-2">
-              <h1 className="text-4xl font-bold text-white">
+        <div className="flex-1 flex flex-col items-center justify-start md:justify-center p-6 bg-[#0B0E14] text-slate-200 overflow-y-auto">
+          <div className="max-w-2xl w-full bg-[#161B22] border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-8 my-12 animate-in fade-in zoom-in duration-500">
+            {/* TITRE ÉDOUARD */}
+            <div className="space-y-1.5">
+              <h1 className="text-4xl font-bold text-white tracking-tight">
                 Je suis <span className="text-indigo-500">Édouard.</span>
               </h1>
-              <p className="text-slate-400 text-lg font-medium">
-                Consultant en faisabilité et rentabilité de projets business.
-              </p>
+              <p className="text-slate-400 text-lg">Consultant en faisabilité et rentabilité de projets business.</p>
             </div>
 
+            {/* CORPS DU TEXTE */}
             <div className="space-y-6 text-slate-300 leading-relaxed text-[15px]">
               <p>Je vais t'aider à analyser ton idée de business avec structure et honnêteté.</p>
               <p>
-                Je m'exprime de manière <span className="font-bold text-white">ferme, assertive et juste</span>, ne le
-                prends pas pour toi. Mon travail est de te dire la vérité business, pas de te flatter.
+                Je m'exprime de manière <span className="font-semibold text-white">ferme, assertive et juste</span>, ne
+                le prends pas pour toi. Mon travail est de te dire la vérité business, pas de te flatter.
               </p>
               <p>
                 Si ton idée n'est pas viable, je te le dirai clairement. Si elle est améliorable, je t'expliquerai
                 comment.
               </p>
-              <p className="text-blue-500 font-bold uppercase tracking-wide text-sm">
+              <p className="text-[#3b82f6] font-medium text-[15px]">
                 Ma mission est de te faire gagner du temps et d'éviter les erreurs coûteuses.
               </p>
-              <div className="pl-4 border-l-2 border-indigo-500/50 py-2 text-slate-400 text-[13px] italic bg-indigo-500/5">
+
+              <div className="pl-4 border-l-2 border-indigo-500/40 py-1 text-slate-400 text-[13px] italic bg-indigo-500/5">
                 J'utilise uniquement des données réelles et vérifiables issues du web. Je n'invente jamais de chiffres,
                 de marché ou de tendances. Si une information fiable n'est pas disponible, je le dis clairement.
               </div>
             </div>
 
+            {/* CASE À COCHER AVERTISSEMENT */}
             <div
               onClick={() => setIsChecked(!isChecked)}
               className={cn(
-                "p-6 rounded-2xl border transition-all cursor-pointer flex gap-4 bg-[#0B0E14]/50",
-                isChecked ? "border-indigo-500/50 shadow-[0_0_15px_rgba(79,70,229,0.1)]" : "border-slate-800",
+                "p-6 rounded-2xl border transition-all cursor-pointer flex gap-4 bg-[#0B0E14]",
+                isChecked ? "border-indigo-500/50" : "border-slate-800/60",
               )}
             >
               <div
                 className={cn(
-                  "mt-1 w-6 h-6 rounded border flex items-center justify-center shrink-0 transition-colors",
-                  isChecked ? "bg-indigo-600 border-indigo-600 text-white" : "border-slate-600",
+                  "mt-1 w-5 h-5 rounded border flex items-center justify-center shrink-0 transition-colors bg-black/20",
+                  isChecked ? "bg-indigo-600 border-indigo-600 text-white" : "border-slate-700",
                 )}
               >
-                {isChecked && <Check size={14} />}
+                {isChecked && <Check size={12} />}
               </div>
-              <p className="text-[11px] text-slate-400 leading-normal uppercase tracking-tighter">
-                <span className="font-bold text-slate-200">Avertissement :</span> Les analyses sont fournies à titre
+              <p className="text-[11px] text-slate-400 leading-snug">
+                <span className="font-bold text-slate-300">AVERTISSEMENT :</span> Les analyses sont fournies à titre
                 informatif et consultatif uniquement. Elles ne constituent pas une garantie de résultat ni un conseil
                 engageant. L'utilisation des informations et les décisions prises relèvent entièrement de la
                 responsabilité de l'utilisateur.
@@ -182,7 +184,7 @@ const ChatPanel = ({ conversationId, persistedMessages = [], saveMessage, onCrea
             <button
               disabled={!isChecked || isLoading}
               onClick={startConversation}
-              className="w-full py-4 bg-gradient-to-r from-indigo-600 to-violet-700 text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-all active:scale-95 disabled:opacity-20"
+              className="w-full py-4 bg-gradient-to-r from-indigo-600 to-violet-700 text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-all active:scale-95 disabled:opacity-30"
             >
               {isLoading ? "Initialisation..." : "Commencer l'analyse"} <ArrowRight size={20} />
             </button>

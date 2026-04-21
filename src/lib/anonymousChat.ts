@@ -1,7 +1,7 @@
 // Storage of anonymous chat messages before authentication
-// Up to 5 messages allowed; the 6th triggers redirect to /auth and is also persisted as "pending".
+// Up to 10 messages allowed for testing; the 11th triggers redirect to /auth.
 
-export const ANON_MAX_MESSAGES = 5; // MODIFIÉ : Passage de 8 à 5
+export const ANON_MAX_MESSAGES = 10; // Augmenté pour faciliter tes tests
 const STORAGE_KEY = "edouard_anon_chat_v1";
 const PENDING_KEY = "edouard_anon_pending_v1";
 
@@ -9,7 +9,7 @@ export interface AnonMessage {
   role: "user" | "assistant";
   content: string;
   created_at: string;
-  number?: number; // AJOUT : Pour la numérotation croissante
+  number?: number;
 }
 
 export function getAnonMessages(): AnonMessage[] {
@@ -17,7 +17,8 @@ export function getAnonMessages(): AnonMessage[] {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
     return JSON.parse(raw) as AnonMessage[];
-  } catch {
+  } catch (error) {
+    console.error("Erreur lecture messages anonymes:", error);
     return [];
   }
 }
@@ -25,25 +26,26 @@ export function getAnonMessages(): AnonMessage[] {
 export function saveAnonMessages(messages: AnonMessage[]) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
-  } catch {
-    /* ignore */
+  } catch (error) {
+    console.error("Erreur sauvegarde messages anonymes:", error);
   }
 }
 
 export function appendAnonMessage(role: "user" | "assistant", content: string) {
   const list = getAnonMessages();
-
-  // AJOUT : Calcul du numéro de message (longueur actuelle + 1)
   const nextNumber = list.length + 1;
 
   list.push({
     role,
     content,
     created_at: new Date().toISOString(),
-    number: nextNumber, // AJOUT : On attache le numéro au message
+    number: nextNumber,
   });
 
   saveAnonMessages(list);
+
+  // Force la mise à jour des composants qui écoutent le storage
+  window.dispatchEvent(new Event("storage"));
 }
 
 export function clearAnonMessages() {
@@ -51,12 +53,16 @@ export function clearAnonMessages() {
   localStorage.removeItem(PENDING_KEY);
 }
 
-/** Count of user messages already sent anonymously */
+/** * Compte uniquement les messages envoyés par l'utilisateur
+ */
 export function getAnonUserMessageCount(): number {
-  return getAnonMessages().filter((m) => m.role === "user").length;
+  const messages = getAnonMessages();
+  const count = messages.filter((m) => m.role === "user").length;
+  console.log("Compteur Édouard (User messages uniquement) :", count);
+  return count;
 }
 
-/** Persist the 6th (blocked) message so it can be re-sent after login */
+/** Persist the message so it can be re-sent after login */
 export function setPendingMessage(content: string) {
   try {
     localStorage.setItem(PENDING_KEY, content);

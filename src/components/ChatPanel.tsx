@@ -9,7 +9,7 @@ import { toast } from "sonner";
 // Imports sécurisés des fonctions anonymes
 import * as AnonChat from "@/lib/anonymousChat";
 
-// LE MESSAGE D'ACCUEIL AVEC RETOURS À LA LIGNE SYSTÉMATIQUES
+// LE MESSAGE D'ACCUEIL AVEC LES CHOIX BIEN SÉPARÉS
 const WELCOME_MESSAGE = {
   id: "welcome",
   role: "assistant",
@@ -63,7 +63,6 @@ const ChatPanel = ({
     if (!input.trim() || isLoading) return;
     const currentCount = getAnonCount();
 
-    // Redirection vers l'inscription si quota atteint
     if (isAnonymous && currentCount >= maxAnon) {
       toast.error("Quota atteint. Inscris-toi pour continuer !");
       setTimeout(() => {
@@ -160,4 +159,34 @@ const ChatPanel = ({
       </div>
       <div className="p-6 border-t bg-card/50 backdrop-blur-lg">
         <div className="max-w-3xl mx-auto">
-          <div className="flex items-end gap-3 bg-background p-3 rounded-
+          <div className="flex items-end gap-3 bg-background p-3 rounded-2xl border shadow-lg focus-within:ring-2 ring-primary/20">
+            <textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleSend())}
+              placeholder="Réponds à Édouard..."
+              className="flex-1 min-h-[45px] max-h-32 bg-transparent border-none focus:ring-0 text-[15px] py-2 resize-none outline-none"
+            />
+            <button
+              onClick={handleSend}
+              disabled={!input.trim() || isLoading}
+              className="bg-primary text-primary-foreground p-3 rounded-xl shadow-md active:scale-95 disabled:opacity-50"
+            >
+              <Send size={18} />
+            </button>
+          </div>
+          {isAnonymous && (
+            <div className="flex items-center justify-center gap-2 mt-4 text-[12px] text-muted-foreground font-medium">
+              <Lock size={14} className="text-amber-500" />
+              <span>
+                Il te reste <span className="text-foreground font-bold">{messagesLeft} messages</span> gratuits
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ChatPanel;

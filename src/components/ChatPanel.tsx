@@ -56,8 +56,6 @@ const ChatPanel = ({ conversationId, persistedMessages = [], saveMessage, onCrea
 
   const startConversation = async () => {
     setDisclaimerAccepted(true);
-
-    // TEXTE SACRÉ D'ÉDOUARD
     const edouardIntro = `Je suis Édouard. Ne le prends pas pour toi, je m'exprime de manière ferme, assertive et juste. Mon travail est de te dire la vérité business, pas de te flatter.
 
 Avant de commencer, j'ai besoin de savoir où tu en es. Choisis le profil qui te correspond :
@@ -70,7 +68,6 @@ C. Confirmé — "J'ai plusieurs projets à mon actif, je veux aller vite"
 
 Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A, B ou C)`;
 
-    // On affiche immédiatement le message sans attendre l'API pour une réactivité totale
     if (isAnonymous) {
       (AnonChat as any).appendAnonMessage("assistant", edouardIntro);
     } else if (saveMessage && conversationId) {
@@ -84,15 +81,11 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
       toast.error("Limite de 6 messages atteinte.");
       return;
     }
-
     const content = input.trim();
     setInput("");
     setIsLoading(true);
-
     try {
-      // Prompt système caché pour guider l'IA sur la suite
-      const systemGuide = `Tu es Édouard. L'utilisateur a déjà reçu ton introduction. Il répond maintenant par "${content}" (majuscule ou minuscule acceptée). Si sa réponse est A, B ou C, valide son profil avec fermeté et demande-lui de décrire son projet immédiatement. Ne répète jamais ton menu de bienvenue.`;
-
+      const systemGuide = `Tu es Édouard. L'utilisateur répond "${content}". Si c'est A, B ou C, valide son profil et demande-lui de décrire son projet en détail. Ne répète jamais ton menu.`;
       if (isAnonymous) {
         (AnonChat as any).appendAnonMessage("user", content);
         const { data } = await supabase.functions.invoke("eugene-chat", {
@@ -118,8 +111,7 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
   let userMsgCounter = 0;
 
   return (
-    <div className="flex flex-col h-screen bg-[#0B0E14] relative overflow-hidden">
-      {/* RESET BUTTON */}
+    <div className="flex flex-col h-screen bg-[#0B0E14] relative overflow-hidden font-sans">
       <div className="fixed top-2 left-2 z-[100] opacity-30 hover:opacity-100 transition-opacity">
         <button
           onClick={handleForceSignOut}
@@ -129,25 +121,46 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
         </button>
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-start p-6 overflow-y-auto scrollbar-none">
+      <div className="flex-1 flex flex-col items-center justify-start p-6 overflow-y-auto">
         {!disclaimerAccepted && displayMessages.length === 0 ? (
-          /* ÉCRAN D'ACCUEIL */
+          /* POPUP D'ACCUEIL CONFORME A LA CAPTURE */
           <div className="max-w-2xl w-full bg-[#161B22] border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-8 my-auto animate-in fade-in zoom-in duration-500">
-            <h1 className="text-4xl font-bold text-white tracking-tight">
-              Je suis <span className="text-indigo-500">Édouard.</span>
-            </h1>
-            <div className="space-y-6 text-slate-300 text-[15px]">
-              <p>Consultant expert en faisabilité et rentabilité de projets.</p>
-              <p>
-                Je m'exprime de manière <span className="font-semibold text-white">ferme, assertive et juste</span>. Mon
-                travail est de te dire la vérité business.
+            <div className="space-y-2">
+              <h1 className="text-4xl font-bold text-white tracking-tight">
+                Je suis <span className="text-indigo-500">Édouard.</span>
+              </h1>
+              <p className="text-slate-400 text-[17px]">
+                Consultant en faisabilité et rentabilité de projets business.
               </p>
             </div>
+
+            <div className="space-y-5 text-slate-300 text-[15px] leading-relaxed">
+              <p>Je vais t'aider à analyser ton idée de business avec structure et honnêteté.</p>
+              <p>
+                Je m'exprime de manière <span className="font-semibold text-white">ferme, assertive et juste</span>, ne
+                le prends pas pour toi. Mon travail est de te dire la vérité business, pas de te flatter.
+              </p>
+              <p>
+                Si ton idée n'est pas viable, je te le dirai clairement. Si elle est améliorable, je t'expliquerai
+                comment.
+              </p>
+              <p className="text-blue-500 font-semibold text-[16px]">
+                Ma mission est de te faire gagner du temps et d'éviter les erreurs coûteuses.
+              </p>
+            </div>
+
+            <div className="border-l-2 border-slate-700 pl-6 py-1 bg-slate-800/20 rounded-r-lg">
+              <p className="text-[13px] text-slate-400 leading-relaxed italic">
+                J'utilise uniquement des données réelles et vérifiables issues du web. Je n'invente jamais de chiffres,
+                de marché ou de tendances. Si une information fiable n'est pas disponible, je le dis clairement.
+              </p>
+            </div>
+
             <div
               onClick={() => setIsChecked(!isChecked)}
               className={cn(
-                "p-6 rounded-2xl border cursor-pointer flex gap-4 bg-[#0B0E14]",
-                isChecked ? "border-indigo-500/50" : "border-slate-800/60",
+                "p-6 rounded-2xl border cursor-pointer flex gap-4 bg-[#0B0E14]/50 transition-all",
+                isChecked ? "border-indigo-500/50 bg-[#0B0E14]" : "border-slate-800",
               )}
             >
               <div
@@ -158,20 +171,24 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
               >
                 {isChecked && <Check size={12} />}
               </div>
-              <p className="text-[11px] text-slate-400 uppercase tracking-widest font-bold">
-                J'accepte que les analyses soient informatives.
+              <p className="text-[10px] text-slate-400 uppercase tracking-tight leading-normal">
+                <span className="font-bold text-slate-200">AVERTISSEMENT :</span> Les analyses sont fournies à titre
+                informatif et consultatif uniquement. Elles ne constituent pas une garantie de résultat ni un conseil
+                engageant. L'utilisation des informations et les décisions prises relèvent entièrement de la
+                responsabilité de l'utilisateur.
               </p>
             </div>
+
             <button
               disabled={!isChecked || isLoading}
               onClick={startConversation}
-              className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold flex items-center justify-center gap-2 active:scale-95 disabled:opacity-30"
+              className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-bold flex items-center justify-center gap-2 active:scale-95 disabled:opacity-30 transition-all shadow-lg shadow-indigo-500/20"
             >
               {isLoading ? "Initialisation..." : "Commencer l'analyse"} <ArrowRight size={20} />
             </button>
           </div>
         ) : (
-          /* CHAT */
+          /* CHAT AVEC NUMEROTATION UX ET COMPTEUR */
           <div className="max-w-2xl w-full flex-1 space-y-6 pb-10">
             {displayMessages.map((msg: any, i: number) => {
               if (msg.role === "user") userMsgCounter++;
@@ -202,7 +219,7 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
                           : "bg-indigo-500/10 border-indigo-500/20 text-white",
                       )}
                     >
-                      <div className="prose prose-sm dark:prose-invert whitespace-pre-wrap font-sans">
+                      <div className="prose prose-sm dark:prose-invert whitespace-pre-wrap">
                         <ReactMarkdown>{msg.content}</ReactMarkdown>
                       </div>
                     </div>
@@ -211,14 +228,13 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
               );
             })}
             {isLoading && (
-              <div className="text-xs animate-pulse ml-11 text-indigo-500 font-medium">Édouard analyse...</div>
+              <div className="text-xs animate-pulse ml-11 text-indigo-500 font-medium italic">Édouard analyse...</div>
             )}
             <div ref={messagesEndRef} />
           </div>
         )}
       </div>
 
-      {/* INPUT ZONE FIXED */}
       {disclaimerAccepted && (
         <div className="bg-[#0B0E14] border-t border-slate-800 z-40 shrink-0">
           <div className="max-w-2xl mx-auto px-4 py-3">
@@ -234,12 +250,12 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
                 onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleSend())}
                 placeholder={isAnonymous && totalUserMessages >= 6 ? "Limite atteinte..." : "Écrivez ici..."}
                 disabled={isAnonymous && totalUserMessages >= 6}
-                className="flex-1 bg-[#161B22] border border-slate-800 rounded-xl p-3 resize-none h-12 outline-none text-sm text-white focus:border-indigo-500 transition-all"
+                className="flex-1 bg-[#161B22] border border-slate-800 rounded-xl p-3 resize-none h-12 outline-none text-sm text-white focus:border-indigo-500 transition-all shadow-inner"
               />
               <button
                 onClick={handleSend}
                 disabled={!input.trim() || isLoading}
-                className="bg-indigo-600 text-white px-4 rounded-xl hover:bg-indigo-700 transition-colors"
+                className="bg-indigo-600 text-white px-4 rounded-xl hover:bg-indigo-700 transition-colors shadow-lg"
               >
                 <Send size={18} />
               </button>

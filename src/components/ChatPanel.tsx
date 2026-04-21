@@ -5,7 +5,7 @@ import ReactMarkdown from "react-markdown";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import * as AnonChat from "@/lib/anonymousChat";
 
 const Footer = () => (
@@ -30,6 +30,7 @@ const Footer = () => (
 
 const ChatPanel = ({ conversationId, persistedMessages = [], saveMessage, onCreateConversation }: any) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [input, setInput] = useState("");
   const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
@@ -77,15 +78,24 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
+
+    // --- LOGIQUE DE REDIRECTION ---
+    // On autorise l'envoi tant qu'on n'a pas déjà envoyé 6 messages.
+    // Au clic pour le 7ème message, on redirige.
     if (isAnonymous && totalUserMessages >= 6) {
-      toast.error("Limite de 6 messages atteinte.");
+      toast.info("Quota gratuit atteint. Inscris-toi pour sauvegarder ton analyse.");
+      localStorage.setItem("pending_anon_chat", JSON.stringify(displayMessages));
+      setTimeout(() => navigate("/auth"), 1000);
       return;
     }
+
     const content = input.trim();
     setInput("");
     setIsLoading(true);
+
     try {
       const systemGuide = `Tu es Édouard. L'utilisateur répond "${content}". Si c'est A, B ou C, valide son profil et demande-lui de décrire son projet en détail. Ne répète jamais ton menu.`;
+
       if (isAnonymous) {
         (AnonChat as any).appendAnonMessage("user", content);
         const { data } = await supabase.functions.invoke("eugene-chat", {
@@ -121,9 +131,9 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
         </button>
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-start p-6 overflow-y-auto">
+      <div className="flex-1 flex flex-col items-center justify-start p-6 overflow-y-auto scrollbar-none">
         {!disclaimerAccepted && displayMessages.length === 0 ? (
-          /* POPUP D'ACCUEIL CONFORME A LA CAPTURE */
+          /* POPUP D'ACCUEIL CONFORME IMAGE */
           <div className="max-w-2xl w-full bg-[#161B22] border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-8 my-auto animate-in fade-in zoom-in duration-500">
             <div className="space-y-2">
               <h1 className="text-4xl font-bold text-white tracking-tight">
@@ -188,7 +198,7 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
             </button>
           </div>
         ) : (
-          /* CHAT AVEC NUMEROTATION UX ET COMPTEUR */
+          /* CHAT PANEL */
           <div className="max-w-2xl w-full flex-1 space-y-6 pb-10">
             {displayMessages.map((msg: any, i: number) => {
               if (msg.role === "user") userMsgCounter++;
@@ -219,7 +229,7 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
                           : "bg-indigo-500/10 border-indigo-500/20 text-white",
                       )}
                     >
-                      <div className="prose prose-sm dark:prose-invert whitespace-pre-wrap">
+                      <div className="prose prose-sm dark:prose-invert whitespace-pre-wrap font-sans text-slate-200">
                         <ReactMarkdown>{msg.content}</ReactMarkdown>
                       </div>
                     </div>
@@ -248,16 +258,23 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleSend())}
-                placeholder={isAnonymous && totalUserMessages >= 6 ? "Limite atteinte..." : "Écrivez ici..."}
-                disabled={isAnonymous && totalUserMessages >= 6}
+                placeholder={isAnonymous && totalUserMessages >= 6 ? "Inscription requise..." : "Écrivez ici..."}
                 className="flex-1 bg-[#161B22] border border-slate-800 rounded-xl p-3 resize-none h-12 outline-none text-sm text-white focus:border-indigo-500 transition-all shadow-inner"
               />
               <button
                 onClick={handleSend}
-                disabled={!input.trim() || isLoading}
-                className="bg-indigo-600 text-white px-4 rounded-xl hover:bg-indigo-700 transition-colors shadow-lg"
+                className={cn(
+                  "px-4 rounded-xl transition-colors shadow-lg",
+                  isAnonymous && totalUserMessages >= 6
+                    ? "bg-amber-600 hover:bg-amber-700"
+                    : "bg-indigo-600 hover:bg-indigo-700",
+                )}
               >
-                <Send size={18} />
+                {isAnonymous && totalUserMessages >= 6 ? (
+                  <ArrowRight size={18} className="text-white" />
+                ) : (
+                  <Send size={18} className="text-white" />
+                )}
               </button>
             </div>
           </div>

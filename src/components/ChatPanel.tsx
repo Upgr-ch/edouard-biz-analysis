@@ -59,7 +59,17 @@ const ChatPanel = ({ conversationId, persistedMessages = [], saveMessage, onCrea
     setDisclaimerAccepted(true);
     setIsLoading(true);
     try {
-      const initialPrompt = "Bonjour Édouard, je suis prêt pour l'analyse.";
+      // Configuration de la question initiale selon tes instructions
+      const initialPrompt = `Présente-toi brièvement et pose exactement cette question :
+      
+Très bien. Avant de commencer, dis-moi quel est ton niveau pour ce projet :
+
+A. Novice — "C'est mon tout premier projet, je pars de zéro"
+B. Intermédiaire — "J'ai déjà lancé un projet, je connais les bases"
+C. Confirmé — "J'ai plusieurs projets à mon actif, je veux aller vite"
+
+Si tu as un doute ou besoin de pistes concrètes pour trancher, réponds simplement 'Aide-moi' et je te proposerai trois options stratégiques (A, B ou C) adaptées à ton projet.`;
+
       if (isAnonymous) {
         const { data } = await supabase.functions.invoke("eugene-chat", {
           body: { messages: [{ role: "user", content: initialPrompt }] },
@@ -69,7 +79,7 @@ const ChatPanel = ({ conversationId, persistedMessages = [], saveMessage, onCrea
         }
       } else {
         let currentId = conversationId;
-        if (!currentId && onCreateConversation) currentId = await onCreateConversation("Nouvelle analyse");
+        if (!currentId && onCreateConversation) currentId = await onCreateConversation("Qualification niveau");
         const { data } = await supabase.functions.invoke("eugene-chat", {
           body: { messages: [{ role: "user", content: initialPrompt }] },
         });
@@ -115,11 +125,11 @@ const ChatPanel = ({ conversationId, persistedMessages = [], saveMessage, onCrea
 
   return (
     <div className="flex flex-col h-screen bg-background relative overflow-hidden">
-      {/* BOUTON RESET - Ne masque pas le titre */}
-      <div className="fixed top-2 right-2 z-[100] opacity-70 hover:opacity-100 transition-opacity">
+      {/* BOUTON RESET (DÉPLACÉ À GAUCHE POUR NE PAS GÊNER LE TITRE) */}
+      <div className="fixed top-2 left-2 z-[100] opacity-50 hover:opacity-100 transition-opacity">
         <button
           onClick={handleForceSignOut}
-          className="flex items-center gap-1.5 bg-red-950/40 hover:bg-red-800 text-red-100 px-2 py-1.5 rounded-lg text-[9px] font-bold uppercase border border-red-500/20"
+          className="flex items-center gap-1.5 bg-red-950/40 hover:bg-red-800 text-red-100 px-2 py-1 rounded-md text-[9px] font-bold uppercase border border-red-500/20"
         >
           <LogOut size={12} /> Reset Session
         </button>
@@ -128,7 +138,6 @@ const ChatPanel = ({ conversationId, persistedMessages = [], saveMessage, onCrea
       {!disclaimerAccepted && displayMessages.length === 0 ? (
         <div className="flex-1 flex flex-col items-center justify-start md:justify-center p-6 bg-[#0B0E14] text-slate-200 overflow-y-auto">
           <div className="max-w-2xl w-full bg-[#161B22] border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-8 my-12 animate-in fade-in zoom-in duration-500">
-            {/* TITRE ÉDOUARD */}
             <div className="space-y-1.5">
               <h1 className="text-4xl font-bold text-white tracking-tight">
                 Je suis <span className="text-indigo-500">Édouard.</span>
@@ -136,7 +145,6 @@ const ChatPanel = ({ conversationId, persistedMessages = [], saveMessage, onCrea
               <p className="text-slate-400 text-lg">Consultant en faisabilité et rentabilité de projets business.</p>
             </div>
 
-            {/* CORPS DU TEXTE */}
             <div className="space-y-6 text-slate-300 leading-relaxed text-[15px]">
               <p>Je vais t'aider à analyser ton idée de business avec structure et honnêteté.</p>
               <p>
@@ -157,7 +165,6 @@ const ChatPanel = ({ conversationId, persistedMessages = [], saveMessage, onCrea
               </div>
             </div>
 
-            {/* CASE À COCHER AVERTISSEMENT */}
             <div
               onClick={() => setIsChecked(!isChecked)}
               className={cn(

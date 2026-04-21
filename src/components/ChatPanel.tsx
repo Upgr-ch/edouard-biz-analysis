@@ -9,11 +9,11 @@ import { toast } from "sonner";
 // Imports sécurisés des fonctions anonymes
 import * as AnonChat from "@/lib/anonymousChat";
 
-// LE VRAI MESSAGE D'ACCUEIL ORIGINAL
+// LE MESSAGE D'ACCUEIL AVEC RETOURS À LA LIGNE SYSTÉMATIQUES
 const WELCOME_MESSAGE = {
   id: "welcome",
   role: "assistant",
-  content: `Je suis Édouard. Ne le prends pas pour toi, je m'exprime de manière ferme, assertive et juste. Mon travail est de te dire la vérité business, pas de te flatter.\n\nAvant de commencer, j'ai besoin de savoir où tu en es. Cela me permet d'adapter mon langage pour être le plus efficace possible.\n\nChoisis le profil qui te correspond :\n\n**A. Novice** — "C'est mon tout premier projet, je pars de zéro"\n**B. Intermédiaire** — "J'ai déjà lancé un projet, je connais les bases"\n**C. Confirmé** — "J'ai plusieurs projets à mon actif, je veux aller vite"\n\nQuel est ton niveau ?`,
+  content: `Je suis Édouard. Ne le prends pas pour toi, je m'exprime de manière ferme, assertive et juste. Mon travail est de te dire la vérité business, pas de te flatter.\n\nAvant de commencer, j'ai besoin de savoir où tu en es :\n\n**A. Novice** — "C'est mon tout premier projet, je pars de zéro"\n\n**B. Intermédiaire** — "J'ai déjà lancé un projet, je connais les bases"\n\n**C. Confirmé** — "J'ai plusieurs projets à mon actif, je veux aller vite"\n\nQuel est ton niveau ?`,
   number: 0,
 };
 
@@ -160,34 +160,4 @@ const ChatPanel = ({
       </div>
       <div className="p-6 border-t bg-card/50 backdrop-blur-lg">
         <div className="max-w-3xl mx-auto">
-          <div className="flex items-end gap-3 bg-background p-3 rounded-2xl border shadow-lg">
-            <textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleSend())}
-              placeholder="Réponds à Édouard..."
-              className="flex-1 min-h-[45px] max-h-32 bg-transparent border-none focus:ring-0 resize-none outline-none"
-            />
-            <button
-              onClick={handleSend}
-              disabled={!input.trim() || isLoading}
-              className="bg-primary text-primary-foreground p-3 rounded-xl disabled:opacity-50"
-            >
-              <Send size={18} />
-            </button>
-          </div>
-          {isAnonymous && (
-            <div className="flex items-center justify-center gap-2 mt-4 text-[12px] text-muted-foreground font-medium">
-              <Lock size={14} className="text-amber-500" />
-              <span>
-                Il te reste <span className="text-foreground font-bold">{messagesLeft} messages</span> gratuits
-              </span>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default ChatPanel;
+          <div className="flex items-end gap-3 bg-background p-3 rounded-

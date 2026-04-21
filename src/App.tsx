@@ -16,8 +16,9 @@ import CGU from "./pages/legal/CGU.tsx";
 
 const queryClient = new QueryClient();
 
+// Cette fonction ne bloque plus l'accès, elle laisse passer tout le monde
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { loading } = useAuth();
 
   if (loading) {
     return (
@@ -27,13 +28,14 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!user) return <Navigate to="/auth" replace />;
+  // On a supprimé la redirection forcée vers /auth ici
   return <>{children}</>;
 }
 
 function AuthRoute() {
   const { user, loading } = useAuth();
   if (loading) return null;
+  // Si l'utilisateur est déjà loggé et va sur /auth, on le renvoie à l'accueil
   if (user) return <Navigate to="/" replace />;
   return <Auth />;
 }
@@ -45,6 +47,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          {/* Les routes sont maintenant libres d'accès */}
           <Route path="/auth" element={<AuthRoute />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/" element={<Index />} />

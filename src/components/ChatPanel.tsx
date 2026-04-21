@@ -152,4 +152,68 @@ const ChatPanel = ({
                 {msg.role === "assistant" ? "Édouard" : "Vous"}
               </span>
               <div className={cn("flex gap-4 w-full", msg.role === "user" ? "flex-row-reverse" : "")}>
-                <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-md", msg.role === "assistant" ? "bg-gradient-to
+                <div
+                  className={cn(
+                    "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-md",
+                    msg.role === "assistant"
+                      ? "bg-gradient-to-br from-indigo-600 to-violet-700 text-white"
+                      : "bg-muted text-muted-foreground",
+                  )}
+                >
+                  {msg.role === "assistant" ? <Brain size={20} /> : <User size={20} />}
+                </div>
+                <div
+                  className={cn(
+                    "max-w-[80%] rounded-2xl px-5 py-4 text-[15px] border shadow-sm",
+                    msg.role === "assistant" ? "bg-card border-border/50" : "bg-primary/10 border-primary/20",
+                  )}
+                >
+                  <div className="prose prose-sm dark:prose-invert max-w-none text-foreground">
+                    <ReactMarkdown>{msg.content}</ReactMarkdown>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+          {isLoading && (
+            <div className="animate-pulse italic text-xs text-muted-foreground flex items-center gap-2">
+              <Brain size={14} className="animate-spin" /> Édouard analyse...
+            </div>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+      </div>
+      <div className="p-6 border-t bg-card/50 backdrop-blur-lg">
+        <div className="max-w-3xl mx-auto">
+          <div className="flex items-end gap-3 bg-background p-3 rounded-2xl border shadow-lg focus-within:ring-2 ring-primary/20">
+            <textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleSend())}
+              placeholder="Réponds à Édouard (A, B, C ou Aide-moi)..."
+              className="flex-1 min-h-[45px] max-h-32 bg-transparent border-none focus:ring-0 text-[15px] py-2 resize-none outline-none"
+            />
+            <button
+              onClick={handleSend}
+              disabled={!input.trim() || isLoading}
+              className="bg-primary text-primary-foreground p-3 rounded-xl shadow-md active:scale-95 disabled:opacity-50"
+            >
+              <Send size={18} />
+            </button>
+          </div>
+          {isAnonymous && (
+            <div className="flex items-center justify-center gap-2 mt-4 text-[12px] text-muted-foreground font-medium">
+              <Lock size={14} className="text-amber-500" />
+              <span>
+                Il te reste <span className="text-foreground font-bold">{messagesLeft} messages</span> avant inscription
+                gratuite
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ChatPanel;

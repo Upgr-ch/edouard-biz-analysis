@@ -13,7 +13,7 @@ const Dashboard = () => {
     saveMessage,
     createConversation,
     updateMessageContent,
-    onUpdateTitle,
+    updateTitle,
   } = useConversations();
 
   // On trouve la conversation active pour extraire son titre actuel
@@ -34,7 +34,7 @@ const Dashboard = () => {
           setPersistedMessages={() => {}}
           saveMessage={saveMessage}
           updateMessageContent={updateMessageContent}
-          onUpdateTitle={onUpdateTitle} // On passe la fonction de mise à jour
+          onUpdateTitle={updateTitle} // On passe la fonction de mise à jour
           onCreateConversation={createConversation}
           nextMessageNumber={(messages?.length || 0) + 1}
           isQuotaReached={isQuotaReached}

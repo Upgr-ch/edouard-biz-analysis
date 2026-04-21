@@ -9,10 +9,11 @@ import { toast } from "sonner";
 // Imports sécurisés des fonctions anonymes
 import * as AnonChat from "@/lib/anonymousChat";
 
+// LE VRAI MESSAGE D'ACCUEIL ORIGINAL
 const WELCOME_MESSAGE = {
   id: "welcome",
   role: "assistant",
-  content: `Je suis Édouard. Je m'exprime de manière ferme et juste : mon travail est de te dire la vérité business, pas de te flatter.\n\nPour commencer, dis-moi quel est ton profil (Novice, Intermédiaire ou Confirmé) ?`,
+  content: `Je suis Édouard. Ne le prends pas pour toi, je m'exprime de manière ferme, assertive et juste. Mon travail est de te dire la vérité business, pas de te flatter.\n\nAvant de commencer, j'ai besoin de savoir où tu en es. Cela me permet d'adapter mon langage pour être le plus efficace possible.\n\nChoisis le profil qui te correspond :\n\n**A. Novice** — "C'est mon tout premier projet, je pars de zéro"\n**B. Intermédiaire** — "J'ai déjà lancé un projet, je connais les bases"\n**C. Confirmé** — "J'ai plusieurs projets à mon actif, je veux aller vite"\n\nQuel est ton niveau ?`,
   number: 0,
 };
 
@@ -62,12 +63,12 @@ const ChatPanel = ({
     if (!input.trim() || isLoading) return;
     const currentCount = getAnonCount();
 
-    // CORRECTION : Redirection forcée vers l'inscription si quota atteint
+    // Redirection vers l'inscription si quota atteint
     if (isAnonymous && currentCount >= maxAnon) {
       toast.error("Quota atteint. Inscris-toi pour continuer !");
       setTimeout(() => {
         window.location.href = "/auth";
-      }, 1500); // On laisse 1.5s pour que l'utilisateur lise le message d'erreur
+      }, 1500);
       return;
     }
 

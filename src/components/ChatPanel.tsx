@@ -5,9 +5,28 @@ import ReactMarkdown from "react-markdown";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Link } from "react-router-dom"; // Ajout pour les liens légaux
 
 // Imports sécurisés des fonctions anonymes
 import * as AnonChat from "@/lib/anonymousChat";
+
+// --- PETIT COMPOSANT FOOTER INTÉGRÉ ICI ---
+const Footer = () => (
+  <footer className="w-full py-4 border-t bg-background/50 mt-auto">
+    <div className="max-w-3xl mx-auto px-4 flex flex-wrap justify-center gap-x-6 gap-y-2 text-[10px] text-muted-foreground uppercase tracking-widest font-medium">
+      <Link to="/mentions-legales" className="hover:text-primary transition-colors">
+        Mentions Légales
+      </Link>
+      <Link to="/cgu" className="hover:text-primary transition-colors">
+        CGU
+      </Link>
+      <Link to="/confidentialite" className="hover:text-primary transition-colors">
+        Confidentialité
+      </Link>
+      <span className="opacity-50">&copy; {new Date().getFullYear()} Édouard</span>
+    </div>
+  </footer>
+);
 
 const WELCOME_MESSAGE = {
   id: "welcome",
@@ -37,7 +56,6 @@ const ChatPanel = ({
   const isAnonymous = !user;
   const messagesLeft = Math.max(0, maxAnon - getAnonCount());
 
-  // Migration des messages anonymes vers le compte utilisateur après connexion
   useEffect(() => {
     const syncAnonymousMessages = async () => {
       if (user && !syncProcessed.current) {
@@ -87,7 +105,6 @@ const ChatPanel = ({
       return;
     }
 
-    // Traitement intelligent de la saisie (UX)
     let userContent = input.trim();
     const cleanInput = userContent.toLowerCase();
 
@@ -213,6 +230,7 @@ const ChatPanel = ({
           )}
         </div>
       </div>
+      <Footer /> {/* On affiche le footer ici */}
     </div>
   );
 };

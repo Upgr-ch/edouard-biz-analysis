@@ -1,7 +1,7 @@
 // Storage of anonymous chat messages before authentication
 // Up to 10 messages allowed for testing; the 11th triggers redirect to /auth.
 
-export const ANON_MAX_MESSAGES = 10; // Augmenté pour faciliter tes tests
+export const ANON_MAX_MESSAGES = 6;
 const STORAGE_KEY = "edouard_anon_chat_v1";
 const PENDING_KEY = "edouard_anon_pending_v1";
 

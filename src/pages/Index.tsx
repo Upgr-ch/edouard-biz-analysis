@@ -4,6 +4,7 @@ import Onboarding from "@/components/Onboarding";
 import Dashboard from "@/components/Dashboard";
 import { useAuth } from "@/hooks/useAuth";
 import { getAnonMessages } from "@/lib/anonymousChat";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const { user, loading } = useAuth();
@@ -36,7 +37,22 @@ const Index = () => {
     return <Onboarding onComplete={() => setOnboarded(true)} />;
   }
 
-  return <Dashboard />;
+  return (
+    <>
+      {user && (
+        <button
+          onClick={async () => {
+            await supabase.auth.signOut();
+            window.location.href = "/auth";
+          }}
+          className="fixed top-4 right-4 z-50 bg-destructive text-destructive-foreground px-4 py-2 rounded-lg shadow-lg text-sm font-medium hover:opacity-90"
+        >
+          Déconnexion
+        </button>
+      )}
+      <Dashboard />
+    </>
+  );
 };
 
 export default Index;

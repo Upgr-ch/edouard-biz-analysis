@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Brain, User, Lock, LogOut } from "lucide-react";
+import { Send, Brain, User, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import { useAuth } from "@/hooks/useAuth";
@@ -99,7 +99,7 @@ const ChatPanel = ({
 
   const handleSignOut = async () => {
     await signOut();
-    toast.success("Déconnexion réussie");
+    toast.success("Déconnecté (session terminée)");
     navigate("/");
   };
 
@@ -172,15 +172,14 @@ const ChatPanel = ({
 
   return (
     <div className="flex flex-col h-full bg-background relative">
-      {/* BOUTON DE DÉCONNEXION */}
+      {/* BOUTON DÉCONNEXION TEMPORAIRE */}
       {!isAnonymous && (
-        <div className="absolute top-4 right-4 z-10">
+        <div className="absolute top-2 right-2 z-50">
           <button
             onClick={handleSignOut}
-            className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground bg-background/80 backdrop-blur-sm border rounded-lg transition-all shadow-sm"
+            className="px-2 py-1 text-[9px] bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white border border-red-500/20 rounded transition-all font-mono uppercase"
           >
-            <LogOut size={14} />
-            Déconnexion
+            Déconnexion (temp)
           </button>
         </div>
       )}

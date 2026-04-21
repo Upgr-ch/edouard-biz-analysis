@@ -123,7 +123,6 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
 
   return (
     <div className="flex flex-col h-screen bg-[#0B0E14] relative overflow-hidden font-sans">
-      {/* RESET BTN */}
       <div className="fixed top-2 left-2 z-[100] opacity-30 hover:opacity-100">
         <button
           onClick={handleForceSignOut}
@@ -135,8 +134,7 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
 
       <div className="flex-1 flex flex-col items-center justify-start p-6 overflow-y-auto">
         {!disclaimerAccepted && displayMessages.length === 0 ? (
-          /* POPUP D'ACCUEIL */
-          <div className="max-w-2xl w-full bg-[#161B22] border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-8 my-auto">
+          <div className="max-w-2xl w-full bg-[#161B22] border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-8 my-auto animate-in fade-in zoom-in duration-500">
             <div className="space-y-2">
               <h1 className="text-4xl font-bold text-white tracking-tight">
                 Je suis <span className="text-indigo-500">Édouard.</span>
@@ -189,7 +187,6 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
             </button>
           </div>
         ) : (
-          /* CHAT */
           <div className="max-w-2xl w-full flex-1 space-y-6 pb-20">
             {displayMessages.map((msg: any, i: number) => {
               if (msg.role === "user") userMsgCounter++;
@@ -217,9 +214,10 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
                           : "bg-indigo-500/10 border-indigo-500/20 text-white",
                       )}
                     >
-                      <ReactMarkdown className="prose prose-sm dark:prose-invert whitespace-pre-wrap">
-                        {msg.content}
-                      </ReactMarkdown>
+                      {/* Correction de l'erreur TS : className sur la div parente et non sur ReactMarkdown */}
+                      <div className="prose prose-sm dark:prose-invert whitespace-pre-wrap font-sans">
+                        <ReactMarkdown>{msg.content}</ReactMarkdown>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -233,7 +231,6 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
         )}
       </div>
 
-      {/* INPUT BAR (VISIBLE DÈS QUE LE CHAT COMMENCE) */}
       {(disclaimerAccepted || displayMessages.length > 0) && (
         <div className="bg-[#0B0E14] border-t border-slate-800 z-40">
           <div className="max-w-2xl mx-auto px-4 py-3">
@@ -248,12 +245,12 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleSend())}
                 placeholder={isAnonymous && totalUserMessages >= 6 ? "Inscription requise..." : "Répondez ici..."}
-                className="flex-1 bg-[#161B22] border border-slate-800 rounded-xl p-3 resize-none h-12 outline-none text-sm text-white focus:border-indigo-500 transition-all"
+                className="flex-1 bg-[#161B22] border border-slate-800 rounded-xl p-3 resize-none h-12 outline-none text-sm text-white focus:border-indigo-500 transition-all shadow-inner"
               />
               <button
                 onClick={handleSend}
                 className={cn(
-                  "px-4 rounded-xl transition-colors shadow-lg",
+                  "px-4 rounded-xl transition-colors shadow-lg flex items-center justify-center",
                   isAnonymous && totalUserMessages >= 6 ? "bg-amber-600" : "bg-indigo-600",
                 )}
               >

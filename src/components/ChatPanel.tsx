@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { Send, Brain, User, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import { useAuth } from "@/hooks/useAuth";
 import { ANON_MAX_MESSAGES, getAnonMessages, getAnonUserMessageCount, appendAnonMessage } from "@/lib/anonymousChat";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const WELCOME_MESSAGE = {
@@ -24,17 +24,14 @@ const ChatPanel = ({
   isQuotaReached = false,
 }: any) => {
   const { user } = useAuth();
-  const navigate = useNavigate();
-  const isAnonymous = !user;
-
   const [isLoading, setIsLoading] = useState(false);
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const isAnonymous = !user;
   const anonCount = getAnonUserMessageCount();
   const messagesLeft = Math.max(0, ANON_MAX_MESSAGES - anonCount);
 
-  // Détermination des messages à afficher
   const displayMessages = isAnonymous
     ? getAnonMessages().length > 0
       ? getAnonMessages().map((m, i) => ({ ...m, id: `anon-${i}`, number: i + 1 }))
@@ -43,13 +40,17 @@ const ChatPanel = ({
       ? persistedMessages.map((m: any, i: number) => ({ ...m, number: i + 1 }))
       : [WELCOME_MESSAGE];
 
-  // EFFET : Mise à jour automatique du titre dans la Sidebar
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [displayMessages, isLoading]);
+
+  // EFFET : Mise à jour automatique du titre
   useEffect(() => {
     if (conversationId && displayMessages.length >= 2 && onUpdateTitle) {
       const firstUserMsg = displayMessages.find((m) => m.role === "user");
       if (
         firstUserMsg &&
-        (!conversationTitle || conversationTitle === "Nouvelle discussion" || conversationTitle === "New Conversation")
+        (!conversationTitle || conversationTitle.includes("Nouvelle") || conversationTitle.includes("New"))
       ) {
         const newTitle = firstUserMsg.content.substring(0, 30) + (firstUserMsg.content.length > 30 ? "..." : "");
         onUpdateTitle(conversationId, newTitle);
@@ -57,45 +58,46 @@ const ChatPanel = ({
     }
   }, [displayMessages.length, conversationId, conversationTitle, onUpdateTitle]);
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [displayMessages]);
-
-  // FONCTION D'ENVOI CORRIGÉE
   const handleSend = async () => {
     if (!input.trim() || isQuotaReached || isLoading) return;
 
-    const safeContent = input.trim().substring(0, 1500);
+    const userContent = input.trim().substring(0, 1500);
     setInput("");
     setIsLoading(true);
 
     try {
       if (isAnonymous) {
-        // Logique Anonyme
-        appendAnonMessage("user", safeContent);
-        // Simulation réponse Édouard
-        setTimeout(() => {
-          appendAnonMessage(
-            "assistant",
-            "Analyse en cours... Crée un compte pour obtenir un diagnostic complet de ton projet.",
-          );
-          setIsLoading(false);
-        }, 1000);
+        // 1. Sauvegarder le message de l'utilisateur localement
+        appendAnonMessage("user", userContent);
+
+        // 2. Appeler l'IA via la Edge Function "eugene-chat"
+        const { data, error } = await supabase.functions.invoke("eugene-chat", {
+          body: {
+            messages: [...getAnonMessages()],
+            userId: "anonymous",
+          },
+        });
+
+        if (error) throw error;
+
+        // 3. Sauvegarder la réponse d'Édouard localement
+        if (data?.content) {
+          appendAnonMessage("assistant", data.content);
+        }
       } else {
-        // Logique Connectée
+        // Logique pour utilisateur connecté
         let currentId = conversationId;
         if (!currentId && onCreateConversation) {
-          currentId = await onCreateConversation(safeContent.substring(0, 30));
+          currentId = await onCreateConversation(userContent.substring(0, 30));
         }
-
         if (saveMessage && currentId) {
-          await saveMessage(currentId, "user", safeContent);
+          await saveMessage(currentId, "user", userContent);
         }
-        setIsLoading(false);
       }
-    } catch (error) {
-      console.error("Chat Error:", error);
-      toast.error("Un problème est survenu lors de l'envoi.");
+    } catch (error: any) {
+      console.error("Erreur Chat:", error);
+      toast.error("Édouard a un problème de connexion. Vérifie tes crédits OpenAI.");
+    } finally {
       setIsLoading(false);
     }
   };
@@ -106,13 +108,12 @@ const ChatPanel = ({
         <div className="max-w-3xl mx-auto space-y-8">
           {displayMessages.map((msg: any, idx: number) => (
             <div
-              key={msg.id || idx}
+              key={idx}
               className={cn("flex flex-col animate-fade-in", msg.role === "user" ? "items-end" : "items-start")}
             >
               <span className="text-[10px] font-bold text-muted-foreground uppercase mb-2 px-1 tracking-widest">
                 {msg.role === "assistant" ? "Édouard" : "Vous"} — Message #{msg.number ?? idx}
               </span>
-
               <div className={cn("flex gap-4 w-full", msg.role === "user" ? "flex-row-reverse" : "")}>
                 <div
                   className={cn(
@@ -124,7 +125,6 @@ const ChatPanel = ({
                 >
                   {msg.role === "assistant" ? <Brain size={20} /> : <User size={20} />}
                 </div>
-
                 <div
                   className={cn(
                     "max-w-[80%] rounded-2xl px-5 py-4 text-[15px] leading-relaxed shadow-sm border",
@@ -133,20 +133,16 @@ const ChatPanel = ({
                       : "bg-primary/10 border-primary/20 text-foreground",
                   )}
                 >
-                  {msg.role === "assistant" ? (
-                    <div className="prose prose-sm prose-slate dark:prose-invert max-w-none">
-                      <ReactMarkdown>{msg.content}</ReactMarkdown>
-                    </div>
-                  ) : (
-                    <div className="whitespace-pre-wrap">{msg.content}</div>
-                  )}
+                  <div className="prose prose-sm prose-slate dark:prose-invert max-w-none">
+                    <ReactMarkdown>{msg.content}</ReactMarkdown>
+                  </div>
                 </div>
               </div>
             </div>
           ))}
           {isLoading && (
             <div className="flex items-center gap-2 text-muted-foreground text-xs animate-pulse italic">
-              <Brain size={14} /> Édouard réfléchit...
+              <Brain size={14} className="animate-spin-slow" /> Édouard analyse ton projet...
             </div>
           )}
           <div ref={messagesEndRef} />
@@ -166,7 +162,7 @@ const ChatPanel = ({
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleSend())}
               disabled={isQuotaReached || isLoading}
-              placeholder={isQuotaReached ? "Quota atteint, reviens demain !" : "Réponds à Édouard..."}
+              placeholder={isQuotaReached ? "Quota atteint !" : "Réponds à Édouard..."}
               className="flex-1 min-h-[45px] max-h-32 bg-transparent border-none focus:ring-0 text-[15px] py-2 resize-none outline-none"
             />
             <button
@@ -177,7 +173,6 @@ const ChatPanel = ({
               <Send size={18} />
             </button>
           </div>
-
           {isAnonymous && (
             <div className="flex items-center justify-center gap-2 mt-4 text-[12px] text-muted-foreground font-medium">
               <Lock size={14} className="text-amber-500" />

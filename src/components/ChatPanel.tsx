@@ -64,7 +64,7 @@ const ChatPanel = ({
     const currentCount = getAnonCount();
 
     if (isAnonymous && currentCount >= maxAnon) {
-      toast.error("Quota atteint. Inscris-toi pour continuer !");
+      toast.error("Quota atteint. Inscris-toi gratuitement pour continuer !");
       setTimeout(() => {
         window.location.href = "/auth";
       }, 1500);
@@ -179,7 +179,8 @@ const ChatPanel = ({
             <div className="flex items-center justify-center gap-2 mt-4 text-[12px] text-muted-foreground font-medium">
               <Lock size={14} className="text-amber-500" />
               <span>
-                Il te reste <span className="text-foreground font-bold">{messagesLeft} messages</span> gratuits
+                Il te reste <span className="text-foreground font-bold">{messagesLeft} messages</span> avant inscription
+                gratuite
               </span>
             </div>
           )}

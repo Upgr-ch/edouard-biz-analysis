@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Brain, User, AlertTriangle } from "lucide-react";
+import { Send, Brain, User, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import { useAuth } from "@/hooks/useAuth";
@@ -8,7 +8,6 @@ import { toast } from "sonner";
 import { Link, useNavigate } from "react-router-dom";
 import * as AnonChat from "@/lib/anonymousChat";
 
-// --- COMPOSANT FOOTER ---
 const Footer = () => (
   <footer className="w-full py-4 border-t bg-background/50 mt-auto">
     <div className="max-w-3xl mx-auto px-4 flex flex-wrap justify-center gap-x-5 gap-y-2 text-[10px] text-muted-foreground uppercase tracking-widest font-medium">
@@ -34,7 +33,7 @@ const ChatPanel = ({ conversationId, persistedMessages = [], saveMessage, onCrea
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [input, setInput] = useState("");
-  const [hasAcceptedResponsibility, setHasAcceptedResponsibility] = useState(false);
+  const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -47,34 +46,31 @@ const ChatPanel = ({ conversationId, persistedMessages = [], saveMessage, onCrea
 
   const handleManualSignOut = async () => {
     await supabase.auth.signOut();
-    toast.success("Session terminée");
+    toast.success("Déconnexion réussie");
     navigate("/");
     window.location.reload();
   };
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
-    let userContent = input.trim();
+    let content = input.trim();
     setInput("");
     setIsLoading(true);
-
     try {
       if (isAnonymous) {
-        if ((AnonChat as any).appendAnonMessage) (AnonChat as any).appendAnonMessage("user", userContent);
+        if ((AnonChat as any).appendAnonMessage) (AnonChat as any).appendAnonMessage("user", content);
         const { data } = await supabase.functions.invoke("eugene-chat", {
-          body: {
-            messages: [...((AnonChat as any).getAnonMessages?.() || []), { role: "user", content: userContent }],
-          },
+          body: { messages: [...((AnonChat as any).getAnonMessages?.() || []), { role: "user", content }] },
         });
         if (data?.content && (AnonChat as any).appendAnonMessage)
           (AnonChat as any).appendAnonMessage("assistant", data.content);
       } else {
         let currentId = conversationId;
-        if (!currentId && onCreateConversation) currentId = await onCreateConversation(userContent.substring(0, 30));
+        if (!currentId && onCreateConversation) currentId = await onCreateConversation(content.substring(0, 30));
         if (saveMessage && currentId) {
-          await saveMessage(currentId, "user", userContent);
+          await saveMessage(currentId, "user", content);
           const { data } = await supabase.functions.invoke("eugene-chat", {
-            body: { messages: [...persistedMessages, { role: "user", content: userContent }] },
+            body: { messages: [...persistedMessages, { role: "user", content }] },
           });
           if (data?.content) await saveMessage(currentId, "assistant", data.content);
         }
@@ -86,48 +82,67 @@ const ChatPanel = ({ conversationId, persistedMessages = [], saveMessage, onCrea
     }
   };
 
-  // --- POPUP DE RESPONSABILITÉ (DISCLAIMER) ---
-  if (!hasAcceptedResponsibility && displayMessages.length === 0) {
+  // --- RENDU EXACT DE TA CAPTURE D'ÉCRAN ---
+  if (!disclaimerAccepted && displayMessages.length === 0) {
     return (
-      <div className="flex flex-col h-screen bg-background items-center justify-center p-6">
-        <div className="max-w-md w-full bg-card border shadow-2xl rounded-[32px] p-8 space-y-6">
-          <div className="flex flex-col items-center text-center space-y-4">
-            <div className="w-16 h-16 bg-amber-500/10 text-amber-600 rounded-2xl flex items-center justify-center">
-              <AlertTriangle size={32} />
-            </div>
-            <h2 className="text-2xl font-bold tracking-tight">Note importante</h2>
-            <p className="text-muted-foreground text-sm leading-relaxed">
-              Édouard est une intelligence artificielle qui fournit des **conseils et des pistes de réflexion**.
-              <br />
-              <br />
-              En aucun cas ces informations ne constituent un avis juridique ou financier officiel. **Tu es seul
-              responsable** de la mise en œuvre de ces conseils et des décisions prises pour ton projet.
-            </p>
+      <div className="flex flex-col min-h-screen bg-[#0B0E14] items-center justify-center p-6 text-slate-200">
+        <div className="max-w-2xl w-full bg-[#161B22] border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-8">
+          <div className="space-y-2">
+            <h1 className="text-4xl font-bold text-white">
+              Je suis <span className="text-indigo-500">Édouard.</span>
+            </h1>
+            <p className="text-slate-400 text-lg">Consultant en faisabilité et rentabilité de projets business.</p>
           </div>
 
-          <div className="bg-muted/50 border rounded-2xl p-4 flex items-start gap-3">
-            <input
-              type="checkbox"
-              id="resp-check"
-              checked={isChecked}
-              onChange={(e) => setIsChecked(e.target.checked)}
-              className="mt-1 h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
-            />
-            <label
-              htmlFor="resp-check"
-              className="text-xs text-muted-foreground leading-snug cursor-pointer font-medium"
+          <div className="space-y-6 text-slate-300 leading-relaxed">
+            <p>Je vais t'aider à analyser ton idée de business avec structure et honnêteté.</p>
+            <p>
+              Je m'exprime de manière <span className="font-bold text-white">ferme, assertive et juste</span>, ne le
+              prends pas pour toi. Mon travail est de te dire la vérité business, pas de te flatter.
+            </p>
+            <p>
+              Si ton idée n'est pas viable, je te le dirai clairement. Si elle est améliorable, je t'expliquerai
+              comment.
+            </p>
+            <p className="text-blue-500 font-semibold">
+              Ma mission est de te faire gagner du temps et d'éviter les erreurs coûteuses.
+            </p>
+
+            <div className="pl-4 border-l-2 border-indigo-500/50 py-1 text-slate-400 text-sm italic bg-indigo-500/5">
+              J'utilise uniquement des données réelles et vérifiables issues du web. Je n'invente jamais de chiffres, de
+              marché ou de tendances. Si une information fiable n'est pas disponible, je le dis clairement.
+            </div>
+          </div>
+
+          <div
+            onClick={() => setIsChecked(!isChecked)}
+            className={cn(
+              "p-6 rounded-2xl border transition-all cursor-pointer flex gap-4 bg-[#0B0E14]/50",
+              isChecked ? "border-indigo-500/50" : "border-slate-800",
+            )}
+          >
+            <div
+              className={cn(
+                "mt-1 w-6 h-6 rounded border flex items-center justify-center shrink-0 transition-colors",
+                isChecked ? "bg-indigo-600 border-indigo-600 text-white" : "border-slate-600",
+              )}
             >
-              Je reconnais qu'Édouard ne fournit que des conseils et que je suis pleinement responsable de leur
-              application.
-            </label>
+              {isChecked && "✓"}
+            </div>
+            <p className="text-[11px] text-slate-400 leading-normal">
+              <span className="font-bold text-slate-200">AVERTISSEMENT :</span> Les analyses sont fournies à titre
+              informatif et consultatif uniquement. Elles ne constituent pas une garantie de résultat ni un conseil
+              engageant. L'utilisation des informations et les décisions prises relèvent entièrement de la
+              responsabilité de l'utilisateur.
+            </p>
           </div>
 
           <button
             disabled={!isChecked}
-            onClick={() => setHasAcceptedResponsibility(true)}
-            className="w-full py-4 bg-primary text-primary-foreground rounded-2xl font-bold shadow-lg transition-all active:scale-95 disabled:opacity-50 disabled:grayscale"
+            onClick={() => setDisclaimerAccepted(true)}
+            className="w-full py-4 bg-gradient-to-r from-indigo-600 to-violet-700 text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-all active:scale-95 disabled:opacity-20 disabled:grayscale"
           >
-            J'ai compris, on commence
+            Commencer l'analyse <ArrowRight size={20} />
           </button>
         </div>
         <Footer />
@@ -135,77 +150,63 @@ const ChatPanel = ({ conversationId, persistedMessages = [], saveMessage, onCrea
     );
   }
 
-  // --- INTERFACE DE CHAT ---
   return (
     <div className="flex flex-col h-screen bg-background relative">
-      {user && (
-        <button
-          onClick={handleManualSignOut}
-          className="absolute top-4 right-4 z-50 text-[9px] font-mono font-bold text-red-600 border border-red-600/30 px-2 py-1 rounded hover:bg-red-600 hover:text-white transition-all bg-background/80"
-        >
-          Déconnexion (temp)
-        </button>
+      {!isAnonymous && (
+        <div className="absolute top-4 right-4 z-50">
+          <button
+            onClick={handleManualSignOut}
+            className="text-[10px] font-bold uppercase text-muted-foreground hover:text-primary transition-colors"
+          >
+            Déconnexion
+          </button>
+        </div>
       )}
 
-      <div className="flex-1 overflow-y-auto p-4">
-        <div className="max-w-3xl mx-auto space-y-6 pt-12 pb-12">
-          {displayMessages.length === 0 ? (
-            <div className="flex flex-col items-start gap-3">
-              <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center">
-                <Brain size={18} />
-              </div>
-              <div className="bg-card border rounded-2xl px-4 py-3 text-sm shadow-sm">
-                <p>Bonjour ! Je suis prêt. Par quoi souhaites-tu commencer ?</p>
-              </div>
-            </div>
-          ) : (
-            displayMessages.map((msg: any, i: number) => (
-              <div key={i} className={cn("flex flex-col", msg.role === "user" ? "items-end" : "items-start")}>
-                <div className={cn("flex gap-3 max-w-[85%]", msg.role === "user" ? "flex-row-reverse" : "")}>
-                  <div
-                    className={cn(
-                      "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
-                      msg.role === "assistant" ? "bg-indigo-600 text-white" : "bg-muted",
-                    )}
-                  >
-                    {msg.role === "assistant" ? <Brain size={18} /> : <User size={18} />}
-                  </div>
-                  <div
-                    className={cn(
-                      "rounded-2xl px-4 py-3 text-sm border shadow-sm",
-                      msg.role === "assistant" ? "bg-card" : "bg-primary/5",
-                    )}
-                  >
-                    <div className="prose prose-sm dark:prose-invert">
-                      <ReactMarkdown>{msg.content}</ReactMarkdown>
-                    </div>
-                  </div>
+      <div className="flex-1 overflow-y-auto p-4 pt-12 pb-12">
+        <div className="max-w-3xl mx-auto space-y-6">
+          {displayMessages.map((msg: any, i: number) => (
+            <div key={i} className={cn("flex flex-col", msg.role === "user" ? "items-end" : "items-start")}>
+              <div className={cn("flex gap-3 max-w-[85%]", msg.role === "user" ? "flex-row-reverse" : "")}>
+                <div
+                  className={cn(
+                    "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
+                    msg.role === "assistant" ? "bg-indigo-600 text-white" : "bg-muted",
+                  )}
+                >
+                  {msg.role === "assistant" ? <Brain size={18} /> : <User size={18} />}
+                </div>
+                <div
+                  className={cn(
+                    "rounded-2xl px-4 py-3 text-sm border shadow-sm",
+                    msg.role === "assistant" ? "bg-card" : "bg-primary/5",
+                  )}
+                >
+                  <ReactMarkdown className="prose prose-sm dark:prose-invert">{msg.content}</ReactMarkdown>
                 </div>
               </div>
-            ))
-          )}
+            </div>
+          ))}
           <div ref={messagesEndRef} />
         </div>
       </div>
 
       <div className="p-4 bg-background border-t">
-        <div className="max-w-3xl mx-auto">
-          <div className="flex gap-2 bg-muted/50 p-2 rounded-xl border">
-            <textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleSend())}
-              placeholder="Écrivez ici..."
-              className="flex-1 bg-transparent border-none focus:ring-0 resize-none h-10 py-2 outline-none"
-            />
-            <button
-              onClick={handleSend}
-              disabled={!input.trim() || isLoading}
-              className="bg-primary text-white p-2 rounded-lg disabled:opacity-50"
-            >
-              <Send size={18} />
-            </button>
-          </div>
+        <div className="max-w-3xl mx-auto flex gap-2">
+          <textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleSend())}
+            placeholder="Réponse..."
+            className="flex-1 bg-muted/50 border rounded-xl p-3 resize-none h-12 outline-none text-sm"
+          />
+          <button
+            onClick={handleSend}
+            disabled={!input.trim() || isLoading}
+            className="bg-primary text-white px-4 rounded-xl shadow-lg"
+          >
+            <Send size={18} />
+          </button>
         </div>
       </div>
       <Footer />

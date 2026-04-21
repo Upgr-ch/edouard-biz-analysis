@@ -50,6 +50,9 @@ const ChatPanel = ({ conversationId, persistedMessages = [], saveMessage }: any)
           isRestoring.current = true;
           const messagesToRestore = JSON.parse(pendingData);
           try {
+            // Petit délai pour laisser Supabase valider la session
+            await new Promise((resolve) => setTimeout(resolve, 500));
+
             for (const msg of messagesToRestore) {
               await saveMessage(conversationId, msg.role, msg.content);
             }
@@ -57,7 +60,7 @@ const ChatPanel = ({ conversationId, persistedMessages = [], saveMessage }: any)
             toast.success("Analyse récupérée !");
           } catch (error) {
             console.error("Échec restauration:", error);
-          } finally {
+            // On ne supprime pas le storage en cas d'échec pour pouvoir réessayer
             isRestoring.current = false;
           }
         }
@@ -112,14 +115,17 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
+
     if (isAnonymous && totalUserMessages >= 6) {
       localStorage.setItem("pending_anon_chat", JSON.stringify(displayMessages));
       navigate("/auth");
       return;
     }
+
     const content = input.trim();
     setInput("");
     setIsLoading(true);
+
     try {
       const systemGuide = `Tu es Édouard. L'utilisateur répond "${content}".`;
       if (isAnonymous) {
@@ -138,7 +144,7 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
         if (data?.content) await saveMessage(conversationId, "assistant", data.content);
       }
     } catch (e) {
-      toast.error("Erreur technique.");
+      toast.error("Erreur lors de l'enregistrement");
     } finally {
       setIsLoading(false);
     }

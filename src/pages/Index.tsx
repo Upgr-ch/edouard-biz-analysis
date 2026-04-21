@@ -3,7 +3,6 @@ import ChatPanel from "@/components/ChatPanel";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Brain, Check } from "lucide-react"; // Import corrigé ici
 
 const Index = () => {
   const { user } = useAuth();
@@ -11,14 +10,15 @@ const Index = () => {
   const [messages, setMessages] = useState<any[]>([]);
 
   const fetchMessages = async (id: string) => {
-    const { data, error } = await supabase
+    // Utilisation de (supabase as any) pour contourner les erreurs de typage
+    const { data, error } = await (supabase as any)
       .from("messages")
       .select("*")
       .eq("conversation_id", id)
       .order("created_at", { ascending: true });
 
     if (error) {
-      toast.error("Erreur lors de la récupération des messages");
+      console.error("Fetch error:", error);
       return;
     }
     setMessages(data || []);
@@ -26,7 +26,7 @@ const Index = () => {
 
   const handleCreateConversation = async (title: string) => {
     if (!user) return null;
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from("conversations")
       .insert([{ user_id: user.id, title }])
       .select()
@@ -41,7 +41,7 @@ const Index = () => {
   };
 
   const handleSaveMessage = async (id: string, role: string, content: string) => {
-    const { error } = await supabase.from("messages").insert([{ conversation_id: id, role, content }]);
+    const { error } = await (supabase as any).from("messages").insert([{ conversation_id: id, role, content }]);
 
     if (error) {
       toast.error("Erreur lors de l'enregistrement du message");

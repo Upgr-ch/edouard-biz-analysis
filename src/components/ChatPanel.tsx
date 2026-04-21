@@ -41,6 +41,40 @@ const ChatPanel = ({ conversationId, persistedMessages = [], saveMessage, onCrea
   const displayMessages = isAnonymous ? (AnonChat as any).getAnonMessages?.() || [] : persistedMessages;
   const totalUserMessages = displayMessages.filter((m: any) => m.role === "user").length;
 
+  // --- LOGIQUE DE RÉCUPÉRATION APRÈS AUTHENTIFICATION ---
+  useEffect(() => {
+    const restorePendingChat = async () => {
+      if (user && !isAnonymous && conversationId) {
+        const pendingData = localStorage.getItem("pending_anon_chat");
+        if (pendingData) {
+          const messagesToRestore = JSON.parse(pendingData);
+          // On évite de restaurer si la conversation actuelle a déjà des messages
+          if (persistedMessages.length === 0) {
+            for (const msg of messagesToRestore) {
+              await saveMessage(conversationId, msg.role, msg.content);
+            }
+            toast.success("Conversation restaurée !");
+          }
+          localStorage.removeItem("pending_anon_chat"); // On nettoie après restauration
+        }
+      }
+    };
+    restorePendingChat();
+  }, [user, conversationId]);
+
+  // Redirection automatique après le 6ème message
+  useEffect(() => {
+    if (isAnonymous && totalUserMessages === 6 && !isLoading) {
+      const timer = setTimeout(() => {
+        toast.info("Analyse terminée. Inscription requise pour sauvegarder.");
+        // SAUVEGARDE CRUCIALE AVANT DÉPART
+        localStorage.setItem("pending_anon_chat", JSON.stringify(displayMessages));
+        navigate("/auth");
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [totalUserMessages, isLoading, isAnonymous, navigate, displayMessages]);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [displayMessages, isLoading]);
@@ -56,19 +90,14 @@ const ChatPanel = ({ conversationId, persistedMessages = [], saveMessage, onCrea
   };
 
   const startConversation = async () => {
-    if (!isChecked) {
-      toast.error("Veuillez accepter l'avertissement.");
-      return;
-    }
+    if (!isChecked) return;
     setDisclaimerAccepted(true);
     const edouardIntro = `Je suis Édouard. Ne le prends pas pour toi, je m'exprime de manière ferme, assertive et juste. Mon travail est de te dire la vérité business, pas de te flatter.
 
 Avant de commencer, j'ai besoin de savoir où tu en es. Choisis le profil qui te correspond :
 
 A. Novice — "C'est mon tout premier projet, je pars de zéro"
-
 B. Intermédiaire — "J'ai déjà lancé un projet, je connais les bases"
-
 C. Confirmé — "J'ai plusieurs projets à mon actif, je veux aller vite"
 
 Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A, B ou C)`;
@@ -84,9 +113,8 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
     if (!input.trim() || isLoading) return;
 
     if (isAnonymous && totalUserMessages >= 6) {
-      toast.info("Quota gratuit atteint. Inscris-toi pour continuer.");
       localStorage.setItem("pending_anon_chat", JSON.stringify(displayMessages));
-      setTimeout(() => navigate("/auth"), 1000);
+      navigate("/auth");
       return;
     }
 
@@ -95,8 +123,7 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
     setIsLoading(true);
 
     try {
-      const systemGuide = `Tu es Édouard. L'utilisateur répond "${content}". Si c'est A, B ou C, valide son profil et demande-lui de décrire son projet.`;
-
+      const systemGuide = `Tu es Édouard. L'utilisateur répond "${content}".`;
       if (isAnonymous) {
         (AnonChat as any).appendAnonMessage("user", content);
         const { data } = await supabase.functions.invoke("eugene-chat", {
@@ -153,21 +180,19 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
                 Ma mission est de te faire gagner du temps et d'éviter les erreurs coûteuses.
               </p>
             </div>
-            <div className="border-l-2 border-slate-700 pl-6 py-1 bg-slate-800/20 rounded-r-lg">
-              <p className="text-[13px] text-slate-400 italic">
-                J'utilise uniquement des données réelles et vérifiables issues du web.
-              </p>
+            <div className="border-l-2 border-slate-700 pl-6 py-1 bg-slate-800/20 rounded-r-lg italic text-[13px] text-slate-400">
+              J'utilise uniquement des données réelles et vérifiables issues du web.
             </div>
             <div
               onClick={() => setIsChecked(!isChecked)}
               className={cn(
-                "p-6 rounded-2xl border cursor-pointer flex gap-4 bg-[#0B0E14]/50",
-                isChecked ? "border-indigo-500/50" : "border-slate-800",
+                "p-6 rounded-2xl border cursor-pointer flex gap-4 bg-[#0B0E14]/50 transition-all",
+                isChecked ? "border-indigo-500/50 bg-[#0B0E14]" : "border-slate-800",
               )}
             >
               <div
                 className={cn(
-                  "mt-1 w-5 h-5 rounded border flex items-center justify-center shrink-0",
+                  "mt-1 w-5 h-5 rounded border flex items-center justify-center shrink-0 transition-colors",
                   isChecked ? "bg-indigo-600 border-indigo-600 text-white" : "border-slate-700",
                 )}
               >
@@ -181,7 +206,7 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
             <button
               disabled={!isChecked || isLoading}
               onClick={startConversation}
-              className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-500/20"
+              className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-500/20 active:scale-95"
             >
               {isLoading ? "Initialisation..." : "Commencer l'analyse"} <ArrowRight size={20} />
             </button>
@@ -198,7 +223,7 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
                   <div className={cn("flex gap-3 max-w-[85%]", msg.role === "user" ? "flex-row-reverse" : "")}>
                     <div
                       className={cn(
-                        "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 font-bold text-xs",
+                        "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 font-bold text-xs shadow-sm",
                         msg.role === "assistant"
                           ? "bg-indigo-600 text-white"
                           : "bg-slate-800 text-indigo-400 border border-indigo-500/30",
@@ -214,8 +239,7 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
                           : "bg-indigo-500/10 border-indigo-500/20 text-white",
                       )}
                     >
-                      {/* Correction de l'erreur TS : className sur la div parente et non sur ReactMarkdown */}
-                      <div className="prose prose-sm dark:prose-invert whitespace-pre-wrap font-sans">
+                      <div className="prose prose-sm dark:prose-invert font-sans">
                         <ReactMarkdown>{msg.content}</ReactMarkdown>
                       </div>
                     </div>
@@ -236,7 +260,7 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
           <div className="max-w-2xl mx-auto px-4 py-3">
             {isAnonymous && (
               <div className="mb-2 text-[9px] font-bold uppercase tracking-widest text-indigo-400/80">
-                Message {totalUserMessages} / 6 avant inscription gratuite
+                Message {totalUserMessages} / 6
               </div>
             )}
             <div className="flex gap-2">
@@ -244,21 +268,14 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleSend())}
-                placeholder={isAnonymous && totalUserMessages >= 6 ? "Inscription requise..." : "Répondez ici..."}
+                placeholder="Réponse"
                 className="flex-1 bg-[#161B22] border border-slate-800 rounded-xl p-3 resize-none h-12 outline-none text-sm text-white focus:border-indigo-500 transition-all shadow-inner"
               />
               <button
                 onClick={handleSend}
-                className={cn(
-                  "px-4 rounded-xl transition-colors shadow-lg flex items-center justify-center",
-                  isAnonymous && totalUserMessages >= 6 ? "bg-amber-600" : "bg-indigo-600",
-                )}
+                className="px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all shadow-lg flex items-center justify-center active:scale-95"
               >
-                {isAnonymous && totalUserMessages >= 6 ? (
-                  <ArrowRight size={18} className="text-white" />
-                ) : (
-                  <Send size={18} className="text-white" />
-                )}
+                <Send size={18} />
               </button>
             </div>
           </div>

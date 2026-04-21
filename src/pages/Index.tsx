@@ -5,12 +5,11 @@ import Dashboard from "@/components/Dashboard";
 import { useAuth } from "@/hooks/useAuth";
 import { getAnonMessages } from "@/lib/anonymousChat";
 import { supabase } from "@/integrations/supabase/client";
-import { LogOut } from "lucide-react"; // Import de l'icône
+import { LogOut } from "lucide-react";
 
 const Index = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-
   const [onboarded, setOnboarded] = useState(() => user !== null || getAnonMessages().length > 0);
 
   if (loading) {
@@ -21,28 +20,35 @@ const Index = () => {
     );
   }
 
+  // Fonction de déconnexion forcée pour nettoyer ton erreur 23503
+  const handleForceSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      // On vide aussi le localStorage au cas où des restes de session persistent
+      localStorage.clear();
+      // On recharge la page à la racine pour repartir de zéro
+      window.location.href = "/";
+    } catch (error) {
+      console.error("Erreur déconnexion:", error);
+      // Même en cas d'erreur, on force le retour à l'accueil
+      window.location.href = "/auth";
+    }
+  };
+
   if (!onboarded) {
     return <Onboarding onComplete={() => setOnboarded(true)} />;
   }
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    // On force un rechargement complet pour nettoyer tous les états
-    window.location.href = "/";
-  };
-
   return (
-    <div className="relative h-screen w-full">
-      {/* Bouton de déconnexion visible uniquement si l'utilisateur est connecté */}
-      {user && (
-        <button
-          onClick={handleSignOut}
-          className="fixed top-4 right-4 z-50 flex items-center gap-2 bg-destructive/10 hover:bg-destructive/20 text-destructive px-4 py-2 rounded-full border border-destructive/20 transition-all text-sm font-semibold shadow-sm"
-        >
-          <LogOut size={16} />
-          Déconnexion
-        </button>
-      )}
+    <div className="relative min-h-screen w-full">
+      {/* BOUTON DE DÉCONNEXION D'URGENCE */}
+      <button
+        onClick={handleForceSignOut}
+        className="fixed top-4 right-4 z-[100] flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-full shadow-2xl transition-all text-sm font-bold border-2 border-white"
+      >
+        <LogOut size={16} />
+        DÉCONNEXION (RESET SESSION)
+      </button>
 
       <Dashboard />
     </div>

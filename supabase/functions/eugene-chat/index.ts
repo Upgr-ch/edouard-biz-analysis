@@ -163,9 +163,9 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "google/gemini-2.5-flash",
         messages: [{ role: "system", content: systemContent }, ...messages],
-        stream: true,
+        stream: false,
       }),
     });
 
@@ -190,8 +190,11 @@ serve(async (req) => {
       });
     }
 
-    return new Response(response.body, {
-      headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+    const data = await response.json();
+    const content = data?.choices?.[0]?.message?.content;
+
+    return new Response(JSON.stringify({ content: content || "Je n'ai pas pu générer de réponse exploitable." }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
     console.error("chat error:", e);

@@ -62,8 +62,12 @@ const ChatPanel = ({
     if (!input.trim() || isLoading) return;
     const currentCount = getAnonCount();
 
+    // CORRECTION : Redirection forcée vers l'inscription si quota atteint
     if (isAnonymous && currentCount >= maxAnon) {
       toast.error("Quota atteint. Inscris-toi pour continuer !");
+      setTimeout(() => {
+        window.location.href = "/auth";
+      }, 1500); // On laisse 1.5s pour que l'utilisateur lise le message d'erreur
       return;
     }
 

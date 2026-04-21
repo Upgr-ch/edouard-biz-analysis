@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Brain, User, ArrowRight } from "lucide-react";
+import { Send, Brain, User, ArrowRight, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import { useAuth } from "@/hooks/useAuth";
@@ -82,7 +82,6 @@ const ChatPanel = ({ conversationId, persistedMessages = [], saveMessage, onCrea
     }
   };
 
-  // --- RENDU EXACT DE TA CAPTURE D'ÉCRAN ---
   if (!disclaimerAccepted && displayMessages.length === 0) {
     return (
       <div className="flex flex-col min-h-screen bg-[#0B0E14] items-center justify-center p-6 text-slate-200">
@@ -94,7 +93,7 @@ const ChatPanel = ({ conversationId, persistedMessages = [], saveMessage, onCrea
             <p className="text-slate-400 text-lg">Consultant en faisabilité et rentabilité de projets business.</p>
           </div>
 
-          <div className="space-y-6 text-slate-300 leading-relaxed">
+          <div className="space-y-6 text-slate-300 leading-relaxed text-[15px]">
             <p>Je vais t'aider à analyser ton idée de business avec structure et honnêteté.</p>
             <p>
               Je m'exprime de manière <span className="font-bold text-white">ferme, assertive et juste</span>, ne le
@@ -104,11 +103,11 @@ const ChatPanel = ({ conversationId, persistedMessages = [], saveMessage, onCrea
               Si ton idée n'est pas viable, je te le dirai clairement. Si elle est améliorable, je t'expliquerai
               comment.
             </p>
-            <p className="text-blue-500 font-semibold">
+            <p className="text-blue-500 font-semibold uppercase tracking-wide text-sm">
               Ma mission est de te faire gagner du temps et d'éviter les erreurs coûteuses.
             </p>
 
-            <div className="pl-4 border-l-2 border-indigo-500/50 py-1 text-slate-400 text-sm italic bg-indigo-500/5">
+            <div className="pl-4 border-l-2 border-indigo-500/50 py-2 text-slate-400 text-[13px] italic bg-indigo-500/5">
               J'utilise uniquement des données réelles et vérifiables issues du web. Je n'invente jamais de chiffres, de
               marché ou de tendances. Si une information fiable n'est pas disponible, je le dis clairement.
             </div>
@@ -127,12 +126,12 @@ const ChatPanel = ({ conversationId, persistedMessages = [], saveMessage, onCrea
                 isChecked ? "bg-indigo-600 border-indigo-600 text-white" : "border-slate-600",
               )}
             >
-              {isChecked && "✓"}
+              {isChecked && <Check size={14} />}
             </div>
             <p className="text-[11px] text-slate-400 leading-normal">
-              <span className="font-bold text-slate-200">AVERTISSEMENT :</span> Les analyses sont fournies à titre
-              informatif et consultatif uniquement. Elles ne constituent pas une garantie de résultat ni un conseil
-              engageant. L'utilisation des informations et les décisions prises relèvent entièrement de la
+              <span className="font-bold text-slate-200 uppercase">Avertissement :</span> Les analyses sont fournies à
+              titre informatif et consultatif uniquement. Elles ne constituent pas une garantie de résultat ni un
+              conseil engageant. L'utilisation des informations et les décisions prises relèvent entièrement de la
               responsabilité de l'utilisateur.
             </p>
           </div>
@@ -182,7 +181,9 @@ const ChatPanel = ({ conversationId, persistedMessages = [], saveMessage, onCrea
                     msg.role === "assistant" ? "bg-card" : "bg-primary/5",
                   )}
                 >
-                  <ReactMarkdown className="prose prose-sm dark:prose-invert">{msg.content}</ReactMarkdown>
+                  <div className="prose prose-sm dark:prose-invert">
+                    <ReactMarkdown>{msg.content}</ReactMarkdown>
+                  </div>
                 </div>
               </div>
             </div>

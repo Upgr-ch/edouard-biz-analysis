@@ -59,13 +59,17 @@ const ChatPanel = ({ conversationId, persistedMessages = [], saveMessage, onCrea
     setDisclaimerAccepted(true);
     setIsLoading(true);
     try {
-      // Configuration de la question initiale selon tes instructions
-      const initialPrompt = `Présente-toi brièvement et pose exactement cette question :
-      
+      // PROMPT MIS À JOUR AVEC TON TEXTE EXACT ET FORÇAGE DE LIGNE
+      const initialPrompt = `Tu es Édouard. Tu dois répondre EXACTEMENT ceci, avec un saut de ligne entre chaque option A, B et C :
+
+Je suis Édouard, consultant senior spécialisé en faisabilité et rentabilité de projets. Je suis là pour analyser ton projet sans concession et te dire ce qu'il en est, objectivement.
+
 Très bien. Avant de commencer, dis-moi quel est ton niveau pour ce projet :
 
 A. Novice — "C'est mon tout premier projet, je pars de zéro"
+
 B. Intermédiaire — "J'ai déjà lancé un projet, je connais les bases"
+
 C. Confirmé — "J'ai plusieurs projets à mon actif, je veux aller vite"
 
 Si tu as un doute ou besoin de pistes concrètes pour trancher, réponds simplement 'Aide-moi' et je te proposerai trois options stratégiques (A, B ou C) adaptées à ton projet.`;
@@ -79,7 +83,7 @@ Si tu as un doute ou besoin de pistes concrètes pour trancher, réponds simplem
         }
       } else {
         let currentId = conversationId;
-        if (!currentId && onCreateConversation) currentId = await onCreateConversation("Qualification niveau");
+        if (!currentId && onCreateConversation) currentId = await onCreateConversation("Analyse de projet");
         const { data } = await supabase.functions.invoke("eugene-chat", {
           body: { messages: [{ role: "user", content: initialPrompt }] },
         });
@@ -125,11 +129,11 @@ Si tu as un doute ou besoin de pistes concrètes pour trancher, réponds simplem
 
   return (
     <div className="flex flex-col h-screen bg-background relative overflow-hidden">
-      {/* BOUTON RESET (DÉPLACÉ À GAUCHE POUR NE PAS GÊNER LE TITRE) */}
+      {/* BOUTON RESET SESSION MAINTENU EN HAUT À GAUCHE */}
       <div className="fixed top-2 left-2 z-[100] opacity-50 hover:opacity-100 transition-opacity">
         <button
           onClick={handleForceSignOut}
-          className="flex items-center gap-1.5 bg-red-950/40 hover:bg-red-800 text-red-100 px-2 py-1 rounded-md text-[9px] font-bold uppercase border border-red-500/20"
+          className="flex items-center gap-1.5 bg-red-950/40 hover:bg-red-800 text-red-100 px-2 py-1.5 rounded-md text-[9px] font-bold uppercase border border-red-500/20"
         >
           <LogOut size={12} /> Reset Session
         </button>

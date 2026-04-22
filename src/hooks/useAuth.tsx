@@ -12,10 +12,20 @@ export function useAuth() {
       setLoading(false);
     });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
+    const refreshSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (session) {
+        const { data: { session: refreshedSession } } = await supabase.auth.refreshSession();
+        setUser(refreshedSession?.user ?? session.user);
+      } else {
+        setUser(null);
+      }
+
       setLoading(false);
-    });
+    };
+
+    refreshSession();
 
     return () => subscription.unsubscribe();
   }, []);

@@ -36,7 +36,8 @@ const ChatPanel = ({ conversationId, persistedMessages = [], saveMessage }: any)
   const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const isRestoring = useRef(false);
+  const restorationProcessed = useRef(false);
+  const redirectScheduled = useRef(false);
 
   const isAnonymous = !user;
   const displayMessages = isAnonymous ? (AnonChat as any).getAnonMessages?.() || [] : persistedMessages;
@@ -45,24 +46,23 @@ const ChatPanel = ({ conversationId, persistedMessages = [], saveMessage }: any)
   useEffect(() => {
     const restorePendingMessages = async () => {
       const pendingData = localStorage.getItem("pending_anon_chat");
-      if (user && conversationId && pendingData && !isRestoring.current) {
-        if (persistedMessages.length === 0) {
-          isRestoring.current = true;
+      if (user && conversationId && pendingData && !restorationProcessed.current) {
+        restorationProcessed.current = true;
+        try {
           const messagesToRestore = JSON.parse(pendingData);
-          try {
-            // Petit délai pour laisser Supabase valider la session
-            await new Promise((resolve) => setTimeout(resolve, 500));
+          const existingKeys = new Set(persistedMessages.map((msg: any) => `${msg.role}:${msg.content}`));
+          const missingMessages = messagesToRestore.filter(
+            (msg: any) => msg?.role && msg?.content && !existingKeys.has(`${msg.role}:${msg.content}`),
+          );
 
-            for (const msg of messagesToRestore) {
-              await saveMessage(conversationId, msg.role, msg.content);
-            }
-            localStorage.removeItem("pending_anon_chat");
-            toast.success("Analyse récupérée !");
-          } catch (error) {
-            console.error("Échec restauration:", error);
-            // On ne supprime pas le storage en cas d'échec pour pouvoir réessayer
-            isRestoring.current = false;
+          for (const msg of missingMessages) {
+            await saveMessage(conversationId, msg.role, msg.content);
           }
+          localStorage.removeItem("pending_anon_chat");
+          toast.success("Analyse récupérée !");
+        } catch (error) {
+          console.error("Échec restauration:", error);
+          restorationProcessed.current = false;
         }
       }
     };
@@ -70,9 +70,10 @@ const ChatPanel = ({ conversationId, persistedMessages = [], saveMessage }: any)
   }, [user, conversationId, persistedMessages.length, saveMessage]);
 
   useEffect(() => {
-    if (isAnonymous && totalUserMessages === 6 && !isLoading) {
+    if (isAnonymous && totalUserMessages === 6 && !isLoading && !redirectScheduled.current) {
+      redirectScheduled.current = true;
       const timer = setTimeout(() => {
-        localStorage.setItem("pending_anon_chat", JSON.stringify(displayMessages));
+        localStorage.setItem("pending_anon_chat", JSON.stringify((AnonChat as any).getAnonMessages?.() || displayMessages));
         navigate("/auth");
       }, 4000);
       return () => clearTimeout(timer);
@@ -117,7 +118,7 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
     if (!input.trim() || isLoading) return;
 
     if (isAnonymous && totalUserMessages >= 6) {
-      localStorage.setItem("pending_anon_chat", JSON.stringify(displayMessages));
+      localStorage.setItem("pending_anon_chat", JSON.stringify((AnonChat as any).getAnonMessages?.() || displayMessages));
       navigate("/auth");
       return;
     }
@@ -277,7 +278,8 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
               />
               <button
                 onClick={handleSend}
-                className="px-4 bg-indigo-600 text-white rounded-xl transition-all shadow-lg flex items-center justify-center active:scale-95"
+                disabled={isLoading || !input.trim()}
+                className="px-4 bg-indigo-600 text-white rounded-xl transition-all shadow-lg shadow-indigo-950/30 flex items-center justify-center active:scale-95 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Send size={18} />
               </button>

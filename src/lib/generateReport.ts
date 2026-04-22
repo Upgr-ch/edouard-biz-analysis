@@ -226,7 +226,7 @@ export function renderReportPdf(reportMarkdown: string, projectName: string) {
     doc.setLineWidth(0.2);
     doc.line(margin, pageH - 14, pageW - margin, pageH - 14);
 
-    doc.text("Édouard — Consultant en faisabilité & rentabilité", margin, pageH - 10);
+    doc.text("©  Kévin Lavergne – UpGrade", margin, pageH - 10);
     doc.text(`${i}/${totalPages}`, pageW - margin, pageH - 10, { align: "right" });
   }
 

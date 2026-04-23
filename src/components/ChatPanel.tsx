@@ -96,7 +96,7 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
     if (!input.trim() || isLoading) return;
 
     if (isAnonymous && totalUserMessages >= 6) {
-      localStorage.setItem("pending_anon_chat", JSON.stringify((AnonChat as any).getAnonMessages?.() || displayMessages));
+      saveTemporaryChat();
       navigate("/auth");
       return;
     }

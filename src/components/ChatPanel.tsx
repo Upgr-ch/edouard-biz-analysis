@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Brain, ArrowRight, Check, LogOut } from "lucide-react";
+import { Send, Brain, ArrowRight, Check, LogOut, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import { useAuth } from "@/hooks/useAuth";
@@ -250,8 +250,9 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
         <div className="bg-[#0B0E14] border-t border-slate-800 z-40">
           <div className="max-w-2xl mx-auto px-4 py-3">
             {isAnonymous && (
-              <div className="mb-2 text-[9px] font-bold uppercase tracking-widest text-indigo-400/80">
-                Message {totalUserMessages} / 6
+              <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-indigo-500/20 bg-indigo-500/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-indigo-300 shadow-sm shadow-indigo-950/20">
+                <MessageCircle size={13} className="text-indigo-400" />
+                Message {totalUserMessages} / 6 avant inscription gratuite.
               </div>
             )}
             <div className="flex gap-2">

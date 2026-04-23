@@ -23,7 +23,7 @@ const Footer = () => (
       <Link to="/confidentialite" className="hover:text-primary transition-colors">
         Confidentialité
       </Link>
-      <span className="opacity-50 ml-2">&copy; {new Date().getFullYear()} Édouard</span>
+      <span className="opacity-50 ml-2">© 2026 - Kévin Lavergne – UpGrade</span>
     </div>
   </footer>
 );

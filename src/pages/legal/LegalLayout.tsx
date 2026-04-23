@@ -14,7 +14,7 @@ const LegalLayout = ({ title, children }: { title: string; children: React.React
           {children}
         </div>
         <div className="mt-12 pt-6 border-t border-border text-center text-xs text-muted-foreground/50">
-          ©  Kévin Lavergne – UpGrade
+          © 2026 - Kévin Lavergne – UpGrade
         </div>
       </div>
     </div>

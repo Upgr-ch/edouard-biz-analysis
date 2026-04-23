@@ -36,44 +36,22 @@ const ChatPanel = ({ conversationId, persistedMessages = [], saveMessage }: any)
   const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const restorationProcessed = useRef(false);
   const redirectScheduled = useRef(false);
 
   const isAnonymous = !user;
   const displayMessages = isAnonymous ? (AnonChat as any).getAnonMessages?.() || [] : persistedMessages;
   const totalUserMessages = displayMessages.filter((m: any) => m.role === "user").length;
 
-  useEffect(() => {
-    const restorePendingMessages = async () => {
-      const pendingData = localStorage.getItem("pending_anon_chat");
-      if (user && conversationId && pendingData && !restorationProcessed.current) {
-        restorationProcessed.current = true;
-        try {
-          const messagesToRestore = JSON.parse(pendingData);
-          const existingKeys = new Set(persistedMessages.map((msg: any) => `${msg.role}:${msg.content}`));
-          const missingMessages = messagesToRestore.filter(
-            (msg: any) => msg?.role && msg?.content && !existingKeys.has(`${msg.role}:${msg.content}`),
-          );
-
-          for (const msg of missingMessages) {
-            await saveMessage(conversationId, msg.role, msg.content);
-          }
-          localStorage.removeItem("pending_anon_chat");
-          toast.success("Analyse récupérée !");
-        } catch (error) {
-          console.error("Échec restauration:", error);
-          restorationProcessed.current = false;
-        }
-      }
-    };
-    restorePendingMessages();
-  }, [user, conversationId, persistedMessages.length, saveMessage]);
+  const saveTemporaryChat = () => {
+    const latestMessages = (AnonChat as any).getAnonMessages?.() || displayMessages;
+    localStorage.setItem("temp_chat", JSON.stringify(latestMessages));
+  };
 
   useEffect(() => {
     if (isAnonymous && totalUserMessages === 6 && !isLoading && !redirectScheduled.current) {
       redirectScheduled.current = true;
       const timer = setTimeout(() => {
-        localStorage.setItem("pending_anon_chat", JSON.stringify((AnonChat as any).getAnonMessages?.() || displayMessages));
+        saveTemporaryChat();
         navigate("/auth");
       }, 4000);
       return () => clearTimeout(timer);

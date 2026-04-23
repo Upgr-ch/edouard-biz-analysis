@@ -28,7 +28,7 @@ const Footer = () => (
   </footer>
 );
 
-const ChatPanel = ({ conversationId, persistedMessages = [], saveMessage }: any) => {
+const ChatPanel = ({ conversationId, persistedMessages = [], saveMessage, onCreateConversation }: any) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
@@ -87,8 +87,11 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
 
     if (isAnonymous) {
       (AnonChat as any).appendAnonMessage("assistant", edouardIntro);
-    } else if (saveMessage && conversationId) {
-      await saveMessage(conversationId, "assistant", edouardIntro);
+    } else if (saveMessage) {
+      const activeConversationId = conversationId || (await onCreateConversation?.("Nouvelle analyse"));
+      if (activeConversationId) {
+        await saveMessage(activeConversationId, "assistant", edouardIntro);
+      }
     }
   };
 
@@ -116,11 +119,16 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
         });
         if (data?.content) (AnonChat as any).appendAnonMessage("assistant", data.content);
       } else {
-        await saveMessage(conversationId, "user", content);
+        const activeConversationId = conversationId || (await onCreateConversation?.("Nouvelle analyse"));
+        if (!activeConversationId) {
+          toast.error("Erreur lors de la création de la conversation");
+          return;
+        }
+        await saveMessage(activeConversationId, "user", content);
         const { data } = await supabase.functions.invoke("eugene-chat", {
           body: { messages: [...persistedMessages, { role: "system", content: systemGuide }] },
         });
-        if (data?.content) await saveMessage(conversationId, "assistant", data.content);
+        if (data?.content) await saveMessage(activeConversationId, "assistant", data.content);
       }
     } catch (e) {
       toast.error("Erreur lors de l'enregistrement");

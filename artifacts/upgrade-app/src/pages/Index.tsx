@@ -289,6 +289,7 @@ const Index = () => {
         <div className="flex-1 min-h-0">
           <ChatPanel
             conversationId={conversationId}
+            conversationTitle={activeConversationTitle}
             persistedMessages={messages}
             saveMessage={handleSaveMessage}
             onCreateConversation={handleCreateConversation}

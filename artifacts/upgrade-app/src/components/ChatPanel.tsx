@@ -17,6 +17,7 @@ interface DisplayMessage {
 
 interface ChatPanelProps {
   conversationId: string | null;
+  conversationTitle?: string | null;
   persistedMessages?: DisplayMessage[];
   saveMessage: (id: string, role: "user" | "assistant", content: string) => Promise<void>;
   onCreateConversation?: (title: string) => Promise<string | null>;
@@ -89,6 +90,7 @@ async function invokeChat(messages: DisplayMessage[], token?: string | null): Pr
 
 const ChatPanel = ({
   conversationId,
+  conversationTitle,
   persistedMessages = [],
   saveMessage,
   onCreateConversation,
@@ -101,9 +103,14 @@ const ChatPanel = ({
   const [input, setInput] = useState("");
   const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
+  const [titleValidated, setTitleValidated] = useState(false);
   const [, forceUpdate] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const redirectScheduled = useRef(false);
+
+  /* Footer hints visible once the conversation has a real title */
+  const isDefaultTitle = !conversationTitle || conversationTitle === "Nouvelle analyse";
+  const showHints = titleValidated || !isDefaultTitle;
 
   const isAnonymous = !user;
   const displayMessages: DisplayMessage[] = isAnonymous
@@ -262,6 +269,7 @@ Avant de commencer, j'ai besoin de savoir où tu en es.
             const chosenName = extractChosenName(content.toUpperCase(), persistedMessages);
             if (chosenName) {
               await onRenameConversation?.(activeConversationId, chosenName);
+              setTitleValidated(true);
             }
           }
         }
@@ -429,7 +437,7 @@ Avant de commencer, j'ai besoin de savoir où tu en es.
                         <div className="prose prose-sm dark:prose-invert" style={{ fontFamily: "var(--up-font)" }}>
                           <ReactMarkdown>{msg.content}</ReactMarkdown>
                         </div>
-                        {msg.role === "assistant" && (
+                        {msg.role === "assistant" && showHints && (
                           <p
                             className="mt-3 text-[13px] italic leading-relaxed"
                             style={{

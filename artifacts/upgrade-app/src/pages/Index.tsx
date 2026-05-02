@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import ChatPanel from "@/components/ChatPanel";
 import AppSidebar from "@/components/AppSidebar";
+import MainHeader from "@/components/MainHeader";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
@@ -238,6 +239,9 @@ const Index = () => {
 
   const completedSteps = Array.from({ length: currentStep }, (_, index) => index);
 
+  const activeConversationTitle =
+    conversations.find((c) => c.id === conversationId)?.title ?? null;
+
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background">
       <AppSidebar
@@ -250,13 +254,16 @@ const Index = () => {
         onSwitchConversation={handleSwitchConversation}
         onDeleteConversation={handleDeleteConversation}
       />
-      <main className="flex-1 min-w-0">
-        <ChatPanel
-          conversationId={conversationId}
-          persistedMessages={messages}
-          saveMessage={handleSaveMessage}
-          onCreateConversation={handleCreateConversation}
-        />
+      <main className="flex-1 min-w-0 flex flex-col">
+        <MainHeader conversationTitle={activeConversationTitle} />
+        <div className="flex-1 min-h-0">
+          <ChatPanel
+            conversationId={conversationId}
+            persistedMessages={messages}
+            saveMessage={handleSaveMessage}
+            onCreateConversation={handleCreateConversation}
+          />
+        </div>
       </main>
     </div>
   );

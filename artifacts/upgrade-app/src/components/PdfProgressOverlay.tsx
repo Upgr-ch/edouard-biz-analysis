@@ -12,9 +12,10 @@ const STAGES = [
 interface PdfProgressOverlayProps {
   isVisible: boolean;
   isFinal?: boolean;
+  onCancel?: () => void;
 }
 
-export default function PdfProgressOverlay({ isVisible, isFinal = false }: PdfProgressOverlayProps) {
+export default function PdfProgressOverlay({ isVisible, isFinal = false, onCancel }: PdfProgressOverlayProps) {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
@@ -30,8 +31,10 @@ export default function PdfProgressOverlay({ isVisible, isFinal = false }: PdfPr
         return Math.min(91, prev + step);
       });
     }, 130);
-    return () => clearInterval(interval);
-  }, [isVisible]);
+    // Auto-cancel after 95s if still stuck
+    const timeout = setTimeout(() => { onCancel?.(); }, 95_000);
+    return () => { clearInterval(interval); clearTimeout(timeout); };
+  }, [isVisible, onCancel]);
 
   const statusText =
     [...STAGES].reverse().find((s) => progress >= s.at)?.text ?? STAGES[0].text;
@@ -43,6 +46,16 @@ export default function PdfProgressOverlay({ isVisible, isFinal = false }: PdfPr
       className="absolute inset-0 z-50 flex flex-col items-center justify-center gap-7"
       style={{ background: "rgba(8,15,30,0.93)", backdropFilter: "blur(10px)" }}
     >
+      {onCancel && (
+        <button
+          onClick={onCancel}
+          className="absolute top-4 right-4 p-1.5 rounded transition-opacity opacity-40 hover:opacity-100"
+          style={{ color: "rgba(255,255,255,0.7)" }}
+          title="Annuler"
+        >
+          <span style={{ fontSize: "18px", lineHeight: 1 }}>✕</span>
+        </button>
+      )}
       <Loader2
         size={36}
         className="animate-spin"

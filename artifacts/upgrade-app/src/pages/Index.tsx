@@ -106,6 +106,9 @@ const Index = () => {
   const continuationPromptShownFor = useRef<string | null>(null);
   const nextStepPromptedLabels = useRef<Set<string>>(new Set());
 
+  // Safety: reset any stale loading state on mount (e.g. after HMR mid-request)
+  useEffect(() => { setPdfLoadingStep(null); }, []);
+
   const FISCAL_DISCLAIMER_STEP = 6;      // sidebar index 6 = "Statut et Fiscalité"
   const ACQUISITION_DISCLAIMER_STEP = 8; // sidebar index 8 = "Acquisition Client"
 
@@ -382,6 +385,7 @@ const Index = () => {
           <PdfProgressOverlay
             isVisible={pdfLoadingStep !== null}
             isFinal={pdfLoadingStep === "final"}
+            onCancel={() => setPdfLoadingStep(null)}
           />
           <ChatPanel
             conversationId={conversationId}

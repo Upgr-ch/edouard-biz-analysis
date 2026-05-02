@@ -388,12 +388,14 @@ Passons au marché — Étape 3/10.
     ];
     const SKIP_CLOSURE_STEP = 7; // Statut et Fiscalité, géré par l'interface
 
-    const prevStepMsg = [...filteredMessages]
-      .reverse()
-      .find((m) => m.role === "assistant" && /\*\*Étape \d+\/10/.test(m.content));
-    const prevStepNum = prevStepMsg
-      ? parseInt(prevStepMsg.content.match(/\*\*Étape (\d+)\/10/)![1])
+    // Find the HIGHEST step number seen across ALL assistant messages in history
+    const allHistoryStepNums = filteredMessages
+      .filter((m) => m.role === "assistant")
+      .flatMap((m) => [...m.content.matchAll(/\*\*Étape (\d+)\/10/g)].map((r) => parseInt(r[1])));
+    const prevStepNum = allHistoryStepNums.length > 0
+      ? Math.max(...allHistoryStepNums)
       : null;
+
     const allNewStepMatches = [...content.matchAll(/\*\*Étape (\d+)\/10/g)];
     const newStepNum = allNewStepMatches.length > 0
       ? Math.max(...allNewStepMatches.map((m) => parseInt(m[1])))
@@ -406,7 +408,13 @@ Passons au marché — Étape 3/10.
       prevStepNum !== SKIP_CLOSURE_STEP;
     const hasFiche = content.includes("%%FICHE:");
 
-    if (hasStepTransition && !hasFiche) {
+    // Check if a closure for prevStep already exists in history (prevents duplicates)
+    const prevStepName = prevStepNum !== null ? STEP_NAMES[prevStepNum] ?? "" : "";
+    const closureAlreadyInHistory =
+      prevStepName !== "" &&
+      filteredMessages.some((m) => m.content.includes(`%%FICHE:${prevStepName}%%`));
+
+    if (hasStepTransition && !hasFiche && !closureAlreadyInHistory) {
       const completedStepName = STEP_NAMES[prevStepNum] ?? `Étape ${prevStepNum}`;
 
       const convText = filteredMessages

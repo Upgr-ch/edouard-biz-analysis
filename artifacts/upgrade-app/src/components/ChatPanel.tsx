@@ -216,7 +216,6 @@ const ChatPanel = ({
 
   /* Footer hints visible once the conversation has a real title */
   const isDefaultTitle = !conversationTitle || conversationTitle === "Nouvelle analyse";
-  const showHints = titleValidated || !isDefaultTitle;
 
   const isAnonymous = !user;
   const displayMessages: DisplayMessage[] = isAnonymous
@@ -551,24 +550,6 @@ Avant de commencer, j'ai besoin de savoir où tu en es.
                         <div className="prose prose-sm dark:prose-invert" style={{ fontFamily: "var(--up-font)" }}>
                           {renderContentWithFiche(msg.content, msg.role === "assistant" ? onDownloadFiche : undefined, msg.role === "assistant" ? onNextStep : undefined)}
                         </div>
-                        {msg.role === "assistant" && showHints && (
-                          <p
-                            className="mt-3 text-[13px] italic leading-relaxed"
-                            style={{
-                              color: "rgba(255,255,255,0.75)",
-                              fontFamily: "var(--up-font)",
-                              borderTop: "1px solid rgba(255,255,255,0.06)",
-                              paddingTop: "10px",
-                            }}
-                          >
-                            Tape{" "}
-                            <strong style={{ color: "#F5E090", fontStyle: "normal", fontWeight: 700 }}>
-                              aide moi
-                            </strong>{" "}
-                            si tu as besoin de suggestions.<br />
-                            Si tu disposes de documents de référence, tu peux les joindre via l'icône 📎.
-                          </p>
-                        )}
                       </div>
                     </div>
                   </div>

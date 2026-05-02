@@ -239,36 +239,25 @@ const Index = () => {
   const completedSteps = Array.from({ length: currentStep }, (_, index) => index);
 
   return (
-    <div className="min-h-screen bg-background">
-      {user ? (
-        <div className="flex h-screen w-full overflow-hidden">
-          <AppSidebar
-            currentStep={currentStep}
-            onStepChange={handleStepChange}
-            completedSteps={completedSteps}
-            conversations={conversations}
-            activeConversationId={conversationId}
-            onNewConversation={() => void handleCreateConversation("Nouvelle analyse")}
-            onSwitchConversation={handleSwitchConversation}
-            onDeleteConversation={handleDeleteConversation}
-          />
-          <main className="flex-1 min-w-0">
-            <ChatPanel
-              conversationId={conversationId}
-              persistedMessages={messages}
-              saveMessage={handleSaveMessage}
-              onCreateConversation={handleCreateConversation}
-            />
-          </main>
-        </div>
-      ) : (
+    <div className="flex h-screen w-full overflow-hidden bg-background">
+      <AppSidebar
+        currentStep={currentStep}
+        onStepChange={handleStepChange}
+        completedSteps={completedSteps}
+        conversations={conversations}
+        activeConversationId={conversationId}
+        onNewConversation={() => void handleCreateConversation("Nouvelle analyse")}
+        onSwitchConversation={handleSwitchConversation}
+        onDeleteConversation={handleDeleteConversation}
+      />
+      <main className="flex-1 min-w-0">
         <ChatPanel
           conversationId={conversationId}
           persistedMessages={messages}
           saveMessage={handleSaveMessage}
           onCreateConversation={handleCreateConversation}
         />
-      )}
+      </main>
     </div>
   );
 };

@@ -102,6 +102,7 @@ const Index = () => {
   const [showAcquisitionModal, setShowAcquisitionModal] = useState(false);
   const [pendingStepAfterDisclaimer, setPendingStepAfterDisclaimer] = useState<number | null>(null);
   const restorationProcessed = useRef(false);
+  const continuationPromptShownFor = useRef<string | null>(null);
 
   const FISCAL_DISCLAIMER_STEP = 6;      // sidebar index 6 = "Statut et Fiscalité"
   const ACQUISITION_DISCLAIMER_STEP = 8; // sidebar index 8 = "Acquisition Client"
@@ -315,6 +316,16 @@ const Index = () => {
       const projectName = activeConversationTitle ?? "Analyse";
       const report = await fetchSynthesis(chatMessages, projectName, token);
       renderReportPdf(report, projectName);
+
+      // Inject continuation prompt once per conversation
+      if (conversationId && continuationPromptShownFor.current !== conversationId) {
+        continuationPromptShownFor.current = conversationId;
+        void handleSaveMessage(
+          conversationId,
+          "assistant",
+          "**Votre rapport de synthèse est prêt.** 📄\n\nNous avons parcouru les 10 étapes. Si tu veux aller plus loin, je peux :\n\n- **Approfondir un point** de l'analyse (économie, marché, acquisition…)\n- **Retravailler une étape** avec de nouvelles données ou hypothèses\n- **Challenger ton modèle** sur des points spécifiques\n- **Répondre à une question libre** sur ton projet\n\nDis-moi ce que tu veux explorer.",
+        );
+      }
     } catch (err) {
       toast.error((err as Error).message ?? "Erreur lors de la génération du rapport");
     } finally {

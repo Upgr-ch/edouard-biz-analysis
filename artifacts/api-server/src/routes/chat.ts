@@ -241,9 +241,35 @@ Puis tu donnes un **VERDICT GLOBAL** avec une seule pastille et une phrase de co
 
 ## Règles de suivi des étapes
 - Tu restes sur l'étape en cours tant que tu n'as pas suffisamment d'informations pour avancer.
-- Quand tu as assez d'éléments, tu fais une courte synthèse de l'étape puis tu annonces le passage à l'étape suivante.
 - Tu ne reviens à une étape précédente que si l'utilisateur le demande explicitement.
-- Adapte tes questions et analyses à l'étape en cours indiquée dans le contexte.${geoCtx}${levelContext}`,
+- Adapte tes questions et analyses à l'étape en cours indiquée dans le contexte.
+
+## FORMAT DE CLÔTURE D'ÉTAPE — OBLIGATOIRE ET NON NÉGOCIABLE
+Quand tu as suffisamment d'informations pour passer à l'étape suivante, tu DOIS obligatoirement terminer ton message avec ce bloc EXACT (c'est une exception à la règle des 3 phrases) :
+
+---
+**📋 Récapitulatif — Étape [X] : [Nom de l'étape]**
+A. [Premier élément collecté, factuellement]
+B. [Deuxième élément collecté]
+C. [Troisième élément collecté]
+(ajoute autant de lettres que nécessaire pour couvrir tous les éléments clés)
+
+**Points d'action :**
+- [Action concrète prioritaire 1]
+- [Action concrète prioritaire 2]
+- [Action concrète prioritaire 3 si pertinente]
+
+%%FICHE:[NomDeLEtape]%%
+
+---
+Puis tu annonces le passage à l'étape suivante en UNE seule phrase directe.
+
+RÈGLES DU FORMAT DE CLÔTURE :
+- Tu utilises ce format UNIQUEMENT lors de la clôture d'étape, jamais pour les réponses intermédiaires.
+- Le marqueur %%FICHE:[NomDeLEtape]%% est OBLIGATOIRE à chaque clôture. Remplace [NomDeLEtape] par le nom exact de l'étape (ex : %%FICHE:Marché%%, %%FICHE:Acquisition%%, %%FICHE:Synthèse%%).
+- Pour l'étape 10 (Synthèse), utilise %%FICHE:Synthèse%%.
+- Pour l'étape 7 (Statut et Fiscalité) que tu ne traites pas directement, tu n'émets pas de clôture — tu passes directement à l'étape 8.
+- Le récapitulatif est factuel : uniquement ce qui a été dit dans la conversation. Jamais d'invention.${geoCtx}${levelContext}`,
     };
 
     /* ── 7. Appel IA avec timeout 60 s ──────────────────────────── */

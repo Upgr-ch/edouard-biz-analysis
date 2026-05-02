@@ -344,6 +344,13 @@ const Index = () => {
             saveMessage={handleSaveMessage}
             onCreateConversation={handleCreateConversation}
             onRenameConversation={handleRenameConversation}
+            onDownloadFiche={(label) => {
+              if (label === "Synthèse") {
+                void handleDownloadFinalPdf();
+              } else {
+                void handleDownloadStepPdf(0, label);
+              }
+            }}
           />
         </div>
       </main>

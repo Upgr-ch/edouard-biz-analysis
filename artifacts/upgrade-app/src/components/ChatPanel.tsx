@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, Fragment } from "react";
-import { Send, ArrowRight, Check, LogOut, MessageCircle } from "lucide-react";
+import { Send, ArrowRight, Check, LogOut, MessageCircle, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import { useAuth } from "@/hooks/useAuth";
@@ -22,6 +22,76 @@ interface ChatPanelProps {
   saveMessage: (id: string, role: "user" | "assistant", content: string) => Promise<void>;
   onCreateConversation?: (title: string) => Promise<string | null>;
   onRenameConversation?: (id: string, title: string) => Promise<void>;
+  onDownloadFiche?: (label: string) => void;
+}
+
+const FicheButton = ({
+  label,
+  onDownload,
+}: {
+  label: string;
+  onDownload: (l: string) => void;
+}) => (
+  <div
+    className="mt-3 p-4 rounded-sm border"
+    style={{
+      background: "rgba(245,224,144,0.04)",
+      borderColor: "rgba(245,224,144,0.22)",
+    }}
+  >
+    <p
+      className="text-[10px] font-bold uppercase tracking-widest mb-2.5"
+      style={{ color: "rgba(245,224,144,0.60)", fontFamily: "var(--up-font)" }}
+    >
+      📥 Conserve une trace structurée de cette étape
+    </p>
+    <button
+      onClick={() => onDownload(label)}
+      className="flex items-center gap-2 px-4 py-2 rounded-sm text-xs font-semibold transition-all border active:scale-95"
+      style={{
+        background: "#F5E090",
+        color: "#080F1E",
+        borderColor: "transparent",
+        fontFamily: "var(--up-font)",
+        boxShadow: "0 4px 14px -4px rgba(245,224,144,0.40)",
+      }}
+      onMouseEnter={(e) => { e.currentTarget.style.opacity = "0.88"; }}
+      onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; }}
+    >
+      <Download size={13} />
+      Télécharger la fiche — {label} (PDF)
+    </button>
+    <p
+      className="text-[10px] mt-2 italic"
+      style={{ color: "rgba(255,255,255,0.35)", fontFamily: "var(--up-font)" }}
+    >
+      Je te recommande de l'enregistrer — elle te servira de référence opérationnelle pour cette étape.
+    </p>
+  </div>
+);
+
+function renderContentWithFiche(
+  content: string,
+  onDownloadFiche?: (label: string) => void,
+) {
+  const parts = content.split(/(%%FICHE:[^%]+%%)/);
+  if (parts.length === 1 || !onDownloadFiche) {
+    return <ReactMarkdown>{content}</ReactMarkdown>;
+  }
+  return (
+    <>
+      {parts.map((part, i) => {
+        const match = part.match(/%%FICHE:([^%]+)%%/);
+        if (match) {
+          return <FicheButton key={i} label={match[1].trim()} onDownload={onDownloadFiche} />;
+        }
+        if (part.trim()) {
+          return <ReactMarkdown key={i}>{part}</ReactMarkdown>;
+        }
+        return null;
+      })}
+    </>
+  );
 }
 
 /** Strip the invisible sentinel before displaying the message */
@@ -95,6 +165,7 @@ const ChatPanel = ({
   saveMessage,
   onCreateConversation,
   onRenameConversation,
+  onDownloadFiche,
 }: ChatPanelProps) => {
   const { user, signOut } = useAuth();
   const { getToken } = useClerkAuth();
@@ -435,7 +506,7 @@ Avant de commencer, j'ai besoin de savoir où tu en es.
                         }
                       >
                         <div className="prose prose-sm dark:prose-invert" style={{ fontFamily: "var(--up-font)" }}>
-                          <ReactMarkdown>{msg.content}</ReactMarkdown>
+                          {renderContentWithFiche(msg.content, msg.role === "assistant" ? onDownloadFiche : undefined)}
                         </div>
                         {msg.role === "assistant" && showHints && (
                           <p

@@ -446,7 +446,7 @@ ${convText}`;
             Authorization: `Bearer ${apiKey}`,
             "Content-Type": "application/json",
             "HTTP-Referer": "https://upgrade-app.replit.app",
-            "X-Title": "UpGrade – Clôture étape",
+            "X-Title": "UpGrade - Cloture etape",
           },
           body: JSON.stringify({
             model: AI_MODEL,

@@ -99,7 +99,7 @@ router.post("/generate", async (req: Request, res: Response): Promise<void> => {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
         "HTTP-Referer": "https://edouard-consultant.ch",
-        "X-Title": "Édouard – Synthèse PDF",
+        "X-Title": "Edouard - Synthese PDF",
       },
       body: JSON.stringify({
         model: AI_MODEL,
@@ -206,7 +206,7 @@ RÈGLES ABSOLUES :
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
         "HTTP-Referer": "https://edouard-consultant.ch",
-        "X-Title": `Édouard – Fiche ${stepLabel}`,
+        "X-Title": `Edouard - Fiche ${stepLabel}`,
       },
       body: JSON.stringify({
         model: AI_MODEL,

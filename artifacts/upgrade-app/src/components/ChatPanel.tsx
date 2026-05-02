@@ -170,7 +170,7 @@ Avant de commencer, j'ai besoin de savoir où tu en es. Tape simplement la lettr
         const msgs = AnonChat.getAnonMessages();
         const reply = await invokeChat(msgs);
         if (reply) {
-          AnonChat.appendAnonMessage("assistant", reply);
+          AnonChat.appendAnonMessage("assistant", stripSentinel(reply));
           forceUpdate((n) => n + 1);
         }
       } else {

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, Fragment } from "react";
-import { Send, ArrowRight, Check, LogOut, MessageCircle, Download } from "lucide-react";
+import { Send, ArrowRight, Check, MessageCircle, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import { useAuth } from "@/hooks/useAuth";
@@ -400,15 +400,6 @@ Avant de commencer, j'ai besoin de savoir où tu en es.
 
   return (
     <div className="flex flex-col h-full bg-background relative overflow-hidden">
-      {/* Reset button */}
-      <div className="fixed top-2 right-2 z-[100] opacity-20 hover:opacity-100 transition-opacity">
-        <button
-          onClick={() => void handleForceSignOut()}
-          className="flex items-center gap-1.5 bg-red-950/40 text-red-200 px-2 py-1 rounded text-[9px] font-bold uppercase border border-red-500/20"
-        >
-          <LogOut size={12} /> Reset
-        </button>
-      </div>
 
       <div className="flex-1 flex flex-col items-center justify-start p-6 overflow-y-auto scrollbar-none">
         {!disclaimerAccepted && displayMessages.length === 0 ? (

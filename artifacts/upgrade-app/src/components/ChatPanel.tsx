@@ -62,14 +62,22 @@ const Footer = () => (
   </footer>
 );
 
-async function invokeChat(messages: DisplayMessage[]): Promise<string> {
+async function invokeChat(messages: DisplayMessage[], attempt = 1): Promise<string> {
   const res = await fetch("/api/chat", {
     method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ messages }),
   });
-  if (!res.ok) throw new Error(`Chat API error ${res.status}`);
+  if (res.status === 429 && attempt < 3) {
+    await new Promise((r) => setTimeout(r, 2500 * attempt));
+    return invokeChat(messages, attempt + 1);
+  }
+  if (!res.ok) {
+    const err = new Error(`Chat API error ${res.status}`) as Error & { status: number };
+    err.status = res.status;
+    throw err;
+  }
   const data = (await res.json()) as { content?: string };
   return data.content ?? "";
 }
@@ -249,8 +257,13 @@ Avant de commencer, j'ai besoin de savoir où tu en es.
           }
         }
       }
-    } catch {
-      toast.error("Erreur lors de l'envoi");
+    } catch (err) {
+      const status = (err as { status?: number }).status;
+      if (status === 429) {
+        toast.error("Trop de requêtes — attends quelques secondes puis réessaie.");
+      } else {
+        toast.error("Erreur lors de l'envoi");
+      }
     } finally {
       setIsLoading(false);
     }

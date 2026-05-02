@@ -40,6 +40,16 @@ async function addTag(contactId: number, tagName: string): Promise<void> {
   });
 }
 
+async function findContactByEmail(email: string): Promise<number | null> {
+  const res = await fetch(
+    `${BASE}/contacts?email=${encodeURIComponent(email)}&limit=1`,
+    { headers: { "X-API-Key": API_KEY, Accept: "application/json" } }
+  );
+  if (!res.ok) return null;
+  const data = (await res.json()) as { items: { id: number }[] };
+  return data.items?.[0]?.id ?? null;
+}
+
 export async function upsertContact(contact: SystemeContact): Promise<void> {
   if (!API_KEY) {
     console.warn("[systemeio] SYSTEME_IO_API_KEY not set — skipping");
@@ -60,13 +70,25 @@ export async function upsertContact(contact: SystemeContact): Promise<void> {
     }),
   });
 
-  if (!res.ok) {
+  let contactId: number | null = null;
+
+  if (res.ok) {
+    const created = (await res.json()) as { id: number };
+    contactId = created.id;
+  } else if (res.status === 422) {
+    // Contact already exists — look it up by email
+    contactId = await findContactByEmail(contact.email);
+    if (!contactId) {
+      console.error("[systemeio] contact exists but could not be found by email", contact.email);
+      return;
+    }
+    console.info("[systemeio] contact already exists, tagging existing id", contactId);
+  } else {
     const body = await res.text();
     console.error("[systemeio] upsertContact failed", res.status, body);
     return;
   }
 
-  const created = (await res.json()) as { id: number };
-  await addTag(created.id, "Édouard");
+  await addTag(contactId, "Édouard");
   console.info("[systemeio] contact upserted + tagged", contact.email);
 }

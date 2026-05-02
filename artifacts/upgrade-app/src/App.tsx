@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { ClerkProvider, SignIn, AuthenticateWithRedirectCallback } from "@clerk/react";
+import { ClerkProvider, SignIn, SignUp, AuthenticateWithRedirectCallback } from "@clerk/react";
 import { publishableKeyFromHost } from "@clerk/react/internal";
 import { shadcn } from "@clerk/themes";
 import { frFR } from "@clerk/localizations";
@@ -101,7 +101,7 @@ function ClerkQueryCacheInvalidator() {
   return null;
 }
 
-function AuthHeader() {
+function AuthHeader({ backTo = "/" }: { backTo?: string }) {
   const navigate = useNavigate();
   return (
     <div
@@ -121,7 +121,7 @@ function AuthHeader() {
       {/* Back button */}
       <div style={{ width: "100%", display: "flex", alignItems: "center" }}>
         <button
-          onClick={() => navigate("/")}
+          onClick={() => navigate(backTo)}
           style={{
             display: "flex",
             alignItems: "center",
@@ -221,7 +221,17 @@ function SignUpRoute() {
   const { user, loading } = useAuth();
   if (loading) return null;
   if (user) return <Navigate to="/" replace />;
-  return <SignUpCustom />;
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4 py-8">
+      <AuthHeader backTo="/auth" />
+      <SignUp
+        routing="path"
+        path={`${basePath}/auth/sign-up`}
+        signInUrl={`${basePath}/auth`}
+        appearance={clerkAppearance}
+      />
+    </div>
+  );
 }
 
 function AppRoutes() {
@@ -254,6 +264,9 @@ function AppRoutes() {
             actionLink: "Se connecter",
           },
         },
+        formFieldInputPlaceholder__password: "Créer un mot de passe",
+        formFieldInputPlaceholder__newPassword: "Nouveau mot de passe",
+        formFieldInputPlaceholder__confirmPassword: "Confirmer le mot de passe",
         userButton: { ...frFR.userButton },
         userProfile: { ...frFR.userProfile },
       }}

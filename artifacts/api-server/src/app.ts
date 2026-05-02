@@ -36,6 +36,13 @@ app.use(
 app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
 
 app.use(cors({ credentials: true, origin: true }));
+
+// Raw body required for Svix webhook signature verification
+app.use(
+  "/api/webhooks",
+  express.raw({ type: "application/json", limit: "2mb" }),
+);
+
 app.use(express.json({ limit: "2mb" }));
 app.use(express.urlencoded({ extended: true, limit: "2mb" }));
 

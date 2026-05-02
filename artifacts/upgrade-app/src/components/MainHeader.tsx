@@ -1,12 +1,20 @@
 import { Link } from "react-router-dom";
-import { LogOut, LogIn, MessageSquare } from "lucide-react";
+import { LogOut, LogIn, MessageSquare, FileText, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 interface MainHeaderProps {
   conversationTitle?: string | null;
+  onDownloadPdf?: () => void;
+  isPdfLoading?: boolean;
+  canDownload?: boolean;
 }
 
-const MainHeader = ({ conversationTitle }: MainHeaderProps) => {
+const MainHeader = ({
+  conversationTitle,
+  onDownloadPdf,
+  isPdfLoading = false,
+  canDownload = false,
+}: MainHeaderProps) => {
   const { user, signOut } = useAuth();
 
   return (
@@ -27,7 +35,7 @@ const MainHeader = ({ conversationTitle }: MainHeaderProps) => {
               style={{ color: "rgba(245,224,144,0.50)", flexShrink: 0 }}
             />
             <span
-              className="text-xs truncate max-w-[200px] md:max-w-[420px]"
+              className="text-xs truncate max-w-[160px] md:max-w-[360px]"
               style={{ color: "rgba(255,255,255,0.60)", fontFamily: "var(--up-font)" }}
             >
               {conversationTitle}
@@ -43,59 +51,97 @@ const MainHeader = ({ conversationTitle }: MainHeaderProps) => {
         )}
       </div>
 
-      {/* Bouton connexion / utilisateur connecté */}
-      {user ? (
-        <div className="flex items-center gap-3 shrink-0">
-          <span
-            className="hidden sm:block text-xs truncate max-w-[140px]"
-            style={{ color: "rgba(245,224,144,0.70)", fontFamily: "var(--up-font)" }}
-          >
-            {user.firstName ?? user.emailAddresses?.[0]?.emailAddress ?? ""}
-          </span>
+      {/* Actions droite */}
+      <div className="flex items-center gap-2 shrink-0">
+        {/* Bouton Synthèse PDF — visible uniquement si conversation active avec messages */}
+        {user && canDownload && (
           <button
-            onClick={() => void signOut()}
-            className="flex items-center gap-1.5 text-xs px-3 py-1.5 border rounded-sm transition-all"
+            onClick={onDownloadPdf}
+            disabled={isPdfLoading}
+            title="Générer la synthèse PDF"
+            className="flex items-center gap-1.5 text-xs px-3 py-1.5 border rounded-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             style={{
-              color: "rgba(255,255,255,0.45)",
-              borderColor: "rgba(255,255,255,0.10)",
-              background: "transparent",
+              color: isPdfLoading ? "rgba(245,224,144,0.50)" : "#F5E090",
+              borderColor: "rgba(245,224,144,0.25)",
+              background: "rgba(245,224,144,0.06)",
               fontFamily: "var(--up-font)",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.color = "#F5E090";
-              e.currentTarget.style.borderColor = "rgba(245,224,144,0.25)";
+              if (!isPdfLoading) {
+                e.currentTarget.style.background = "rgba(245,224,144,0.12)";
+                e.currentTarget.style.borderColor = "rgba(245,224,144,0.45)";
+              }
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.color = "rgba(255,255,255,0.45)";
-              e.currentTarget.style.borderColor = "rgba(255,255,255,0.10)";
+              e.currentTarget.style.background = "rgba(245,224,144,0.06)";
+              e.currentTarget.style.borderColor = "rgba(245,224,144,0.25)";
             }}
           >
-            <LogOut size={12} />
-            <span className="hidden sm:inline">Déconnexion</span>
+            {isPdfLoading ? (
+              <Loader2 size={12} className="animate-spin" />
+            ) : (
+              <FileText size={12} />
+            )}
+            <span className="hidden sm:inline">
+              {isPdfLoading ? "Génération…" : "Synthèse PDF"}
+            </span>
           </button>
-        </div>
-      ) : (
-        <Link
-          to="/auth"
-          className="flex items-center gap-1.5 text-xs px-4 py-1.5 rounded-sm font-semibold transition-all shrink-0"
-          style={{
-            background: "#F5E090",
-            color: "#080F1E",
-            fontFamily: "var(--up-font)",
-            boxShadow: "0 4px 16px -4px rgba(245,224,144,0.40)",
-            letterSpacing: "0.04em",
-          }}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLAnchorElement).style.opacity = "0.88";
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLAnchorElement).style.opacity = "1";
-          }}
-        >
-          <LogIn size={12} />
-          Connexion
-        </Link>
-      )}
+        )}
+
+        {/* Connexion / déconnexion */}
+        {user ? (
+          <div className="flex items-center gap-3">
+            <span
+              className="hidden sm:block text-xs truncate max-w-[120px]"
+              style={{ color: "rgba(245,224,144,0.70)", fontFamily: "var(--up-font)" }}
+            >
+              {user.firstName ?? user.emailAddresses?.[0]?.emailAddress ?? ""}
+            </span>
+            <button
+              onClick={() => void signOut()}
+              className="flex items-center gap-1.5 text-xs px-3 py-1.5 border rounded-sm transition-all"
+              style={{
+                color: "rgba(255,255,255,0.45)",
+                borderColor: "rgba(255,255,255,0.10)",
+                background: "transparent",
+                fontFamily: "var(--up-font)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = "#F5E090";
+                e.currentTarget.style.borderColor = "rgba(245,224,144,0.25)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = "rgba(255,255,255,0.45)";
+                e.currentTarget.style.borderColor = "rgba(255,255,255,0.10)";
+              }}
+            >
+              <LogOut size={12} />
+              <span className="hidden sm:inline">Déconnexion</span>
+            </button>
+          </div>
+        ) : (
+          <Link
+            to="/auth"
+            className="flex items-center gap-1.5 text-xs px-4 py-1.5 rounded-sm font-semibold transition-all"
+            style={{
+              background: "#F5E090",
+              color: "#080F1E",
+              fontFamily: "var(--up-font)",
+              boxShadow: "0 4px 16px -4px rgba(245,224,144,0.40)",
+              letterSpacing: "0.04em",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLAnchorElement).style.opacity = "0.88";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLAnchorElement).style.opacity = "1";
+            }}
+          >
+            <LogIn size={12} />
+            Connexion
+          </Link>
+        )}
+      </div>
     </header>
   );
 };

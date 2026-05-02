@@ -117,13 +117,13 @@ const ChatPanel = ({
     setDisclaimerAccepted(true);
     const edouardIntro = `Je suis Édouard. Ne le prends pas pour toi, je m'exprime de manière ferme, assertive et juste. Mon travail est de te dire la vérité business, pas de te flatter.
 
-Avant de commencer, j'ai besoin de savoir où tu en es. Choisis le profil qui te correspond :
+Avant de commencer, j'ai besoin de savoir où tu en es. Tape simplement la lettre qui correspond à ton profil :
 
-A. Novice — "C'est mon tout premier projet, je pars de zéro"
-B. Intermédiaire — "J'ai déjà lancé un projet, je connais les bases"
-C. Confirmé — "J'ai plusieurs projets à mon actif, je veux aller vite"
+**A** — Novice : "C'est mon tout premier projet, je pars de zéro"
+**B** — Intermédiaire : "J'ai déjà lancé un projet, je connais les bases"
+**C** — Confirmé : "J'ai plusieurs projets à mon actif, je veux aller vite"
 
-Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A, B ou C)`;
+→ Réponds uniquement par la lettre : A, B ou C`;
 
     if (isAnonymous) {
       AnonChat.appendAnonMessage("assistant", edouardIntro);

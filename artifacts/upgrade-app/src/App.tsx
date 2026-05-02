@@ -52,9 +52,9 @@ const clerkAppearance = {
     card: "!shadow-none !border-0 !rounded-none",
     footer: "!shadow-none !border-0 !rounded-none",
 
-    /* Header */
-    headerTitle: "!text-white !font-bold",
-    headerSubtitle: "!text-white/55",
+    /* Header — masqué car remplacé par AuthHeader */
+    headerTitle: "!hidden",
+    headerSubtitle: "!hidden",
     logoImage: "!hidden",
 
     /* Champs */
@@ -91,10 +91,6 @@ const clerkAppearance = {
     formFieldErrorText: "!text-red-400",
     alert: "!border-red-500/20 !bg-red-950/20",
     alertText: "!text-red-300",
-
-    /* On masque le titre/sous-titre Clerk — remplacés par notre AuthHeader */
-    headerTitle: "!hidden",
-    headerSubtitle: "!hidden",
   },
 };
 
@@ -214,8 +210,10 @@ function AppRoutes() {
           <Sonner />
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/auth/sign-up/*?" element={<SignUpRoute />} />
-            <Route path="/auth/*?" element={<AuthRoute />} />
+            <Route path="/auth/sign-up" element={<SignUpRoute />} />
+            <Route path="/auth/sign-up/*" element={<SignUpRoute />} />
+            <Route path="/auth" element={<AuthRoute />} />
+            <Route path="/auth/*" element={<AuthRoute />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/cookies" element={<Cookies />} />
             <Route path="/confidentialite" element={<Confidentialite />} />

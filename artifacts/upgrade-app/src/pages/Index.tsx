@@ -328,22 +328,23 @@ const Index = () => {
     }
     if (pdfLoadingStep) return;
     setPdfLoadingStep("final");
-    setPdfProgressStage("Génération des 9 fiches étapes en parallèle…");
+    setPdfProgressStage("Génération des fiches étapes…");
     try {
       const token = await getToken();
       const chatMessages = messages.map((m) => ({ role: m.role, content: m.content }));
       const projectName = activeConversationTitle ?? "Analyse";
 
-      // Fetch all step fiches + synthesis in parallel
-      const [stepReports, synthesisReport] = await Promise.all([
-        fetchAllStepReports(chatMessages, projectName, token, (_label, done, total) => {
-          setPdfProgressStage(`Analyse des étapes… (${done}/${total})`);
-        }),
-        fetchSynthesis(chatMessages, projectName, token).then((r) => {
-          setPdfProgressStage("Synthèse finale générée…");
-          return r;
-        }),
-      ]);
+      // Step fiches first (max 3 concurrent) — sequential to avoid rate-limit 429
+      const stepReports = await fetchAllStepReports(
+        chatMessages, projectName, token,
+        (_label, done, total) => {
+          setPdfProgressStage(`Fiches étapes… (${done}/${total})`);
+        },
+      );
+
+      // Then synthesis alone
+      setPdfProgressStage("Génération de la synthèse finale…");
+      const synthesisReport = await fetchSynthesis(chatMessages, projectName, token);
 
       setPdfProgressStage("Compilation du rapport PDF complet…");
       renderCompilationPdf(stepReports, synthesisReport, projectName);

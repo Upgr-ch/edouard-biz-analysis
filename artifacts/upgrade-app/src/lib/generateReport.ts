@@ -11,6 +11,26 @@ const TEXT_BODY   = [30,  35,  55]  as const;
 const TEXT_MUTED  = [90,  95, 115]  as const;
 const TEXT_H3     = [50,  55,  80]  as const;
 
+// ── Concurrency limiter ───────────────────────────────────────────────────────
+
+async function withConcurrencyLimit<T>(
+  tasks: Array<() => Promise<T>>,
+  limit: number,
+  onItemDone?: (result: T, index: number) => void,
+): Promise<T[]> {
+  const results: T[] = new Array(tasks.length);
+  let next = 0;
+  async function worker() {
+    while (next < tasks.length) {
+      const idx = next++;
+      results[idx] = await tasks[idx]();
+      onItemDone?.(results[idx], idx);
+    }
+  }
+  await Promise.all(Array.from({ length: limit }, () => worker()));
+  return results;
+}
+
 // ── Indice helpers ────────────────────────────────────────────────────────────
 
 interface IndiceRow {
@@ -425,15 +445,18 @@ export async function fetchAllStepReports(
   token?: string | null,
   onStepComplete?: (label: string, done: number, total: number) => void,
 ): Promise<Array<{ label: string; content: string }>> {
+  const total = STEP_LABELS.length;
   let done = 0;
-  return Promise.all(
-    STEP_LABELS.map(async (label) => {
-      const content = await fetchStepReport(messages, projectName, label, token);
-      done += 1;
-      onStepComplete?.(label, done, STEP_LABELS.length);
-      return { label, content };
-    }),
-  );
+
+  const tasks = STEP_LABELS.map((label) => async () => {
+    const content = await fetchStepReport(messages, projectName, label, token);
+    done += 1;
+    onStepComplete?.(label, done, total);
+    return { label, content };
+  });
+
+  // Max 3 concurrent AI requests to avoid rate-limit 429
+  return withConcurrencyLimit(tasks, 3);
 }
 
 export function renderCompilationPdf(

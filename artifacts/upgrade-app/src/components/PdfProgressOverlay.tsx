@@ -32,8 +32,8 @@ export default function PdfProgressOverlay({ isVisible, isFinal = false, onCance
         return Math.min(91, prev + step);
       });
     }, 130);
-    // Auto-cancel after 95s if still stuck
-    const timeout = setTimeout(() => { onCancel?.(); }, 95_000);
+    // Auto-cancel after 150s if still stuck (final report needs more time)
+    const timeout = setTimeout(() => { onCancel?.(); }, 150_000);
     return () => { clearInterval(interval); clearTimeout(timeout); };
   }, [isVisible, onCancel]);
 

@@ -36,7 +36,7 @@ const MainHeader = ({ conversationTitle }: MainHeaderProps) => {
         ) : (
           <span
             className="text-xs"
-            style={{ color: "rgba(255,255,255,0.25)", fontFamily: "var(--up-font)", letterSpacing: "0.1em" }}
+            style={{ color: "#F5E090", fontFamily: "var(--up-font)", letterSpacing: "0.05em" }}
           >
             Nouvelle analyse
           </span>

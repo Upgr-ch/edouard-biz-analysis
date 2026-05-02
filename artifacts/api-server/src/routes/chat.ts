@@ -287,6 +287,7 @@ Puis tu donnes un **VERDICT GLOBAL** avec une seule pastille et une phrase de co
 
     const data = (await response.json()) as OpenRouterResponse;
     const content = data.choices?.[0]?.message?.content ?? "";
+
     res.json({ content });
 
   } catch (err) {

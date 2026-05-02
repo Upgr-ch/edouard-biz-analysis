@@ -22,15 +22,23 @@ interface ChatPanelProps {
   onRenameConversation?: (id: string, title: string) => Promise<void>;
 }
 
-/** Extract analysis name from Édouard's |||TITRE:NAME||| sentinel */
-function extractAnalysisName(text: string): string | null {
-  const match = text.match(/\|\|\|TITRE:([^|]{1,80})\|\|\|/);
-  return match ? match[1].trim() : null;
-}
-
 /** Strip the invisible sentinel before displaying the message */
 function stripSentinel(text: string): string {
   return text.replace(/\|\|\|TITRE:[^|]*\|\|\|\n?/g, "").trim();
+}
+
+/**
+ * When user picks A/B/C for a name, look in the last assistant message
+ * for the matching "**A.** SomeName" pattern and return SomeName.
+ * This is 100% reliable because it reads from our own stored messages.
+ */
+function extractChosenName(letter: string, messages: DisplayMessage[]): string | null {
+  const lastAssistant = [...messages].reverse().find((m) => m.role === "assistant");
+  if (!lastAssistant) return null;
+  // Matches **A.** Name  or  **A.** [Name]  (with optional brackets)
+  const re = new RegExp(`\\*\\*${letter.toUpperCase()}\\.\\*\\*\\s+\\[?([^\\]\\n*|<]{2,40})`, "i");
+  const match = lastAssistant.content.match(re);
+  return match ? match[1].trim() : null;
 }
 
 const Footer = () => (
@@ -225,11 +233,20 @@ Avant de commencer, j'ai besoin de savoir où tu en es.
           { role: "user", content },
         ]);
         if (reply) {
-          const analysisName = extractAnalysisName(reply);
           const cleanReply = stripSentinel(reply);
           await saveMessage(activeConversationId, "assistant", cleanReply);
-          if (analysisName) {
-            await onRenameConversation?.(activeConversationId, analysisName);
+
+          /* ── Name pick: A/B/C after level already chosen ──────── */
+          const isSingleLetter = /^[ABC]$/i.test(content);
+          const alreadyHasMessages = persistedMessages.filter((m) => m.role === "user").length > 0;
+          if (isSingleLetter && alreadyHasMessages) {
+            const chosenName = extractChosenName(
+              content.toUpperCase(),
+              [...persistedMessages, { role: "assistant" as const, content: cleanReply }],
+            );
+            if (chosenName) {
+              await onRenameConversation?.(activeConversationId, chosenName);
+            }
           }
         }
       }

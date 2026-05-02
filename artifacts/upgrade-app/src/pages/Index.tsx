@@ -3,6 +3,7 @@ import ChatPanel from "@/components/ChatPanel";
 import AppSidebar from "@/components/AppSidebar";
 import MainHeader from "@/components/MainHeader";
 import { useAuth } from "@/hooks/useAuth";
+import { useNewUserSync } from "@/hooks/useNewUserSync";
 import { toast } from "sonner";
 
 interface ApiConversation {
@@ -77,6 +78,7 @@ function mapMsg(m: ApiMessage): Message {
 
 const Index = () => {
   const { user } = useAuth();
+  useNewUserSync();
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [conversations, setConversations] = useState<Conversation[]>([]);

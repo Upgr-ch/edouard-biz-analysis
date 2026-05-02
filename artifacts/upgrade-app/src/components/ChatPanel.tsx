@@ -7,6 +7,18 @@ import { toast } from "sonner";
 import { Link, useNavigate } from "react-router-dom";
 import * as AnonChat from "@/lib/anonymousChat";
 
+interface DisplayMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
+interface ChatPanelProps {
+  conversationId: string | null;
+  persistedMessages?: DisplayMessage[];
+  saveMessage: (id: string, role: "user" | "assistant", content: string) => Promise<void>;
+  onCreateConversation?: (title: string) => Promise<string | null>;
+}
+
 const Footer = () => (
   <footer className="w-full py-3 border-t border-slate-800 bg-[#0B0E14] z-50 shrink-0">
     <div className="max-w-3xl mx-auto px-4 flex flex-wrap justify-center gap-x-5 gap-y-2 text-[10px] text-muted-foreground uppercase tracking-widest font-medium">
@@ -27,7 +39,7 @@ const Footer = () => (
   </footer>
 );
 
-async function invokeChat(messages: any[]): Promise<string> {
+async function invokeChat(messages: DisplayMessage[]): Promise<string> {
   const res = await fetch("/api/chat", {
     method: "POST",
     credentials: "include",
@@ -35,11 +47,16 @@ async function invokeChat(messages: any[]): Promise<string> {
     body: JSON.stringify({ messages }),
   });
   if (!res.ok) throw new Error(`Chat API error ${res.status}`);
-  const data = await res.json();
+  const data = (await res.json()) as { content?: string };
   return data.content ?? "";
 }
 
-const ChatPanel = ({ conversationId, persistedMessages = [], saveMessage, onCreateConversation }: any) => {
+const ChatPanel = ({
+  conversationId,
+  persistedMessages = [],
+  saveMessage,
+  onCreateConversation,
+}: ChatPanelProps) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
@@ -51,8 +68,10 @@ const ChatPanel = ({ conversationId, persistedMessages = [], saveMessage, onCrea
   const redirectScheduled = useRef(false);
 
   const isAnonymous = !user;
-  const displayMessages = isAnonymous ? AnonChat.getAnonMessages() : persistedMessages;
-  const totalUserMessages = displayMessages.filter((m: any) => m.role === "user").length;
+  const displayMessages: DisplayMessage[] = isAnonymous
+    ? AnonChat.getAnonMessages()
+    : persistedMessages;
+  const totalUserMessages = displayMessages.filter((m) => m.role === "user").length;
 
   // Listen for storage changes (anon chat updates)
   useEffect(() => {
@@ -108,7 +127,8 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
       AnonChat.appendAnonMessage("assistant", edouardIntro);
       forceUpdate((n) => n + 1);
     } else if (saveMessage) {
-      const activeConversationId = conversationId || (await onCreateConversation?.("Nouvelle analyse"));
+      const activeConversationId =
+        conversationId ?? (await onCreateConversation?.("Nouvelle analyse")) ?? null;
       if (activeConversationId) {
         await saveMessage(activeConversationId, "assistant", edouardIntro);
       }
@@ -139,16 +159,20 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
           forceUpdate((n) => n + 1);
         }
       } else {
-        const activeConversationId = conversationId || (await onCreateConversation?.("Nouvelle analyse"));
+        const activeConversationId =
+          conversationId ?? (await onCreateConversation?.("Nouvelle analyse")) ?? null;
         if (!activeConversationId) {
           toast.error("Erreur lors de la création de la conversation");
           return;
         }
         await saveMessage(activeConversationId, "user", content);
-        const reply = await invokeChat([...persistedMessages, { role: "user", content }]);
+        const reply = await invokeChat([
+          ...persistedMessages,
+          { role: "user", content },
+        ]);
         if (reply) await saveMessage(activeConversationId, "assistant", reply);
       }
-    } catch (e) {
+    } catch {
       toast.error("Erreur lors de l'envoi");
     } finally {
       setIsLoading(false);
@@ -161,7 +185,7 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
     <div className="flex flex-col h-screen bg-[#0B0E14] relative overflow-hidden font-sans">
       <div className="fixed top-2 left-2 z-[100] opacity-30 hover:opacity-100">
         <button
-          onClick={handleForceSignOut}
+          onClick={() => void handleForceSignOut()}
           className="flex items-center gap-1.5 bg-red-950/40 text-red-100 px-2 py-1 rounded-md text-[9px] font-bold uppercase border border-red-500/20"
         >
           <LogOut size={12} /> Reset
@@ -182,8 +206,10 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
             <div className="space-y-5 text-slate-300 text-[15px] leading-relaxed">
               <p>Je vais t'aider à analyser ton idée de business avec structure et honnêteté.</p>
               <p>
-                Je m'exprime de manière <span className="font-semibold text-white">ferme, assertive et juste</span>, ne
-                le prends pas pour toi. Mon travail est de te dire la vérité business, pas de te flatter.
+                Je m'exprime de manière{" "}
+                <span className="font-semibold text-white">ferme, assertive et juste</span>, ne le
+                prends pas pour toi. Mon travail est de te dire la vérité business, pas de te
+                flatter.
               </p>
               <p className="text-blue-500 font-semibold text-[16px]">
                 Ma mission est de te faire gagner du temps et d'éviter les erreurs coûteuses.
@@ -208,13 +234,13 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
                 {isChecked && <Check size={12} />}
               </div>
               <p className="text-[10px] text-slate-400 uppercase tracking-tight">
-                <span className="font-bold text-slate-200">AVERTISSEMENT :</span> Les analyses sont fournies à titre
-                informatif et consultatif uniquement.
+                <span className="font-bold text-slate-200">AVERTISSEMENT :</span> Les analyses sont
+                fournies à titre informatif et consultatif uniquement.
               </p>
             </div>
             <button
               disabled={!isChecked || isLoading}
-              onClick={startConversation}
+              onClick={() => void startConversation()}
               className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95"
             >
               {isLoading ? "Initialisation..." : "Commencer l'analyse"} <ArrowRight size={20} />
@@ -222,14 +248,22 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
           </div>
         ) : (
           <div className="max-w-2xl w-full flex-1 space-y-6 pb-20">
-            {displayMessages.map((msg: any, i: number) => {
+            {displayMessages.map((msg, i) => {
               if (msg.role === "user") userMsgCounter++;
               return (
                 <div
                   key={i}
-                  className={cn("flex flex-col animate-in fade-in", msg.role === "user" ? "items-end" : "items-start")}
+                  className={cn(
+                    "flex flex-col animate-in fade-in",
+                    msg.role === "user" ? "items-end" : "items-start",
+                  )}
                 >
-                  <div className={cn("flex gap-3 max-w-[85%]", msg.role === "user" ? "flex-row-reverse" : "")}>
+                  <div
+                    className={cn(
+                      "flex gap-3 max-w-[85%]",
+                      msg.role === "user" ? "flex-row-reverse" : "",
+                    )}
+                  >
                     <div
                       className={cn(
                         "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 font-bold text-xs shadow-sm",
@@ -257,7 +291,9 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
               );
             })}
             {isLoading && (
-              <div className="text-xs animate-pulse ml-11 text-indigo-500 font-medium italic">Édouard analyse...</div>
+              <div className="text-xs animate-pulse ml-11 text-indigo-500 font-medium italic">
+                Édouard analyse...
+              </div>
             )}
             <div ref={messagesEndRef} />
           </div>
@@ -277,12 +313,17 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
               <textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleSend())}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    void handleSend();
+                  }
+                }}
                 placeholder="Réponse"
                 className="flex-1 bg-[#161B22] border border-slate-800 rounded-xl p-3 resize-none h-12 outline-none text-sm text-white focus:border-indigo-500 transition-all shadow-inner"
               />
               <button
-                onClick={handleSend}
+                onClick={() => void handleSend()}
                 disabled={isLoading || !input.trim()}
                 className="px-4 bg-indigo-600 text-white rounded-xl transition-all shadow-lg shadow-indigo-950/30 flex items-center justify-center active:scale-95 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >

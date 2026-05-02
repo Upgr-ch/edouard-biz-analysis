@@ -1,8 +1,10 @@
-import { Router } from "express";
+import { Router, Request, Response } from "express";
 
 const router = Router();
 
-const OPENROUTER_BASE = process.env.AI_INTEGRATIONS_OPENROUTER_BASE_URL ?? "https://openrouter.ai/api/v1";
+const OPENROUTER_BASE =
+  process.env.AI_INTEGRATIONS_OPENROUTER_BASE_URL ??
+  "https://openrouter.ai/api/v1";
 const AI_MODEL = "openai/gpt-4o-mini";
 
 interface ChatMessage {
@@ -10,12 +12,24 @@ interface ChatMessage {
   content: string;
 }
 
+interface OpenRouterResponse {
+  choices: Array<{
+    message: {
+      content: string;
+    };
+  }>;
+}
+
+type PinoRequest = Request & { log: { error: (o: unknown, msg?: string) => void } };
+
 // POST /api/chat  — works for both anon and authenticated users
-router.post("/", async (req: any, res) => {
+router.post("/", async (req: Request, res: Response): Promise<void> => {
+  const pinoReq = req as PinoRequest;
   try {
-    const { messages } = req.body as { messages: ChatMessage[] };
-    if (!messages || !Array.isArray(messages)) {
-      return res.status(400).json({ error: "messages array required" });
+    const body = req.body as { messages?: ChatMessage[] };
+    if (!body.messages || !Array.isArray(body.messages)) {
+      res.status(400).json({ error: "messages array required" });
+      return;
     }
 
     const systemPrompt: ChatMessage = {
@@ -27,11 +41,14 @@ Tu guides l'utilisateur à travers une analyse en plusieurs étapes : profil, id
 Réponds toujours en français. Sois direct, précis et utile.`,
     };
 
-    const filteredMessages = messages.filter((m) => m.role !== "system");
+    const filteredMessages = body.messages.filter((m) => m.role !== "system");
 
-    const apiKey = process.env.AI_INTEGRATIONS_OPENROUTER_API_KEY ?? process.env.OPENROUTER_API_KEY;
+    const apiKey =
+      process.env.AI_INTEGRATIONS_OPENROUTER_API_KEY ??
+      process.env.OPENROUTER_API_KEY;
     if (!apiKey) {
-      return res.status(500).json({ error: "AI service not configured" });
+      res.status(500).json({ error: "AI service not configured" });
+      return;
     }
 
     const response = await fetch(`${OPENROUTER_BASE}/chat/completions`, {
@@ -52,15 +69,16 @@ Réponds toujours en français. Sois direct, précis et utile.`,
 
     if (!response.ok) {
       const errorText = await response.text();
-      req.log.error({ status: response.status, body: errorText }, "AI API error");
-      return res.status(502).json({ error: "AI service error" });
+      pinoReq.log.error({ status: response.status, body: errorText }, "AI API error");
+      res.status(502).json({ error: "AI service error" });
+      return;
     }
 
-    const data = await response.json() as any;
+    const data = (await response.json()) as OpenRouterResponse;
     const content = data.choices?.[0]?.message?.content ?? "";
     res.json({ content });
   } catch (err) {
-    req.log.error(err);
+    pinoReq.log.error(err);
     res.status(500).json({ error: "Internal server error" });
   }
 });

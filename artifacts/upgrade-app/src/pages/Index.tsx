@@ -4,6 +4,7 @@ import ChatPanel from "@/components/ChatPanel";
 import AppSidebar from "@/components/AppSidebar";
 import MainHeader from "@/components/MainHeader";
 import FiscalDisclaimer from "@/components/FiscalDisclaimer";
+import AcquisitionDisclaimer from "@/components/AcquisitionDisclaimer";
 import { useAuth } from "@/hooks/useAuth";
 import { useNewUserSync } from "@/hooks/useNewUserSync";
 import { toast } from "sonner";
@@ -98,10 +99,12 @@ const Index = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [pdfLoadingStep, setPdfLoadingStep] = useState<string | null>(null);
   const [showFiscalModal, setShowFiscalModal] = useState(false);
+  const [showAcquisitionModal, setShowAcquisitionModal] = useState(false);
   const [pendingStepAfterDisclaimer, setPendingStepAfterDisclaimer] = useState<number | null>(null);
   const restorationProcessed = useRef(false);
 
-  const FISCAL_DISCLAIMER_STEP = 6; // sidebar index 6 = "Statut et Fiscalité"
+  const FISCAL_DISCLAIMER_STEP = 6;      // sidebar index 6 = "Statut et Fiscalité"
+  const ACQUISITION_DISCLAIMER_STEP = 8; // sidebar index 8 = "Acquisition Client"
 
   const authedFetch = useCallback(
     async <T>(path: string, options?: RequestInit): Promise<T | null> => {
@@ -332,6 +335,9 @@ const Index = () => {
           if (step === FISCAL_DISCLAIMER_STEP && currentStep < FISCAL_DISCLAIMER_STEP) {
             setShowFiscalModal(true);
             setPendingStepAfterDisclaimer(FISCAL_DISCLAIMER_STEP + 1);
+          } else if (step === ACQUISITION_DISCLAIMER_STEP && currentStep < ACQUISITION_DISCLAIMER_STEP) {
+            setShowAcquisitionModal(true);
+            setPendingStepAfterDisclaimer(ACQUISITION_DISCLAIMER_STEP + 1);
           } else {
             void handleStepChange(step);
           }
@@ -368,6 +374,9 @@ const Index = () => {
                 if (currentStep < FISCAL_DISCLAIMER_STEP && detectedStep > FISCAL_DISCLAIMER_STEP) {
                   setShowFiscalModal(true);
                   setPendingStepAfterDisclaimer(detectedStep);
+                } else if (currentStep < ACQUISITION_DISCLAIMER_STEP && detectedStep >= ACQUISITION_DISCLAIMER_STEP) {
+                  setShowAcquisitionModal(true);
+                  setPendingStepAfterDisclaimer(detectedStep);
                 } else {
                   void handleStepChange(detectedStep);
                 }
@@ -385,6 +394,23 @@ const Index = () => {
                     conversationId,
                     "assistant",
                     "**✓ Étape 7/10 — Statut et Fiscalité validée**\n\nVous avez pris connaissance de l'avertissement : je ne suis pas qualifié pour donner des conseils juridiques ou fiscaux. Consultez un expert-comptable ou un conseiller juridique pour toute décision liée à votre statut ou régime fiscal.\n\n*Cette étape est confirmée. Passons à la faisabilité.*",
+                  );
+                }
+                void handleStepChange(next);
+              }}
+            />
+          )}
+          {showAcquisitionModal && (
+            <AcquisitionDisclaimer
+              onContinue={() => {
+                setShowAcquisitionModal(false);
+                const next = pendingStepAfterDisclaimer ?? ACQUISITION_DISCLAIMER_STEP + 1;
+                setPendingStepAfterDisclaimer(null);
+                if (conversationId) {
+                  void handleSaveMessage(
+                    conversationId,
+                    "assistant",
+                    "**✓ Étape 9/10 — Acquisition Client : priorité absolue notée**\n\nVous avez pris connaissance de l'avertissement : je ne suis pas qualifié pour vous conseiller sur les tactiques d'acquisition. Sans acquisition maîtrisée, votre projet ne peut pas survivre.\n\n**La seule recommandation que je peux formuler :** formez-vous spécifiquement à l'acquisition client ou faites appel à un professionnel qualifié.\n\n*Passons au diagnostic.*",
                   );
                 }
                 void handleStepChange(next);

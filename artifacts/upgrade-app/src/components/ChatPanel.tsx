@@ -434,36 +434,32 @@ Avant de commencer, j'ai besoin de savoir où tu en es.
               </div>
             )}
 
-            {/* ── Level choice buttons ── */}
+            {/* ── Level choice chips ── */}
             {needsLevelChoice && (
-              <div className="mb-3 flex flex-col gap-2">
-                <p className="text-[11px] uppercase tracking-widest font-semibold" style={{ color: "rgba(245,224,144,0.55)" }}>
-                  Choisis ton profil
-                </p>
-                <div className="flex flex-col sm:flex-row gap-2">
-                  {[
-                    { key: "A", label: "Novice", sub: "Premier projet, je pars de zéro" },
-                    { key: "B", label: "Intermédiaire", sub: "J'ai déjà lancé un projet" },
-                    { key: "C", label: "Confirmé", sub: "Plusieurs projets, je veux aller vite" },
-                  ].map(({ key, label, sub }) => (
-                    <button
-                      key={key}
-                      onClick={() => handleLevelChoice(key)}
-                      disabled={isLoading}
-                      className="flex-1 text-left px-4 py-3 rounded-sm border transition-all text-sm disabled:opacity-40"
-                      style={{
-                        background: "rgba(245,224,144,0.04)",
-                        borderColor: "rgba(245,224,144,0.25)",
-                        fontFamily: "var(--up-font)",
-                      }}
-                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(245,224,144,0.70)"; e.currentTarget.style.background = "rgba(245,224,144,0.09)"; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(245,224,144,0.25)"; e.currentTarget.style.background = "rgba(245,224,144,0.04)"; }}
-                    >
-                      <span className="font-bold" style={{ color: "#F5E090" }}>{key} — {label}</span>
-                      <span className="block text-[12px] mt-0.5" style={{ color: "rgba(255,255,255,0.45)" }}>{sub}</span>
-                    </button>
-                  ))}
-                </div>
+              <div className="mb-2 flex flex-wrap gap-2">
+                {[
+                  { key: "A", label: "Novice" },
+                  { key: "B", label: "Intermédiaire" },
+                  { key: "C", label: "Confirmé" },
+                ].map(({ key, label }) => (
+                  <button
+                    key={key}
+                    onClick={() => handleLevelChoice(key)}
+                    disabled={isLoading}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[12px] font-medium transition-all disabled:opacity-40"
+                    style={{
+                      background: "rgba(245,224,144,0.05)",
+                      borderColor: "rgba(245,224,144,0.28)",
+                      color: "rgba(255,255,255,0.80)",
+                      fontFamily: "var(--up-font)",
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#F5E090"; e.currentTarget.style.color = "#F5E090"; e.currentTarget.style.background = "rgba(245,224,144,0.10)"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(245,224,144,0.28)"; e.currentTarget.style.color = "rgba(255,255,255,0.80)"; e.currentTarget.style.background = "rgba(245,224,144,0.05)"; }}
+                  >
+                    <span className="font-bold text-[11px]" style={{ color: "#F5E090" }}>{key}</span>
+                    {label}
+                  </button>
+                ))}
               </div>
             )}
 

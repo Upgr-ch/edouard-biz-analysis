@@ -34,31 +34,62 @@ if (!clerkPubKey) {
 const clerkAppearance = {
   baseTheme: shadcn,
   variables: {
-    colorPrimary: "hsl(217 91% 60%)",
-    colorBackground: "hsl(222 47% 7%)",
-    colorForeground: "hsl(220 14% 90%)",
-    colorMutedForeground: "hsl(220 9% 64%)",
-    colorNeutral: "hsl(222 20% 22%)",
-    colorInputForeground: "hsl(220 14% 90%)",
-    colorInput: "hsl(222 28% 15%)",
+    colorPrimary: "#F5E090",           /* or UpGrade */
+    colorBackground: "#080F1E",        /* midnight navy */
+    colorForeground: "#FFFFFF",
+    colorMutedForeground: "rgba(255,255,255,0.55)",
+    colorNeutral: "rgba(255,255,255,0.10)",
+    colorInputForeground: "#FFFFFF",
+    colorInput: "rgba(255,255,255,0.04)",
     colorDanger: "hsl(0 84% 60%)",
-    fontFamily: "Inter, system-ui, sans-serif",
-    borderRadius: "0.5rem",
+    fontFamily: "'Raleway', sans-serif",
+    borderRadius: "2px",               /* style luxe minimal */
   },
   elements: {
     rootBox: "w-full flex justify-center",
-    cardBox: "bg-[#161B22] rounded-2xl w-[440px] max-w-full overflow-hidden border border-slate-800",
-    card: "!shadow-none !border-0 !bg-transparent !rounded-none",
-    footer: "!shadow-none !border-0 !bg-transparent !rounded-none",
-    headerTitle: "text-white font-bold",
-    headerSubtitle: "text-slate-400",
-    socialButtonsBlockButtonText: "text-white",
-    formFieldLabel: "text-slate-300",
-    footerActionLink: "text-indigo-400 hover:text-indigo-300",
-    footerActionText: "text-slate-400",
-    dividerText: "text-slate-500",
-    formButtonPrimary: "bg-indigo-600 hover:bg-indigo-500",
-    formFieldInput: "bg-[#0B0E14] border-slate-700 text-white",
+    cardBox: "w-[440px] max-w-full overflow-hidden",
+    card: "!shadow-none !border-0 !rounded-none",
+    footer: "!shadow-none !border-0 !rounded-none",
+
+    /* Header */
+    headerTitle: "!text-white !font-bold",
+    headerSubtitle: "!text-white/55",
+    logoImage: "!hidden",
+
+    /* Champs */
+    formFieldLabel: "!text-white/70",
+    formFieldInput:
+      "!bg-white/[0.03] !border !border-white/10 !text-white focus:!border-[#F5E090]/50 !rounded-[2px]",
+    formFieldInputShowPasswordButton: "!text-white/40",
+
+    /* Bouton principal */
+    formButtonPrimary:
+      "!bg-[#F5E090] !text-[#080F1E] !font-semibold hover:!opacity-90 !rounded-[2px] !shadow-[0_6px_20px_-6px_rgba(245,224,144,0.45)]",
+
+    /* Boutons sociaux */
+    socialButtonsBlockButton:
+      "!bg-white/[0.04] !border !border-white/10 !text-white hover:!bg-white/[0.08] !rounded-[2px]",
+    socialButtonsBlockButtonText: "!text-white",
+
+    /* Liens footer */
+    footerActionLink: "!text-[#F5E090] hover:!text-white",
+    footerActionText: "!text-white/40",
+
+    /* Séparateur */
+    dividerLine: "!bg-white/10",
+    dividerText: "!text-white/30",
+
+    /* Badges / alternatives */
+    alternativeMethodsBlockButton:
+      "!bg-white/[0.04] !border !border-white/10 !text-white hover:!bg-white/[0.08] !rounded-[2px]",
+
+    /* Lien mot de passe oublié */
+    formFieldAction: "!text-[#F5E090] hover:!text-white",
+
+    /* Alert erreurs */
+    formFieldErrorText: "!text-red-400",
+    alert: "!border-red-500/20 !bg-red-950/20",
+    alertText: "!text-red-300",
   },
 };
 

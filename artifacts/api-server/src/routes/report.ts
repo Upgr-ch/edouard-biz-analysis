@@ -18,8 +18,6 @@ Génère une synthèse PDF professionnelle et percutante de l'analyse business q
 
 STRUCTURE OBLIGATOIRE (respecte-la à la lettre) :
 
-# [Nom du projet] — [Verdict global emoji]
-
 ## Produit & Modèle
 **Idée :** [1 phrase]
 **Modèle de revenus :** [ex: SaaS, commission, vente directe…]
@@ -41,14 +39,17 @@ STRUCTURE OBLIGATOIRE (respecte-la à la lettre) :
 **Marge brute estimée :** [si abordée, sinon "Non abordé dans l'analyse"]
 
 ## Indice de Faisabilité-Rentabilité
-**Faisabilité technique :** [pastille]
-**Potentiel de marché :** [pastille]
-**Rentabilité :** [pastille]
-**Acquisition client :** [pastille]
-**Risque global :** [pastille]
 
-Légende pastilles : 🟢 Très favorable · 🔵 Favorable avec ajustements · 🟡 Incertain · 🟠 Difficile · 🔴 Très risqué · 🟣 Rédhibitoire
-Pour "Risque global" : 🟢 = peu de risque, 🟣 = risque extrême.
+%%INDICE%%[emoji]|Faisabilité technique|[justification courte, 1 phrase]
+%%INDICE%%[emoji]|Potentiel de marché|[justification courte, 1 phrase]
+%%INDICE%%[emoji]|Rentabilité|[justification courte, 1 phrase]
+%%INDICE%%[emoji]|Acquisition client|[justification courte, 1 phrase]
+%%INDICE%%[emoji]|Risque global|[justification courte, 1 phrase]
+%%VERDICT%%[emoji]|VERDICT GLOBAL|[2-3 phrases de verdict direct et franc sur la viabilité du projet]
+
+Légende emojis : 🟢 Très favorable · 🔵 Favorable avec ajustements · 🟡 Incertain · 🟠 Difficile · 🔴 Très risqué · 🟣 Rédhibitoire
+Remplace [emoji] par le bon emoji de la légende. Pour "Risque global" : 🟢 = peu de risque, 🟣 = risque extrême.
+IMPORTANT : garde exactement le format %%INDICE%% et %%VERDICT%% avec les pipes |, sans espaces autour.
 
 ## Dernier Conseil
 [2-3 phrases directes, sans fioriture. Le conseil le plus important à retenir.]
@@ -59,7 +60,8 @@ RÈGLES ABSOLUES :
 - Sois concis, 1-2 pages max — pas d'introduction, pas de conclusion molle
 - N'invente rien. Si un point n'a pas été abordé dans la conversation, écris exactement : "Non abordé dans l'analyse"
 - Pas de blabla, uniquement les faits de la conversation
-- Respecte la structure ci-dessus à la lettre (titres ##, labels **gras :**)`;
+- Respecte la structure ci-dessus à la lettre (titres ##, labels **gras :**, format %%INDICE%%)
+- Ne génère PAS de titre # en haut — commence directement par ## Produit & Modèle`;
 
 // POST /api/report/generate
 router.post("/generate", async (req: Request, res: Response): Promise<void> => {

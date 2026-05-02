@@ -11,6 +11,181 @@ const TEXT_BODY   = [30,  35,  55]  as const;
 const TEXT_MUTED  = [90,  95, 115]  as const;
 const TEXT_H3     = [50,  55,  80]  as const;
 
+// ── Indice helpers ────────────────────────────────────────────────────────────
+
+interface IndiceRow {
+  emoji: string;
+  label: string;
+  description: string;
+  isVerdict: boolean;
+}
+
+function emojiToColor(emoji: string): [number, number, number] {
+  if (emoji.includes("🟢")) return [34, 197, 94];
+  if (emoji.includes("🔵")) return [59, 130, 246];
+  if (emoji.includes("🟡")) return [214, 163, 20];
+  if (emoji.includes("🟠")) return [234, 100, 22];
+  if (emoji.includes("🔴")) return [220, 60, 60];
+  if (emoji.includes("🟣")) return [155, 80, 230];
+  return [130, 135, 160];
+}
+
+function emojiLabel(emoji: string): string {
+  if (emoji.includes("🟢")) return "Très favorable";
+  if (emoji.includes("🔵")) return "Favorable / ajustements";
+  if (emoji.includes("🟡")) return "Incertain";
+  if (emoji.includes("🟠")) return "Difficile";
+  if (emoji.includes("🔴")) return "Très risqué";
+  if (emoji.includes("🟣")) return "Rédhibitoire";
+  return "";
+}
+
+function parseIndice(text: string): { rows: IndiceRow[]; cleanText: string } {
+  const rows: IndiceRow[] = [];
+  const keepLines: string[] = [];
+  for (const line of text.split("\n")) {
+    const t = line.trim();
+    if (t.startsWith("%%INDICE%%") || t.startsWith("%%VERDICT%%")) {
+      const isVerdict = t.startsWith("%%VERDICT%%");
+      const raw = t.replace(/^%%[A-Z]+%%\s*/, "");
+      const i1 = raw.indexOf("|");
+      const i2 = raw.indexOf("|", i1 + 1);
+      if (i1 >= 0 && i2 >= 0) {
+        rows.push({
+          emoji: raw.slice(0, i1).trim(),
+          label: raw.slice(i1 + 1, i2).trim(),
+          description: raw.slice(i2 + 1).trim(),
+          isVerdict,
+        });
+      }
+    } else if (
+      t === "## Indice de Faisabilité-Rentabilité" ||
+      (t.startsWith("Légende") && t.includes("pastilles")) ||
+      (t.startsWith("Légende") && t.includes("emojis"))
+    ) {
+      // omit — rendered as visual block
+    } else {
+      keepLines.push(line);
+    }
+  }
+  return { rows, cleanText: keepLines.join("\n") };
+}
+
+function renderIndiceBlock(
+  doc: jsPDF,
+  rows: IndiceRow[],
+  margin: number,
+  contentW: number,
+  pageW: number,
+  pageH: number,
+  startY: number,
+): number {
+  if (rows.length === 0) return startY;
+  let y = startY;
+
+  // Section heading
+  doc.setFillColor(...GOLD);
+  doc.rect(margin, y - 3.5, 2.5, 9, "F");
+  doc.setFontSize(10.5);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(...GOLD);
+  doc.text("INDICE DE FAISABILITÉ-RENTABILITÉ", margin + 6, y + 1.5);
+  y += 12;
+
+  const criteriaRows = rows.filter((r) => !r.isVerdict);
+  const labelColW = 52;
+  const badgeColW = 36;
+  const descX = margin + labelColW + badgeColW;
+  const descW = contentW - labelColW - badgeColW;
+
+  for (const row of criteriaRows) {
+    const color = emojiToColor(row.emoji);
+    const descLines = doc.splitTextToSize(row.description, descW);
+    const rowH = Math.max(11, descLines.length * 5 + 6);
+
+    if (y + rowH > pageH - 26) {
+      doc.addPage();
+      drawPageHeader(doc, pageW, true);
+      y = 18;
+    }
+
+    // Row bg
+    doc.setFillColor(13, 20, 40);
+    doc.rect(margin, y - 2, contentW, rowH, "F");
+    // Left color bar
+    doc.setFillColor(...color);
+    doc.rect(margin, y - 2, 3, rowH, "F");
+    // Circle
+    doc.setFillColor(...color);
+    const cy = y + rowH / 2 - 2;
+    doc.circle(margin + 10, cy, 2.8, "F");
+    // Label
+    doc.setFontSize(8.5);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(...WHITE);
+    doc.text(row.label, margin + 16, cy + 1.2);
+    // Status badge
+    const badgeLabel = emojiLabel(row.emoji);
+    doc.setFontSize(7);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(color[0], color[1], color[2]);
+    doc.text(badgeLabel, margin + labelColW, cy + 1.2);
+    // Description
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(190, 196, 218);
+    doc.text(descLines, descX, y + 4);
+
+    y += rowH + 1.5;
+  }
+
+  // Verdict
+  const verdict = rows.find((r) => r.isVerdict);
+  if (verdict) {
+    y += 7;
+    const color = emojiToColor(verdict.emoji);
+    const verdictLines = doc.splitTextToSize(verdict.description, contentW - 26);
+    const verdictH = Math.max(24, verdictLines.length * 5.5 + 20);
+
+    if (y + verdictH > pageH - 26) {
+      doc.addPage();
+      drawPageHeader(doc, pageW, true);
+      y = 18;
+    }
+
+    // Tinted bg
+    const rb = Math.round(color[0] * 0.2 + 8 * 0.8);
+    const gb = Math.round(color[1] * 0.2 + 15 * 0.8);
+    const bb = Math.round(color[2] * 0.2 + 30 * 0.8);
+    doc.setFillColor(rb, gb, bb);
+    doc.rect(margin, y - 3, contentW, verdictH, "F");
+    doc.setFillColor(...color);
+    doc.rect(margin, y - 3, 4, verdictH, "F");
+    // Circle
+    doc.setFillColor(...color);
+    doc.circle(margin + 12, y + 5.5, 4, "F");
+    // "VERDICT GLOBAL" label
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(...WHITE);
+    doc.text("VERDICT GLOBAL", margin + 21, y + 7);
+    // Status badge on right
+    const badgeVLabel = emojiLabel(verdict.emoji);
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(color[0], color[1], color[2]);
+    doc.text(badgeVLabel.toUpperCase(), pageW - margin, y + 7, { align: "right" });
+    // Description
+    doc.setFontSize(8.5);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(225, 230, 242);
+    doc.text(verdictLines, margin + 21, y + 14);
+    y += verdictH + 6;
+  }
+
+  return y + 4;
+}
+
 // ── Shared helpers ────────────────────────────────────────────────────────────
 
 function stripMd(text: string): string {
@@ -279,98 +454,118 @@ export function renderCompilationPdf(
   doc.setFillColor(...NAVY);
   doc.rect(0, 0, pageW, pageH, "F");
 
-  // Left gold accent bar
+  // Left gold accent bar (thick)
   doc.setFillColor(...GOLD);
-  doc.rect(0, 0, 3.5, pageH, "F");
+  doc.rect(0, 0, 4, pageH, "F");
 
-  // Brand
+  // Top brand band
+  doc.setFillColor(14, 22, 45);
+  doc.rect(4, 0, pageW - 4, 60, "F");
+
   doc.setTextColor(...GOLD);
-  doc.setFontSize(28);
+  doc.setFontSize(30);
   doc.setFont("helvetica", "bold");
-  doc.text("ÉDOUARD", margin, 38);
+  doc.text("ÉDOUARD", margin + 4, 32);
 
   doc.setTextColor(...GREY_LIGHT);
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
-  doc.text("Consultant en faisabilité & rentabilité", margin, 47);
+  doc.text("Consultant en faisabilité & rentabilité", margin + 4, 42);
 
   doc.setFillColor(...GOLD);
-  doc.rect(margin, 52, contentW, 0.6, "F");
+  doc.rect(4, 60, pageW - 4, 1, "F");
 
-  // Project name
+  // Project name area
   doc.setTextColor(...WHITE);
-  doc.setFontSize(17);
+  doc.setFontSize(20);
   doc.setFont("helvetica", "bold");
-  const projW = doc.splitTextToSize(projectName.toUpperCase(), contentW);
-  doc.text(projW, margin, 64);
-
-  const afterProj = 64 + projW.length * 8;
+  const projW = doc.splitTextToSize(projectName.toUpperCase(), contentW - 6);
+  doc.text(projW, margin + 4, 80);
+  const afterProj = 80 + projW.length * 9.5;
 
   doc.setTextColor(...GOLD);
-  doc.setFontSize(9.5);
+  doc.setFontSize(9);
   doc.setFont("helvetica", "bold");
-  doc.text("RAPPORT COMPLET — 10 ÉTAPES ANALYSÉES", margin, afterProj + 8);
+  doc.text("RAPPORT COMPLET  ·  10 ÉTAPES ANALYSÉES", margin + 4, afterProj + 8);
 
   doc.setTextColor(...TEXT_MUTED);
   doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
-  doc.text(dateStr, margin, afterProj + 16);
+  doc.text(dateStr, margin + 4, afterProj + 17);
 
-  // Step index
-  doc.setFillColor(255, 255, 255, 0.04);
-  const indexY = afterProj + 28;
-  doc.setFillColor(...GOLD);
-  doc.rect(margin, indexY, contentW, 0.4, "F");
+  // Gold divider before step list
+  doc.setFillColor(40, 50, 80);
+  doc.rect(margin + 4, afterProj + 26, contentW - 4, 0.4, "F");
 
-  let iy = indexY + 10;
-  STEP_LABELS.forEach((label, i) => {
+  // Step list (two-column layout)
+  const col1X = margin + 4;
+  const col2X = margin + 4 + (contentW - 4) / 2 + 2;
+  let stepY = afterProj + 36;
+  const allItems = [...STEP_LABELS.map((l, i) => ({ num: i + 1, label: l })),
+                    { num: 10, label: "Synthèse — Verdict final" }];
+
+  allItems.forEach(({ num, label: lbl }, idx) => {
+    const col = idx < 5 ? col1X : col2X;
+    const rowY = stepY + (idx % 5) * 8;
+    doc.setFillColor(...GOLD);
+    doc.circle(col + 2.5, rowY - 1.5, 1.4, "F");
     doc.setFontSize(8.5);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(...GOLD);
-    doc.text(`${i + 1}. `, margin, iy);
+    doc.text(`${num}.`, col + 6, rowY);
     doc.setFont("helvetica", "normal");
-    doc.setTextColor(...WHITE);
-    doc.text(label, margin + 7, iy);
-    iy += 7.5;
+    doc.setTextColor(200, 205, 225);
+    doc.text(lbl, col + 12, rowY);
   });
 
-  doc.setFontSize(8.5);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(...GOLD);
-  doc.text("10. ", margin, iy);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(...WHITE);
-  doc.text("Synthèse — Verdict final", margin + 9, iy);
-
   // Cover footer
-  doc.setTextColor(...TEXT_MUTED);
+  doc.setTextColor(50, 58, 85);
   doc.setFontSize(7);
-  doc.text("© 2026 - Kévin Lavergne – UpGrade", margin, pageH - 10);
+  doc.text("© 2026 - Kévin Lavergne – UpGrade", margin + 4, pageH - 10);
 
   // ── Step sections ─────────────────────────────────────────────────────────
   for (let i = 0; i < stepReports.length; i++) {
     const { label, content } = stepReports[i];
     doc.addPage();
 
-    // Section mini-header
+    // Header: 34mm with step number + label
     doc.setFillColor(...NAVY);
-    doc.rect(0, 0, pageW, 22, "F");
+    doc.rect(0, 0, pageW, 34, "F");
     doc.setFillColor(...GOLD);
-    doc.rect(0, 22, pageW, 0.8, "F");
+    doc.rect(0, 34, pageW, 1, "F");
     doc.setFillColor(...GOLD);
-    doc.rect(0, 0, 3.5, 22, "F");
+    doc.rect(0, 0, 4, 34, "F");
 
-    doc.setFontSize(7);
+    // Step badge
+    doc.setFontSize(7.5);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(...GOLD);
-    doc.text(`ÉTAPE ${i + 1}/9  ·  ${label.toUpperCase()}`, margin, 14);
+    doc.text(`FICHE ÉTAPE  ${i + 1}/9`, margin + 2, 11);
 
+    // Step label (prominent)
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(...WHITE);
+    doc.text(label.toUpperCase(), margin + 2, 25);
+
+    // Project name right-aligned
     doc.setTextColor(...TEXT_MUTED);
-    doc.setFontSize(7);
+    doc.setFontSize(7.5);
     doc.setFont("helvetica", "normal");
-    doc.text(projectName, pageW - margin, 14, { align: "right" });
+    doc.text(projectName, pageW - margin, 25, { align: "right" });
 
-    parseMdToDoc(doc, content.split("\n"), margin, contentW, pageW, pageH, 30);
+    // Skip H1 title line from AI content (already shown in header)
+    const stepLines = content.split("\n");
+    let skippedH1 = false;
+    const filteredLines = stepLines.filter((line) => {
+      if (!skippedH1 && line.startsWith("# ") && !line.startsWith("## ")) {
+        skippedH1 = true;
+        return false;
+      }
+      return true;
+    });
+
+    parseMdToDoc(doc, filteredLines, margin, contentW, pageW, pageH, 42);
   }
 
   // ── Synthesis section ─────────────────────────────────────────────────────
@@ -397,7 +592,14 @@ export function renderCompilationPdf(
   const synW = doc.splitTextToSize(projectName.toUpperCase(), contentW - 20);
   doc.text(synW, margin, 39);
 
-  parseMdToDoc(doc, synthesisReport.split("\n"), margin, contentW, pageW, pageH, 55);
+  // Parse + render indice block, then pass clean text to parseMdToDoc
+  const { rows: indiceRows, cleanText: synthesisClean } = parseIndice(synthesisReport);
+  let synthY = 53;
+  if (indiceRows.length > 0) {
+    synthY = renderIndiceBlock(doc, indiceRows, margin, contentW, pageW, pageH, synthY);
+    synthY += 4;
+  }
+  parseMdToDoc(doc, synthesisClean.split("\n"), margin, contentW, pageW, pageH, synthY);
 
   // ── Page footers (skip cover = page 1) ────────────────────────────────────
   const totalPages = doc.getNumberOfPages();

@@ -103,6 +103,7 @@ const Index = () => {
   const [pendingStepAfterDisclaimer, setPendingStepAfterDisclaimer] = useState<number | null>(null);
   const restorationProcessed = useRef(false);
   const continuationPromptShownFor = useRef<string | null>(null);
+  const nextStepPromptedLabels = useRef<Set<string>>(new Set());
 
   const FISCAL_DISCLAIMER_STEP = 6;      // sidebar index 6 = "Statut et Fiscalité"
   const ACQUISITION_DISCLAIMER_STEP = 8; // sidebar index 8 = "Acquisition Client"
@@ -296,6 +297,17 @@ const Index = () => {
       const projectName = activeConversationTitle ?? "Analyse";
       const report = await fetchStepReport(chatMessages, projectName, stepLabel, token);
       renderStepPdf(report, projectName, stepLabel);
+
+      // Inject "next step" prompt once per step label per conversation
+      const promptKey = `${conversationId}:${stepLabel}`;
+      if (conversationId && !nextStepPromptedLabels.current.has(promptKey)) {
+        nextStepPromptedLabels.current.add(promptKey);
+        void handleSaveMessage(
+          conversationId,
+          "assistant",
+          `Ta fiche **${stepLabel}** est prête. On passe à l'étape suivante ?\n\n%%NEXT%%`,
+        );
+      }
     } catch (err) {
       toast.error((err as Error).message ?? "Erreur lors de la génération de la fiche");
     } finally {
@@ -392,6 +404,10 @@ const Index = () => {
                   void handleStepChange(detectedStep);
                 }
               }
+            }}
+            onNextStep={() => {
+              const next = currentStep + 1;
+              if (next <= 9) void handleStepChange(next);
             }}
           />
           {showFiscalModal && (

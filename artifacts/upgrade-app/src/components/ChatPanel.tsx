@@ -24,6 +24,7 @@ interface ChatPanelProps {
   onRenameConversation?: (id: string, title: string) => Promise<void>;
   onDownloadFiche?: (label: string) => void;
   onStepDetected?: (step: number) => void;
+  onNextStep?: () => void;
 }
 
 /** Scan an AI reply for the highest **Étape X/10 marker and return the 0-based sidebar step */
@@ -79,20 +80,43 @@ const FicheButton = ({
   </div>
 );
 
+const NextStepButton = ({ onNextStep }: { onNextStep: () => void }) => (
+  <button
+    onClick={onNextStep}
+    className="mt-3 flex items-center gap-2 px-4 py-2.5 rounded-sm text-sm font-semibold transition-all active:scale-95 border"
+    style={{
+      background: "#F5E090",
+      color: "#080F1E",
+      borderColor: "transparent",
+      fontFamily: "var(--up-font)",
+      boxShadow: "0 4px 14px -4px rgba(245,224,144,0.40)",
+    }}
+    onMouseEnter={(e) => { e.currentTarget.style.opacity = "0.88"; }}
+    onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; }}
+  >
+    Passer à l'étape suivante
+    <ArrowRight size={14} />
+  </button>
+);
+
 function renderContentWithFiche(
   content: string,
   onDownloadFiche?: (label: string) => void,
+  onNextStep?: () => void,
 ) {
-  const parts = content.split(/(%%FICHE:[^%]+%%)/);
-  if (parts.length === 1 || !onDownloadFiche) {
+  const parts = content.split(/(%%FICHE:[^%]+%%|%%NEXT%%)/);
+  if (parts.length === 1) {
     return <ReactMarkdown>{content}</ReactMarkdown>;
   }
   return (
     <>
       {parts.map((part, i) => {
-        const match = part.match(/%%FICHE:([^%]+)%%/);
-        if (match) {
-          return <FicheButton key={i} label={match[1].trim()} onDownload={onDownloadFiche} />;
+        if (part === "%%NEXT%%") {
+          return onNextStep ? <NextStepButton key={i} onNextStep={onNextStep} /> : null;
+        }
+        const ficheMatch = part.match(/%%FICHE:([^%]+)%%/);
+        if (ficheMatch && onDownloadFiche) {
+          return <FicheButton key={i} label={ficheMatch[1].trim()} onDownload={onDownloadFiche} />;
         }
         if (part.trim()) {
           return <ReactMarkdown key={i}>{part}</ReactMarkdown>;
@@ -176,6 +200,7 @@ const ChatPanel = ({
   onRenameConversation,
   onDownloadFiche,
   onStepDetected,
+  onNextStep,
 }: ChatPanelProps) => {
   const { user, signOut } = useAuth();
   const { getToken } = useClerkAuth();
@@ -524,7 +549,7 @@ Avant de commencer, j'ai besoin de savoir où tu en es.
                         }
                       >
                         <div className="prose prose-sm dark:prose-invert" style={{ fontFamily: "var(--up-font)" }}>
-                          {renderContentWithFiche(msg.content, msg.role === "assistant" ? onDownloadFiche : undefined)}
+                          {renderContentWithFiche(msg.content, msg.role === "assistant" ? onDownloadFiche : undefined, msg.role === "assistant" ? onNextStep : undefined)}
                         </div>
                         {msg.role === "assistant" && showHints && (
                           <p

@@ -219,6 +219,20 @@ const Index = () => {
     void restoreTemporaryChat();
   }, [fetchMessages, user]);
 
+  const handleRenameConversation = async (id: string, title: string) => {
+    try {
+      await apiFetch<ApiConversation>(`/conversations/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ title }),
+      });
+      setConversations((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, title } : c)),
+      );
+    } catch (e) {
+      console.error("Error renaming conversation:", e);
+    }
+  };
+
   const handleStepChange = async (step: number) => {
     setCurrentStep(step);
     if (conversationId) {
@@ -289,6 +303,7 @@ const Index = () => {
             persistedMessages={messages}
             saveMessage={handleSaveMessage}
             onCreateConversation={handleCreateConversation}
+            onRenameConversation={handleRenameConversation}
           />
         </div>
       </main>

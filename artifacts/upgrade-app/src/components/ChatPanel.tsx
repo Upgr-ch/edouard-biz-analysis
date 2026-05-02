@@ -19,6 +19,13 @@ interface ChatPanelProps {
   persistedMessages?: DisplayMessage[];
   saveMessage: (id: string, role: "user" | "assistant", content: string) => Promise<void>;
   onCreateConversation?: (title: string) => Promise<string | null>;
+  onRenameConversation?: (id: string, title: string) => Promise<void>;
+}
+
+/** Extract analysis name from Édouard's **[NOM_CHOISI]** pattern */
+function extractAnalysisName(text: string): string | null {
+  const match = text.match(/\*\*\[([^\]]+)\]\*\*/);
+  return match ? match[1].trim() : null;
 }
 
 const Footer = () => (
@@ -58,6 +65,7 @@ const ChatPanel = ({
   persistedMessages = [],
   saveMessage,
   onCreateConversation,
+  onRenameConversation,
 }: ChatPanelProps) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
@@ -172,7 +180,13 @@ Avant de commencer, j'ai besoin de savoir où tu en es. Tape simplement la lettr
           ...persistedMessages,
           { role: "user", content },
         ]);
-        if (reply) await saveMessage(activeConversationId, "assistant", reply);
+        if (reply) {
+          await saveMessage(activeConversationId, "assistant", reply);
+          const analysisName = extractAnalysisName(reply);
+          if (analysisName) {
+            await onRenameConversation?.(activeConversationId, analysisName);
+          }
+        }
       }
     } catch {
       toast.error("Erreur lors de l'envoi");

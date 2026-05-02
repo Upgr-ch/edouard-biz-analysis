@@ -59,8 +59,8 @@ const SidebarContent = ({
               >
                 Édouard
               </span>
-              <span className="text-[10px] text-muted-foreground tracking-widest uppercase" style={{ letterSpacing: "0.15em" }}>
-                Consultant IA
+              <span className="text-[10px] text-muted-foreground" style={{ letterSpacing: "0.02em" }}>
+                Consultant en faisabilité et rentabilité de projets business.
               </span>
             </div>
           </div>

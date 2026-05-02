@@ -11,6 +11,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { BrainLogoSm } from "@/components/BrainLogo";
 import Index from "./pages/Index.tsx";
 import ResetPassword from "./pages/ResetPassword.tsx";
+import ForgotPassword from "./pages/ForgotPassword.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Cookies from "./pages/legal/Cookies.tsx";
 import Confidentialite from "./pages/legal/Confidentialite.tsx";
@@ -178,6 +179,7 @@ function AuthHeader() {
 
 function AuthRoute() {
   const { user, loading } = useAuth();
+  const navigate = useNavigate();
   if (loading) return null;
   if (user) return <Navigate to="/" replace />;
   return (
@@ -189,6 +191,26 @@ function AuthRoute() {
         signUpUrl={`${basePath}/auth/sign-up`}
         appearance={clerkAppearance}
       />
+      <button
+        onClick={() => navigate("/forgot-password")}
+        style={{
+          marginTop: 16,
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          color: "rgba(255,255,255,0.35)",
+          fontFamily: "var(--up-font)",
+          fontSize: "0.78rem",
+          letterSpacing: "0.03em",
+          textDecoration: "underline",
+          padding: "4px 0",
+          transition: "color 0.2s",
+        }}
+        onMouseEnter={e => (e.currentTarget.style.color = "#F5E090")}
+        onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,0.35)")}
+      >
+        Mot de passe oublié ?
+      </button>
     </div>
   );
 }
@@ -245,6 +267,7 @@ function AppRoutes() {
             <Route path="/auth" element={<AuthRoute />} />
             <Route path="/auth/*" element={<AuthRoute />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/cookies" element={<Cookies />} />
             <Route path="/confidentialite" element={<Confidentialite />} />
             <Route path="/mentions-legales" element={<MentionsLegales />} />

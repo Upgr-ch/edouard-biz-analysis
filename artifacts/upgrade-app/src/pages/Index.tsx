@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth as useClerkAuth } from "@clerk/react";
 import ChatPanel from "@/components/ChatPanel";
+import PdfProgressOverlay from "@/components/PdfProgressOverlay";
 import AppSidebar from "@/components/AppSidebar";
 import MainHeader from "@/components/MainHeader";
 import FiscalDisclaimer from "@/components/FiscalDisclaimer";
@@ -378,6 +379,10 @@ const Index = () => {
       <main className="flex-1 min-w-0 flex flex-col">
         <MainHeader conversationTitle={activeConversationTitle} />
         <div className="relative flex-1 min-h-0 flex flex-col">
+          <PdfProgressOverlay
+            isVisible={pdfLoadingStep !== null}
+            isFinal={pdfLoadingStep === "final"}
+          />
           <ChatPanel
             conversationId={conversationId}
             conversationTitle={activeConversationTitle}

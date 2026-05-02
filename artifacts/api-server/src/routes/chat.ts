@@ -15,7 +15,7 @@ const CONTEXT_MSGS    = 20;   // derniers messages envoyés à Gemini
 const TIMEOUT_MS      = 60_000; // 60 secondes
 
 const LIMIT_ANON_DAY  = 50;  // anonyme / IP / jour
-const LIMIT_AUTH_DAY  = 60;  // connecté / userId / jour
+const LIMIT_AUTH_DAY  = 75;  // connecté / userId / jour
 
 interface ChatMessage {
   role: "user" | "assistant" | "system";
@@ -50,7 +50,7 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
       }
     } else {
       if (isRateLimited(`auth:${userId}`, LIMIT_AUTH_DAY)) {
-        res.status(429).json({ error: "Limite journalière de 60 messages atteinte. Réessaie demain." });
+        res.status(429).json({ error: "Limite journalière de 75 messages atteinte. Réessaie demain." });
         return;
       }
     }

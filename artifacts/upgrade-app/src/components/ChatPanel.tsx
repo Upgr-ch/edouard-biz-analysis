@@ -223,16 +223,22 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
                 <span className="font-semibold text-foreground">ferme, assertive et juste</span>, ne le
                 prends pas pour toi. Mon travail est de te dire la vérité business, pas de te flatter.
               </p>
+              <p>
+                Si ton idée n'est pas viable, je te le dirai clairement. Si elle est améliorable, je
+                t'expliquerai comment.
+              </p>
               <p className="font-semibold text-[16px] text-primary">
                 Ma mission est de te faire gagner du temps et d'éviter les erreurs coûteuses.
               </p>
             </div>
 
             <div
-              className="pl-6 py-2 italic text-[13px] text-muted-foreground"
+              className="pl-6 py-3 text-[13px] text-muted-foreground italic"
               style={{ borderLeft: "2px solid rgba(245,224,144,0.25)", background: "rgba(245,224,144,0.03)" }}
             >
-              J'utilise uniquement des données réelles et vérifiables issues du web.
+              J'utilise uniquement des données réelles et vérifiables issues du web. Je n'invente jamais
+              de chiffres, de marché ou de tendances. Si une information fiable n'est pas disponible, je
+              le dis clairement.
             </div>
 
             {/* Disclaimer checkbox */}

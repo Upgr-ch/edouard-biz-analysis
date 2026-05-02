@@ -2,6 +2,7 @@ import { cn } from "@/lib/utils";
 import {
   Target, BarChart3, Grid3X3, Flag, Calculator, TrendingUp, Users, FileText,
   ChevronLeft, ChevronRight, Plus, Trash2, MessageSquare, Check, Scale, Menu, X, Brain,
+  Download, Loader2,
 } from "lucide-react";
 import { useState } from "react";
 import type { Conversation } from "@/hooks/useConversations";
@@ -30,6 +31,9 @@ interface AppSidebarProps {
   onNewConversation: () => void;
   onSwitchConversation: (id: string) => void;
   onDeleteConversation: (id: string) => void;
+  onDownloadStepPdf?: (stepId: number, stepLabel: string) => void;
+  onDownloadFinalPdf?: () => void;
+  pdfLoadingStep?: string | null;
 }
 
 const SidebarContent = ({
@@ -43,6 +47,9 @@ const SidebarContent = ({
   onSwitchConversation,
   onDeleteConversation,
   onClose,
+  onDownloadStepPdf,
+  onDownloadFinalPdf,
+  pdfLoadingStep,
 }: AppSidebarProps & { collapsed: boolean; onClose?: () => void }) => {
   const progressPercent = Math.round((completedSteps.length / steps.length) * 100);
 
@@ -179,11 +186,20 @@ const SidebarContent = ({
           {steps.map((step, index) => {
             const isActive    = currentStep === step.id;
             const isCompleted = completedSteps.includes(step.id);
+            const isSynthese  = step.id === 9;
             const stepNumber  = index + 1;
             const isLast      = index === steps.length - 1;
 
+            // Show final PDF button on step 9 when active or completed
+            const showFinalBtn = isSynthese && !collapsed && (isActive || isCompleted);
+            // Show step PDF button on completed steps 0–8
+            const showStepBtn  = !isSynthese && isCompleted && !collapsed;
+
+            const stepKey = step.label;
+            const isThisLoading = pdfLoadingStep === stepKey || (isSynthese && pdfLoadingStep === "final");
+
             return (
-              <div key={step.id} className="relative">
+              <div key={step.id} className="relative group/step">
                 {/* Connector line */}
                 {!isLast && (
                   <div
@@ -197,78 +213,120 @@ const SidebarContent = ({
                   />
                 )}
 
-                <button
-                  onClick={() => { onStepChange(step.id); onClose?.(); }}
-                  className={cn(
-                    "w-full flex items-center gap-3 px-3 py-2 text-sm transition-all relative z-10",
-                    collapsed && "justify-center px-2",
-                  )}
-                  style={{
-                    color: isActive
-                      ? "#F5E090"
-                      : isCompleted
-                        ? "rgba(255,255,255,0.80)"
-                        : "rgba(255,255,255,0.45)",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isActive) e.currentTarget.style.color = "rgba(255,255,255,0.85)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.color = isActive
-                      ? "#F5E090"
-                      : isCompleted
-                        ? "rgba(255,255,255,0.80)"
-                        : "rgba(255,255,255,0.45)";
-                  }}
-                >
-                  {/* Step circle */}
-                  <div
-                    className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-[11px] font-bold border-2 transition-all"
-                    style={
-                      isActive
-                        ? {
-                            borderColor: "#F5E090",
-                            background: "rgba(245,224,144,0.12)",
-                            color: "#F5E090",
-                            boxShadow: "0 0 10px rgba(245,224,144,0.25)",
-                          }
+                <div className="flex items-center">
+                  <button
+                    onClick={() => { onStepChange(step.id); onClose?.(); }}
+                    className={cn(
+                      "flex-1 flex items-center gap-3 px-3 py-2 text-sm transition-all relative z-10",
+                      collapsed && "justify-center px-2",
+                    )}
+                    style={{
+                      color: isActive
+                        ? "#F5E090"
                         : isCompleted
-                          ? {
-                              borderColor: "#B48C28",
-                              background: "#B48C28",
-                              color: "#080F1E",
-                            }
-                          : {
-                              borderColor: "rgba(255,255,255,0.12)",
-                              background: "rgba(255,255,255,0.03)",
-                              color: "rgba(255,255,255,0.40)",
-                            }
-                    }
+                          ? "rgba(255,255,255,0.80)"
+                          : "rgba(255,255,255,0.45)",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isActive) e.currentTarget.style.color = "rgba(255,255,255,0.85)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = isActive
+                        ? "#F5E090"
+                        : isCompleted
+                          ? "rgba(255,255,255,0.80)"
+                          : "rgba(255,255,255,0.45)";
+                    }}
                   >
-                    {isCompleted ? <Check className="w-3.5 h-3.5" /> : stepNumber}
-                  </div>
-
-                  {!collapsed && (
-                    <div className="flex flex-col items-start min-w-0">
-                      <span className="font-medium text-xs leading-tight truncate">
-                        {step.label}
-                      </span>
-                      <span
-                        className="text-[10px] leading-tight"
-                        style={{ color: isActive ? "rgba(245,224,144,0.55)" : "rgba(255,255,255,0.28)" }}
-                      >
-                        Étape {stepNumber}/{steps.length}
-                      </span>
-                    </div>
-                  )}
-
-                  {isActive && !collapsed && (
+                    {/* Step circle */}
                     <div
-                      className="ml-auto w-1.5 h-1.5 rounded-full animate-pulse"
-                      style={{ background: "#F5E090" }}
-                    />
+                      className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-[11px] font-bold border-2 transition-all"
+                      style={
+                        isActive
+                          ? {
+                              borderColor: "#F5E090",
+                              background: "rgba(245,224,144,0.12)",
+                              color: "#F5E090",
+                              boxShadow: "0 0 10px rgba(245,224,144,0.25)",
+                            }
+                          : isCompleted
+                            ? {
+                                borderColor: "#B48C28",
+                                background: "#B48C28",
+                                color: "#080F1E",
+                              }
+                            : {
+                                borderColor: "rgba(255,255,255,0.12)",
+                                background: "rgba(255,255,255,0.03)",
+                                color: "rgba(255,255,255,0.40)",
+                              }
+                      }
+                    >
+                      {isCompleted ? <Check className="w-3.5 h-3.5" /> : stepNumber}
+                    </div>
+
+                    {!collapsed && (
+                      <div className="flex flex-col items-start min-w-0">
+                        <span className="font-medium text-xs leading-tight truncate">
+                          {step.label}
+                        </span>
+                        <span
+                          className="text-[10px] leading-tight"
+                          style={{ color: isActive ? "rgba(245,224,144,0.55)" : "rgba(255,255,255,0.28)" }}
+                        >
+                          Étape {stepNumber}/{steps.length}
+                        </span>
+                      </div>
+                    )}
+
+                    {isActive && !collapsed && !showStepBtn && !showFinalBtn && (
+                      <div
+                        className="ml-auto w-1.5 h-1.5 rounded-full animate-pulse"
+                        style={{ background: "#F5E090" }}
+                      />
+                    )}
+                  </button>
+
+                  {/* Step fiche PDF button (steps 0–8 completed) */}
+                  {showStepBtn && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDownloadStepPdf?.(step.id, step.label);
+                      }}
+                      disabled={!!pdfLoadingStep}
+                      title={`Télécharger la fiche ${step.label}`}
+                      className="flex-shrink-0 mr-2 p-1.5 rounded transition-all opacity-0 group-hover/step:opacity-100 z-10 relative"
+                      style={{ color: isThisLoading ? "#F5E090" : "rgba(245,224,144,0.55)" }}
+                      onMouseEnter={(e) => { e.currentTarget.style.color = "#F5E090"; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.color = isThisLoading ? "#F5E090" : "rgba(245,224,144,0.55)"; }}
+                    >
+                      {isThisLoading
+                        ? <Loader2 className="w-3 h-3 animate-spin" />
+                        : <Download className="w-3 h-3" />}
+                    </button>
                   )}
-                </button>
+
+                  {/* Final synthesis PDF button (step 9) */}
+                  {showFinalBtn && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDownloadFinalPdf?.();
+                      }}
+                      disabled={!!pdfLoadingStep}
+                      title="Télécharger la synthèse complète"
+                      className="flex-shrink-0 mr-2 p-1.5 rounded transition-all z-10 relative"
+                      style={{ color: isThisLoading ? "#F5E090" : "rgba(245,224,144,0.70)" }}
+                      onMouseEnter={(e) => { e.currentTarget.style.color = "#F5E090"; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.color = isThisLoading ? "#F5E090" : "rgba(245,224,144,0.70)"; }}
+                    >
+                      {isThisLoading
+                        ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        : <FileText className="w-3.5 h-3.5" />}
+                    </button>
+                  )}
+                </div>
               </div>
             );
           })}

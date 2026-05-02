@@ -140,4 +140,111 @@ router.post("/generate", async (req: Request, res: Response): Promise<void> => {
   }
 });
 
+// POST /api/report/step
+router.post("/step", async (req: Request, res: Response): Promise<void> => {
+  const { userId } = getAuth(req);
+  if (!userId) {
+    res.status(401).json({ error: "Authentification requise" });
+    return;
+  }
+
+  const body = req.body as { messages?: ChatMessage[]; projectName?: string; stepLabel?: string };
+  if (!body.messages || !Array.isArray(body.messages) || body.messages.length === 0) {
+    res.status(400).json({ error: "messages array required" });
+    return;
+  }
+
+  const apiKey =
+    process.env.AI_INTEGRATIONS_OPENROUTER_API_KEY ?? process.env.OPENROUTER_API_KEY;
+  if (!apiKey) {
+    res.status(500).json({ error: "AI service not configured" });
+    return;
+  }
+
+  const projectName = (body.projectName ?? "Analyse").trim();
+  const stepLabel = (body.stepLabel ?? "Étape").trim();
+
+  const conversationText = body.messages
+    .filter((m) => m.role !== "system")
+    .map((m) => `${m.role === "user" ? "Utilisateur" : "Édouard"}: ${m.content}`)
+    .join("\n\n");
+
+  const stepPrompt = `Tu es Édouard, consultant senior en faisabilité et rentabilité de projets entrepreneuriaux.
+Génère une fiche synthèse concise pour l'étape "${stepLabel}" du projet "${projectName}".
+
+STRUCTURE OBLIGATOIRE (respecte-la à la lettre) :
+
+# ${projectName} — Fiche ${stepLabel}
+
+## Points Clés
+[3 à 5 bullets des éléments essentiels discutés pour cette étape.]
+
+## Diagnostic Édouard
+[2-3 phrases d'évaluation directe et honnête de cette dimension du projet.]
+
+## Actions Recommandées
+[2-3 actions concrètes prioritaires pour cette étape.]
+
+## Verdict
+**${stepLabel} :** [pastille emoji + 1 phrase de justification courte]
+
+Légende pastilles : 🟢 Très favorable · 🔵 Favorable avec ajustements · 🟡 Incertain · 🟠 Difficile · 🔴 Très risqué
+
+RÈGLES ABSOLUES :
+- 1 page max, pas d'introduction ni conclusion molle
+- Uniquement les faits de la conversation relatifs à "${stepLabel}"
+- Si un point n'a pas été abordé dans la conversation, écris exactement : "Non abordé dans l'analyse"
+- Pas de blabla, uniquement les faits`;
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
+  try {
+    const response = await fetch(`${OPENROUTER_BASE}/chat/completions`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://edouard-consultant.ch",
+        "X-Title": `Édouard – Fiche ${stepLabel}`,
+      },
+      body: JSON.stringify({
+        model: AI_MODEL,
+        max_tokens: 2048,
+        messages: [
+          { role: "system", content: stepPrompt },
+          {
+            role: "user",
+            content: `Voici la conversation à analyser pour la fiche "${stepLabel}" :\n\n${conversationText}`,
+          },
+        ],
+      }),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeout);
+
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error("[report/step] OpenRouter error", response.status, errText);
+      res.status(502).json({ error: "Erreur IA — réessaie dans quelques secondes" });
+      return;
+    }
+
+    const data = (await response.json()) as {
+      choices: Array<{ message: { content: string } }>;
+    };
+    const report = data.choices?.[0]?.message?.content ?? "";
+    res.json({ report });
+  } catch (err) {
+    clearTimeout(timeout);
+    if ((err as Error).name === "AbortError") {
+      res.status(504).json({ error: "Délai dépassé lors de la génération" });
+    } else {
+      console.error("[report/step] error", err);
+      res.status(500).json({ error: "Erreur lors de la génération" });
+    }
+  }
+});
+
 export default router;

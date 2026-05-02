@@ -6,6 +6,12 @@ import MainHeader from "@/components/MainHeader";
 import { useAuth } from "@/hooks/useAuth";
 import { useNewUserSync } from "@/hooks/useNewUserSync";
 import { toast } from "sonner";
+import {
+  fetchSynthesis,
+  renderReportPdf,
+  fetchStepReport,
+  renderStepPdf,
+} from "@/lib/generateReport";
 
 interface ApiConversation {
   id: string;
@@ -89,6 +95,7 @@ const Index = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
+  const [pdfLoadingStep, setPdfLoadingStep] = useState<string | null>(null);
   const restorationProcessed = useRef(false);
 
   const authedFetch = useCallback(
@@ -267,6 +274,46 @@ const Index = () => {
     }
   };
 
+  const handleDownloadStepPdf = async (stepId: number, stepLabel: string) => {
+    if (!messages.length) {
+      toast.error("Aucun message à synthétiser pour cette étape.");
+      return;
+    }
+    if (pdfLoadingStep) return;
+    setPdfLoadingStep(stepLabel);
+    try {
+      const token = await getToken();
+      const chatMessages = messages.map((m) => ({ role: m.role, content: m.content }));
+      const projectName = activeConversationTitle ?? "Analyse";
+      const report = await fetchStepReport(chatMessages, projectName, stepLabel, token);
+      renderStepPdf(report, projectName, stepLabel);
+    } catch (err) {
+      toast.error((err as Error).message ?? "Erreur lors de la génération de la fiche");
+    } finally {
+      setPdfLoadingStep(null);
+    }
+  };
+
+  const handleDownloadFinalPdf = async () => {
+    if (!messages.length) {
+      toast.error("Aucun message à synthétiser.");
+      return;
+    }
+    if (pdfLoadingStep) return;
+    setPdfLoadingStep("final");
+    try {
+      const token = await getToken();
+      const chatMessages = messages.map((m) => ({ role: m.role, content: m.content }));
+      const projectName = activeConversationTitle ?? "Analyse";
+      const report = await fetchSynthesis(chatMessages, projectName, token);
+      renderReportPdf(report, projectName);
+    } catch (err) {
+      toast.error((err as Error).message ?? "Erreur lors de la génération du rapport");
+    } finally {
+      setPdfLoadingStep(null);
+    }
+  };
+
   const completedSteps = Array.from({ length: currentStep }, (_, index) => index);
 
   const activeConversationTitle =
@@ -283,6 +330,9 @@ const Index = () => {
         onNewConversation={() => void handleCreateConversation("Nouvelle analyse")}
         onSwitchConversation={handleSwitchConversation}
         onDeleteConversation={handleDeleteConversation}
+        onDownloadStepPdf={handleDownloadStepPdf}
+        onDownloadFinalPdf={handleDownloadFinalPdf}
+        pdfLoadingStep={pdfLoadingStep}
       />
       <main className="flex-1 min-w-0 flex flex-col">
         <MainHeader conversationTitle={activeConversationTitle} />

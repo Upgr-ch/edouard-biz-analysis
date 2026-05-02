@@ -97,6 +97,7 @@ const Index = () => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
   const [pdfLoadingStep, setPdfLoadingStep] = useState<string | null>(null);
+  const [showFiscalModal, setShowFiscalModal] = useState(false);
   const [pendingStepAfterDisclaimer, setPendingStepAfterDisclaimer] = useState<number | null>(null);
   const restorationProcessed = useRef(false);
 
@@ -327,7 +328,14 @@ const Index = () => {
     <div className="flex h-screen w-full overflow-hidden bg-background">
       <AppSidebar
         currentStep={currentStep}
-        onStepChange={handleStepChange}
+        onStepChange={(step) => {
+          if (step === FISCAL_DISCLAIMER_STEP && currentStep < FISCAL_DISCLAIMER_STEP) {
+            setShowFiscalModal(true);
+            setPendingStepAfterDisclaimer(FISCAL_DISCLAIMER_STEP + 1);
+          } else {
+            void handleStepChange(step);
+          }
+        }}
         completedSteps={completedSteps}
         conversations={conversations}
         activeConversationId={conversationId}
@@ -340,41 +348,42 @@ const Index = () => {
       />
       <main className="flex-1 min-w-0 flex flex-col">
         <MainHeader conversationTitle={activeConversationTitle} />
-        <div className="flex-1 min-h-0 flex flex-col">
-          {currentStep === FISCAL_DISCLAIMER_STEP
-            ? <FiscalDisclaimer
-                onContinue={() => {
-                  const next = pendingStepAfterDisclaimer ?? FISCAL_DISCLAIMER_STEP + 1;
-                  setPendingStepAfterDisclaimer(null);
-                  void handleStepChange(next);
-                }}
-              />
-            : <ChatPanel
-                conversationId={conversationId}
-                conversationTitle={activeConversationTitle}
-                persistedMessages={messages}
-                saveMessage={handleSaveMessage}
-                onCreateConversation={handleCreateConversation}
-                onRenameConversation={handleRenameConversation}
-                onDownloadFiche={(label) => {
-                  if (label === "Synthèse") {
-                    void handleDownloadFinalPdf();
-                  } else {
-                    void handleDownloadStepPdf(0, label);
-                  }
-                }}
-                onStepDetected={(detectedStep) => {
-                  if (detectedStep > currentStep) {
-                    if (currentStep < FISCAL_DISCLAIMER_STEP && detectedStep > FISCAL_DISCLAIMER_STEP) {
-                      void handleStepChange(FISCAL_DISCLAIMER_STEP);
-                      setPendingStepAfterDisclaimer(detectedStep);
-                    } else {
-                      void handleStepChange(detectedStep);
-                    }
-                  }
-                }}
-              />
-          }
+        <div className="relative flex-1 min-h-0 flex flex-col">
+          <ChatPanel
+            conversationId={conversationId}
+            conversationTitle={activeConversationTitle}
+            persistedMessages={messages}
+            saveMessage={handleSaveMessage}
+            onCreateConversation={handleCreateConversation}
+            onRenameConversation={handleRenameConversation}
+            onDownloadFiche={(label) => {
+              if (label === "Synthèse") {
+                void handleDownloadFinalPdf();
+              } else {
+                void handleDownloadStepPdf(0, label);
+              }
+            }}
+            onStepDetected={(detectedStep) => {
+              if (detectedStep > currentStep) {
+                if (currentStep < FISCAL_DISCLAIMER_STEP && detectedStep > FISCAL_DISCLAIMER_STEP) {
+                  setShowFiscalModal(true);
+                  setPendingStepAfterDisclaimer(detectedStep);
+                } else {
+                  void handleStepChange(detectedStep);
+                }
+              }
+            }}
+          />
+          {showFiscalModal && (
+            <FiscalDisclaimer
+              onContinue={() => {
+                setShowFiscalModal(false);
+                const next = pendingStepAfterDisclaimer ?? FISCAL_DISCLAIMER_STEP + 1;
+                setPendingStepAfterDisclaimer(null);
+                void handleStepChange(next);
+              }}
+            />
+          )}
         </div>
       </main>
     </div>

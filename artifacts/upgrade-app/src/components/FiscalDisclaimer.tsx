@@ -10,7 +10,7 @@ const FiscalDisclaimer = ({ onContinue }: FiscalDisclaimerProps) => {
   const [accepted, setAccepted] = useState(false);
 
   return (
-    <div className="flex-1 flex items-center justify-center p-6">
+    <div className="absolute inset-0 z-50 flex items-center justify-center p-6 bg-background/75 backdrop-blur-sm">
       <div className="max-w-lg w-full animate-fade-in">
         <div className="flex items-center justify-center mb-8">
           <div className="w-14 h-14 rounded-2xl bg-primary/15 flex items-center justify-center">
@@ -18,7 +18,7 @@ const FiscalDisclaimer = ({ onContinue }: FiscalDisclaimerProps) => {
           </div>
         </div>
 
-        <div className="glass-card rounded-2xl p-8">
+        <div className="glass-card rounded-2xl p-8 shadow-2xl">
           <h2 className="text-xl font-bold text-foreground mb-6 text-center">
             Statut et Fiscalité
           </h2>
@@ -32,7 +32,6 @@ const FiscalDisclaimer = ({ onContinue }: FiscalDisclaimerProps) => {
             </p>
           </div>
 
-          {/* Checkbox */}
           <div className="mt-8 p-4 rounded-xl border border-border bg-card/50">
             <label className="flex items-start gap-3 cursor-pointer select-none">
               <Checkbox

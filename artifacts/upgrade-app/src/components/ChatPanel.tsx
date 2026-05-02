@@ -429,6 +429,24 @@ Avant de commencer, j'ai besoin de savoir où tu en es.
                         <div className="prose prose-sm dark:prose-invert" style={{ fontFamily: "var(--up-font)" }}>
                           <ReactMarkdown>{msg.content}</ReactMarkdown>
                         </div>
+                        {msg.role === "assistant" && (
+                          <p
+                            className="mt-3 text-[11px] italic leading-relaxed"
+                            style={{
+                              color: "rgba(255,255,255,0.38)",
+                              fontFamily: "var(--up-font)",
+                              borderTop: "1px solid rgba(255,255,255,0.06)",
+                              paddingTop: "10px",
+                            }}
+                          >
+                            Tape{" "}
+                            <strong style={{ color: "#F5E090", fontStyle: "normal", fontWeight: 700 }}>
+                              aide moi
+                            </strong>{" "}
+                            si tu as besoin de suggestions.<br />
+                            Si tu disposes de documents de référence, tu peux les joindre via l'icône 📎.
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>

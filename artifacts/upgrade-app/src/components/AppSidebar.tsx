@@ -1,22 +1,23 @@
 import { cn } from "@/lib/utils";
 import {
   Target, BarChart3, Grid3X3, Flag, Calculator, TrendingUp, Users, FileText,
-  Brain, ChevronLeft, ChevronRight, Plus, Trash2, MessageSquare, Check, Scale, Menu, X,
+  ChevronLeft, ChevronRight, Plus, Trash2, MessageSquare, Check, Scale, Menu, X, Brain,
 } from "lucide-react";
 import { useState } from "react";
 import type { Conversation } from "@/hooks/useConversations";
+import { BrainLogoSm } from "@/components/BrainLogo";
 
 const steps = [
-  { id: 0, label: "Projet", icon: Brain },
-  { id: 1, label: "Cadrage", icon: Target },
-  { id: 2, label: "Marché", icon: BarChart3 },
-  { id: 3, label: "Diagnostic", icon: Grid3X3 },
-  { id: 4, label: "Objectifs", icon: Flag },
-  { id: 5, label: "Économie & Financement", icon: Calculator },
-  { id: 6, label: "Statut et Fiscalité", icon: Scale },
-  { id: 7, label: "Faisabilité", icon: TrendingUp },
-  { id: 8, label: "Acquisition", icon: Users },
-  { id: 9, label: "Synthèse", icon: FileText },
+  { id: 0, label: "Projet",                  icon: Brain },
+  { id: 1, label: "Cadrage",                 icon: Target },
+  { id: 2, label: "Marché",                  icon: BarChart3 },
+  { id: 3, label: "Diagnostic",              icon: Grid3X3 },
+  { id: 4, label: "Objectifs",               icon: Flag },
+  { id: 5, label: "Économie & Financement",  icon: Calculator },
+  { id: 6, label: "Statut et Fiscalité",     icon: Scale },
+  { id: 7, label: "Faisabilité",             icon: TrendingUp },
+  { id: 8, label: "Acquisition",             icon: Users },
+  { id: 9, label: "Synthèse",                icon: FileText },
 ];
 
 interface AppSidebarProps {
@@ -46,41 +47,55 @@ const SidebarContent = ({
 
   return (
     <>
-      {/* Header */}
+      {/* ── Header ── */}
       <div className="p-4 border-b border-border flex items-center justify-between shrink-0">
-        {!collapsed && (
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
-              <Brain className="w-4 h-4 text-primary-foreground" />
-            </div>
+        {!collapsed ? (
+          <div className="flex items-center gap-2.5">
+            <BrainLogoSm />
             <div>
-              <span className="font-semibold text-foreground text-sm block leading-tight">Édouard</span>
-              <span className="text-[10px] text-muted-foreground">Consultant IA</span>
+              <span
+                className="font-semibold text-sm block leading-tight"
+                style={{ color: "#F5E090", fontFamily: "var(--up-font)" }}
+              >
+                Édouard
+              </span>
+              <span className="text-[10px] text-muted-foreground tracking-widest uppercase" style={{ letterSpacing: "0.15em" }}>
+                Consultant IA
+              </span>
             </div>
           </div>
+        ) : (
+          <BrainLogoSm />
         )}
-        {/* On mobile show X, on desktop show collapse arrows */}
-        {onClose ? (
+
+        {onClose && (
           <button
             onClick={onClose}
-            className="p-1.5 rounded-md hover:bg-accent transition-colors text-muted-foreground ml-auto"
+            className="p-1.5 rounded hover:bg-accent transition-colors text-muted-foreground ml-auto"
           >
             <X className="w-4 h-4" />
           </button>
-        ) : null}
+        )}
       </div>
 
-      {/* Progress bar */}
+      {/* ── Progress bar ── */}
       {!collapsed && (
         <div className="px-4 py-3 border-b border-border shrink-0">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Progression</span>
-            <span className="text-[10px] font-semibold text-primary">{progressPercent}%</span>
+            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+              Progression
+            </span>
+            <span className="text-[10px] font-semibold" style={{ color: "#F5E090" }}>
+              {progressPercent}%
+            </span>
           </div>
-          <div className="h-1.5 bg-accent rounded-full overflow-hidden">
+          <div className="h-1 bg-accent rounded-full overflow-hidden">
             <div
-              className="h-full gradient-primary rounded-full transition-all duration-500"
-              style={{ width: `${progressPercent}%` }}
+              className="h-full rounded-full transition-all duration-500"
+              style={{
+                width: `${progressPercent}%`,
+                background: "linear-gradient(90deg, #B48C28, #F5E090)",
+              }}
             />
           </div>
           <span className="text-[10px] text-muted-foreground/60 mt-1 block">
@@ -89,16 +104,22 @@ const SidebarContent = ({
         </div>
       )}
 
-      {/* Conversations */}
+      {/* ── New conversation button ── */}
       <div className="border-b border-border shrink-0">
         <div className="p-2">
           <button
             onClick={onNewConversation}
             className={cn(
-              "w-full flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg transition-colors",
-              "bg-primary/10 text-primary hover:bg-primary/20",
+              "w-full flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-sm transition-all border",
               collapsed && "justify-center px-2",
             )}
+            style={{
+              background: "rgba(245,224,144,0.06)",
+              borderColor: "rgba(245,224,144,0.18)",
+              color: "#F5E090",
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(245,224,144,0.12)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(245,224,144,0.06)"; }}
           >
             <Plus className="w-3.5 h-3.5 flex-shrink-0" />
             {!collapsed && <span>Nouvelle analyse</span>}
@@ -110,13 +131,21 @@ const SidebarContent = ({
             {conversations.map((conv) => (
               <div
                 key={conv.id}
-                className={cn(
-                  "group flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs cursor-pointer transition-colors",
+                className="group flex items-center gap-2 px-3 py-1.5 rounded-sm text-xs cursor-pointer transition-colors"
+                style={
                   conv.id === activeConversationId
-                    ? "bg-accent text-foreground"
-                    : "text-muted-foreground hover:text-foreground hover:bg-accent/50",
-                )}
+                    ? { background: "rgba(245,224,144,0.08)", color: "#F5E090" }
+                    : { color: "rgba(255,255,255,0.50)" }
+                }
                 onClick={() => { onSwitchConversation(conv.id); onClose?.(); }}
+                onMouseEnter={(e) => {
+                  if (conv.id !== activeConversationId)
+                    e.currentTarget.style.color = "rgba(255,255,255,0.85)";
+                }}
+                onMouseLeave={(e) => {
+                  if (conv.id !== activeConversationId)
+                    e.currentTarget.style.color = "rgba(255,255,255,0.50)";
+                }}
               >
                 <MessageSquare className="w-3 h-3 flex-shrink-0" />
                 <span className="truncate flex-1">{conv.title}</span>
@@ -132,64 +161,111 @@ const SidebarContent = ({
         )}
       </div>
 
-      {/* Steps */}
+      {/* ── Steps ── */}
       <nav className="flex-1 py-3 overflow-y-auto">
         {!collapsed && (
           <div className="px-4 mb-2">
-            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Étapes d'analyse</span>
+            <span
+              className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider"
+              style={{ letterSpacing: "0.25em" }}
+            >
+              Étapes d'analyse
+            </span>
           </div>
         )}
+
         <div className="relative">
           {steps.map((step, index) => {
-            const isActive = currentStep === step.id;
+            const isActive    = currentStep === step.id;
             const isCompleted = completedSteps.includes(step.id);
-            const Icon = step.icon;
-            const stepNumber = index + 1;
-            const isLast = index === steps.length - 1;
+            const stepNumber  = index + 1;
+            const isLast      = index === steps.length - 1;
 
             return (
               <div key={step.id} className="relative">
+                {/* Connector line */}
                 {!isLast && (
                   <div
-                    className={cn(
-                      "absolute top-[2.25rem] w-[2px] h-[calc(100%-0.5rem)]",
-                      collapsed ? "left-[1.85rem]" : "left-[1.65rem]",
-                      isCompleted ? "bg-primary/40" : "bg-border",
-                    )}
+                    className="absolute top-[2.25rem] w-[1px] h-[calc(100%-0.5rem)]"
+                    style={{
+                      left: collapsed ? "1.85rem" : "1.65rem",
+                      background: isCompleted
+                        ? "rgba(245,224,144,0.35)"
+                        : "rgba(255,255,255,0.08)",
+                    }}
                   />
                 )}
+
                 <button
                   onClick={() => { onStepChange(step.id); onClose?.(); }}
                   className={cn(
                     "w-full flex items-center gap-3 px-3 py-2 text-sm transition-all relative z-10",
-                    isActive ? "text-primary" : isCompleted ? "text-foreground/80" : "text-muted-foreground hover:text-foreground",
                     collapsed && "justify-center px-2",
                   )}
+                  style={{
+                    color: isActive
+                      ? "#F5E090"
+                      : isCompleted
+                        ? "rgba(255,255,255,0.80)"
+                        : "rgba(255,255,255,0.45)",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isActive) e.currentTarget.style.color = "rgba(255,255,255,0.85)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = isActive
+                      ? "#F5E090"
+                      : isCompleted
+                        ? "rgba(255,255,255,0.80)"
+                        : "rgba(255,255,255,0.45)";
+                  }}
                 >
+                  {/* Step circle */}
                   <div
-                    className={cn(
-                      "w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-[11px] font-bold border-2 transition-all",
+                    className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-[11px] font-bold border-2 transition-all"
+                    style={
                       isActive
-                        ? "border-primary bg-primary/15 text-primary shadow-[0_0_8px_hsl(var(--primary)/0.3)]"
+                        ? {
+                            borderColor: "#F5E090",
+                            background: "rgba(245,224,144,0.12)",
+                            color: "#F5E090",
+                            boxShadow: "0 0 10px rgba(245,224,144,0.25)",
+                          }
                         : isCompleted
-                          ? "border-primary bg-primary text-primary-foreground"
-                          : "border-border bg-secondary text-muted-foreground",
-                    )}
+                          ? {
+                              borderColor: "#B48C28",
+                              background: "#B48C28",
+                              color: "#080F1E",
+                            }
+                          : {
+                              borderColor: "rgba(255,255,255,0.12)",
+                              background: "rgba(255,255,255,0.03)",
+                              color: "rgba(255,255,255,0.40)",
+                            }
+                    }
                   >
                     {isCompleted ? <Check className="w-3.5 h-3.5" /> : stepNumber}
                   </div>
+
                   {!collapsed && (
                     <div className="flex flex-col items-start min-w-0">
-                      <span className={cn("font-medium text-xs leading-tight truncate", isActive && "text-primary")}>
+                      <span className="font-medium text-xs leading-tight truncate">
                         {step.label}
                       </span>
-                      <span className={cn("text-[10px] leading-tight", isActive ? "text-primary/60" : "text-muted-foreground/50")}>
+                      <span
+                        className="text-[10px] leading-tight"
+                        style={{ color: isActive ? "rgba(245,224,144,0.55)" : "rgba(255,255,255,0.28)" }}
+                      >
                         Étape {stepNumber}/{steps.length}
                       </span>
                     </div>
                   )}
+
                   {isActive && !collapsed && (
-                    <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                    <div
+                      className="ml-auto w-1.5 h-1.5 rounded-full animate-pulse"
+                      style={{ background: "#F5E090" }}
+                    />
                   )}
                 </button>
               </div>
@@ -198,10 +274,10 @@ const SidebarContent = ({
         </div>
       </nav>
 
-      {/* Footer */}
+      {/* ── Footer ── */}
       {!collapsed && (
         <div className="p-4 border-t border-border shrink-0">
-          <p className="text-[10px] text-muted-foreground/60 leading-relaxed">
+          <p className="text-[10px] text-muted-foreground/50 leading-relaxed">
             Les analyses fournies sont des recommandations. L'utilisateur reste seul responsable des décisions.
           </p>
         </div>
@@ -216,48 +292,57 @@ const AppSidebar = (props: AppSidebarProps) => {
 
   return (
     <>
-      {/* ── Mobile hamburger button ─────────────────────────────────── */}
+      {/* ── Mobile hamburger ── */}
       <button
         onClick={() => setMobileOpen(true)}
-        className="md:hidden fixed top-3 left-3 z-50 p-2 rounded-lg bg-secondary/80 border border-border text-muted-foreground backdrop-blur-sm shadow"
+        className="md:hidden fixed top-3 left-3 z-50 p-2 rounded border text-muted-foreground backdrop-blur-sm"
+        style={{ background: "rgba(8,15,30,0.85)", borderColor: "rgba(245,224,144,0.18)" }}
       >
-        <Menu className="w-5 h-5" />
+        <Menu className="w-5 h-5" style={{ color: "#F5E090" }} />
       </button>
 
-      {/* ── Mobile overlay backdrop ─────────────────────────────────── */}
+      {/* ── Mobile overlay ── */}
       {mobileOpen && (
         <div
-          className="md:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+          className="md:hidden fixed inset-0 z-40 bg-black/70 backdrop-blur-sm"
           onClick={() => setMobileOpen(false)}
         />
       )}
 
-      {/* ── Mobile drawer ───────────────────────────────────────────── */}
+      {/* ── Mobile drawer ── */}
       <aside
         className={cn(
-          "md:hidden fixed inset-y-0 left-0 z-50 w-72 bg-background border-r border-border flex flex-col transition-transform duration-300",
+          "md:hidden fixed inset-y-0 left-0 z-50 w-72 flex flex-col transition-transform duration-300 border-r border-border",
           mobileOpen ? "translate-x-0" : "-translate-x-full",
         )}
+        style={{ background: "var(--up-bg)" }}
       >
         <SidebarContent {...props} collapsed={false} onClose={() => setMobileOpen(false)} />
       </aside>
 
-      {/* ── Desktop sidebar ─────────────────────────────────────────── */}
+      {/* ── Desktop sidebar ── */}
       <aside
         className={cn(
-          "hidden md:flex h-screen bg-secondary/50 border-r border-border flex-col transition-all duration-300",
+          "hidden md:flex h-screen flex-col transition-all duration-300 border-r border-border relative",
           collapsed ? "w-16" : "w-64",
         )}
+        style={{ background: "rgba(8,15,30,0.95)" }}
       >
-        {/* Desktop collapse toggle */}
-        <div className="absolute top-4 right-[-12px] z-10 hidden md:block">
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            className="w-6 h-6 rounded-full bg-background border border-border flex items-center justify-center shadow text-muted-foreground hover:text-foreground transition-colors"
-          >
-            {collapsed ? <ChevronRight className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}
-          </button>
-        </div>
+        {/* Collapse toggle */}
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className="absolute top-4 -right-3 z-10 w-6 h-6 rounded-full border flex items-center justify-center shadow transition-colors"
+          style={{
+            background: "var(--up-bg)",
+            borderColor: "rgba(245,224,144,0.20)",
+            color: "rgba(245,224,144,0.60)",
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.color = "#F5E090"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = "rgba(245,224,144,0.60)"; }}
+        >
+          {collapsed ? <ChevronRight className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}
+        </button>
+
         <SidebarContent {...props} collapsed={collapsed} />
       </aside>
     </>

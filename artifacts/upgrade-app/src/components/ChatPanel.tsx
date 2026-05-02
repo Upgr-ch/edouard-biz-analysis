@@ -125,18 +125,57 @@ const ChatPanel = ({
     }
   };
 
+  /* true when intro is shown but no user reply yet */
+  const needsLevelChoice = disclaimerAccepted && totalUserMessages === 0 && !isLoading;
+
+  const handleLevelChoice = (letter: string) => {
+    void (async () => {
+      if (isLoading) return;
+      setIsLoading(true);
+      try {
+        if (isAnonymous) {
+          AnonChat.appendAnonMessage("user", letter);
+          forceUpdate((n) => n + 1);
+          const msgs = AnonChat.getAnonMessages();
+          const reply = await invokeChat(msgs);
+          if (reply) {
+            AnonChat.appendAnonMessage("assistant", stripSentinel(reply));
+            forceUpdate((n) => n + 1);
+          }
+        } else {
+          const activeConversationId =
+            conversationId ?? (await onCreateConversation?.("Nouvelle analyse")) ?? null;
+          if (!activeConversationId) return;
+          await saveMessage(activeConversationId, "user", letter);
+          const reply = await invokeChat([
+            ...persistedMessages,
+            { role: "user", content: letter },
+          ]);
+          if (reply) {
+            const analysisName = extractAnalysisName(reply);
+            const cleanReply = stripSentinel(reply);
+            await saveMessage(activeConversationId, "assistant", cleanReply);
+            if (analysisName) await onRenameConversation?.(activeConversationId, analysisName);
+          }
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    })();
+  };
+
   const startConversation = async () => {
     if (!isChecked) return;
     setDisclaimerAccepted(true);
     const edouardIntro = `Je suis Édouard. Ne le prends pas pour toi, je m'exprime de manière ferme, assertive et juste. Mon travail est de te dire la vérité business, pas de te flatter.
 
-Avant de commencer, j'ai besoin de savoir où tu en es. Tape simplement la lettre qui correspond à ton profil :
+Avant de commencer, j'ai besoin de savoir où tu en es.
 
 **A** — Novice : "C'est mon tout premier projet, je pars de zéro"
 **B** — Intermédiaire : "J'ai déjà lancé un projet, je connais les bases"
 **C** — Confirmé : "J'ai plusieurs projets à mon actif, je veux aller vite"
 
-→ Réponds uniquement par la lettre : A, B ou C`;
+→ Clique sur ton profil ci-dessous.`;
 
     if (isAnonymous) {
       AnonChat.appendAnonMessage("assistant", edouardIntro);
@@ -381,7 +420,7 @@ Avant de commencer, j'ai besoin de savoir où tu en es. Tape simplement la lettr
       {(disclaimerAccepted || displayMessages.length > 0) && (
         <div className="border-t border-border bg-background z-40">
           <div className="max-w-2xl mx-auto px-4 py-3">
-            {isAnonymous && (
+            {isAnonymous && !needsLevelChoice && (
               <div
                 className="mb-2 inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest border"
                 style={{
@@ -394,6 +433,40 @@ Avant de commencer, j'ai besoin de savoir où tu en es. Tape simplement la lettr
                 Message {totalUserMessages} / 6 avant inscription gratuite.
               </div>
             )}
+
+            {/* ── Level choice buttons ── */}
+            {needsLevelChoice && (
+              <div className="mb-3 flex flex-col gap-2">
+                <p className="text-[11px] uppercase tracking-widest font-semibold" style={{ color: "rgba(245,224,144,0.55)" }}>
+                  Choisis ton profil
+                </p>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  {[
+                    { key: "A", label: "Novice", sub: "Premier projet, je pars de zéro" },
+                    { key: "B", label: "Intermédiaire", sub: "J'ai déjà lancé un projet" },
+                    { key: "C", label: "Confirmé", sub: "Plusieurs projets, je veux aller vite" },
+                  ].map(({ key, label, sub }) => (
+                    <button
+                      key={key}
+                      onClick={() => handleLevelChoice(key)}
+                      disabled={isLoading}
+                      className="flex-1 text-left px-4 py-3 rounded-sm border transition-all text-sm disabled:opacity-40"
+                      style={{
+                        background: "rgba(245,224,144,0.04)",
+                        borderColor: "rgba(245,224,144,0.25)",
+                        fontFamily: "var(--up-font)",
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(245,224,144,0.70)"; e.currentTarget.style.background = "rgba(245,224,144,0.09)"; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(245,224,144,0.25)"; e.currentTarget.style.background = "rgba(245,224,144,0.04)"; }}
+                    >
+                      <span className="font-bold" style={{ color: "#F5E090" }}>{key} — {label}</span>
+                      <span className="block text-[12px] mt-0.5" style={{ color: "rgba(255,255,255,0.45)" }}>{sub}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="flex gap-2">
               <textarea
                 value={input}
@@ -404,14 +477,15 @@ Avant de commencer, j'ai besoin de savoir où tu en es. Tape simplement la lettr
                     void handleSend();
                   }
                 }}
-                placeholder="Réponse"
-                className="flex-1 border rounded-sm p-3 resize-none h-12 outline-none text-sm text-foreground transition-all"
+                placeholder={needsLevelChoice ? "Clique sur ton profil ci-dessus…" : "Réponse"}
+                disabled={needsLevelChoice || isLoading}
+                className="flex-1 border rounded-sm p-3 resize-none h-12 outline-none text-sm text-foreground transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                 style={{
                   background: "rgba(255,255,255,0.03)",
                   borderColor: "rgba(255,255,255,0.10)",
                   fontFamily: "var(--up-font)",
                 }}
-                onFocus={(e) => { e.currentTarget.style.borderColor = "rgba(245,224,144,0.40)"; }}
+                onFocus={(e) => { if (!needsLevelChoice) e.currentTarget.style.borderColor = "rgba(245,224,144,0.40)"; }}
                 onBlur={(e)  => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.10)"; }}
               />
               <button

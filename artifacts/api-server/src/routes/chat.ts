@@ -81,9 +81,13 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
       B: "Intermédiaire",
       C: "Confirmé",
     };
+    const isFirstFreeText = userMessages.length === 1 && !/^[ABC]$/.test(levelKey);
+
     const levelContext = isFirstLevel
       ? `\n\n## ⚡ CONTEXTE IMMÉDIAT — NIVEAU CHOISI\nL'interface a déjà posé la question de niveau. L'utilisateur vient de choisir : **${levelKey} = ${levelLabel[levelKey]}**.\nTu dois UNIQUEMENT :\n1. Confirmer son niveau en UNE seule phrase courte et directe (ex: "Parfait, tu es Novice — on part de zéro.").\n2. STOP. Tu n'enchaînes PAS de question. Tu n'ouvres PAS l'Étape 1. Tu attends que l'utilisateur réponde ou relance avant de continuer.\nNE redemande PAS le niveau. NE mentionne PAS les étapes dans ce message.`
-      : "";
+      : isFirstFreeText
+        ? `\n\n## ⚡ ALERTE — NIVEAU NON CHOISI\nL'utilisateur a écrit un message libre sans d'abord choisir son niveau. Tu DOIS :\n1. L'interrompre poliment mais fermement.\n2. Lui redemander de choisir son niveau : A (Novice), B (Intermédiaire) ou C (Confirmé).\n3. NE PAS analyser son message ni avancer dans les étapes tant que le niveau n'est pas confirmé.`
+        : "";
 
     /* ── 5. API key ──────────────────────────────────────────────── */
     const apiKey =

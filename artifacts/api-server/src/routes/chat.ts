@@ -9,7 +9,7 @@ const OPENROUTER_BASE =
   process.env.AI_INTEGRATIONS_OPENROUTER_BASE_URL ??
   "https://openrouter.ai/api/v1";
 
-const AI_MODEL        = "openai/gpt-4o-mini";
+const AI_MODEL        = "google/gemini-2.5-flash";
 const MAX_TOKENS      = 8192;
 const CONTEXT_MSGS    = 20;   // derniers messages envoyés à Gemini
 const TIMEOUT_MS      = 60_000; // 60 secondes

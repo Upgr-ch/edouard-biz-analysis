@@ -99,6 +99,7 @@ function ClerkQueryCacheInvalidator() {
 }
 
 function AuthHeader() {
+  const navigate = useNavigate();
   return (
     <div
       style={{
@@ -108,11 +109,40 @@ function AuthHeader() {
         gap: "16px",
         marginBottom: "28px",
         textAlign: "center",
-        maxWidth: 400,
+        maxWidth: 440,
         marginLeft: "auto",
         marginRight: "auto",
+        width: "100%",
       }}
     >
+      {/* Back button */}
+      <div style={{ width: "100%", display: "flex", alignItems: "center" }}>
+        <button
+          onClick={() => navigate("/")}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            color: "rgba(255,255,255,0.45)",
+            fontFamily: "var(--up-font)",
+            fontSize: "0.78rem",
+            letterSpacing: "0.04em",
+            padding: "4px 0",
+            transition: "color 0.2s",
+          }}
+          onMouseEnter={e => (e.currentTarget.style.color = "#F5E090")}
+          onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,0.45)")}
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
+            <path d="M9 2L4 7L9 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          Retour
+        </button>
+      </div>
+
       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
         <BrainLogoSm />
         <span

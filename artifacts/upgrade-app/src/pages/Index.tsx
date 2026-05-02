@@ -380,6 +380,13 @@ const Index = () => {
                 setShowFiscalModal(false);
                 const next = pendingStepAfterDisclaimer ?? FISCAL_DISCLAIMER_STEP + 1;
                 setPendingStepAfterDisclaimer(null);
+                if (conversationId) {
+                  void handleSaveMessage(
+                    conversationId,
+                    "assistant",
+                    "**✓ Étape 7/10 — Statut et Fiscalité validée**\n\nVous avez pris connaissance de l'avertissement : je ne suis pas qualifié pour donner des conseils juridiques ou fiscaux. Consultez un expert-comptable ou un conseiller juridique pour toute décision liée à votre statut ou régime fiscal.\n\n*Cette étape est confirmée. Passons à la faisabilité.*",
+                  );
+                }
                 void handleStepChange(next);
               }}
             />

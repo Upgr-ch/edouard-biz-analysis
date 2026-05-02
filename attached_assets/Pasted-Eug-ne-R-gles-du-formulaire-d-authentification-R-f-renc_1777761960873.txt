@@ -1,0 +1,158 @@
+Eugène — Règles du formulaire d'authentification
+Référence complète pour reproduire le même système Clerk dans un autre projet.
+
+1. STACK AUTH
+Élément	Valeur
+Service	Clerk (clerk.com)
+SDK front	@clerk/react + @clerk/react/legacy
+SDK back	@clerk/express
+Stratégie de reset	reset_password_email_code (code 6 chiffres par email)
+Routage	routing="virtual" (Clerk embarqué dans la SPA sans posséder les URLs)
+2. CONFIGURATION CLERK (variables d'environnement)
+# Frontend (Vite)
+VITE_CLERK_PUBLISHABLE_KEY=pk_test_...   ← clé publique Clerk
+VITE_CLERK_PROXY_URL=                    ← optionnel, proxy Replit
+# Backend (Express)
+CLERK_SECRET_KEY=sk_test_...             ← clé secrète Clerk (secrets Replit)
+CLERK_WEBHOOK_SECRET=whsec_...           ← secret webhook Clerk (secrets Replit)
+
+3. INITIALISATION CLERK (App.tsx)
+<ClerkProvider
+  publishableKey={clerkPubKey}
+  proxyUrl={clerkProxyUrl}
+  appearance={clerkAppearance}       // thème personnalisé
+  localization={clerkLocalization}   // localisation française
+  signInUrl="/sign-in"
+  signUpUrl="/sign-up"
+  signInFallbackRedirectUrl="/"
+  signUpFallbackRedirectUrl="/"
+  routerPush={(to) => navigate(to)}
+  routerReplace={(to) => navigate(to, { replace: true })}
+>
+
+4. MODES DE LA PAGE /auth
+La page d'auth est une seule page avec 3 modes gérés par un state React :
+
+Mode	Déclencheur	Affichage
+signup	Mode par défaut à l'arrivée	Formulaire d'inscription Clerk
+login	Clic sur "Se connecter"	Formulaire de connexion Clerk
+forgot	Clic sur "Mot de passe oublié ?"	Panel custom (voir §6)
+const [mode, setMode] = useState<"login" | "signup" | "forgot">("signup");
+
+5. CRÉATION DE COMPTE (mode signup)
+Géré entièrement par le composant Clerk <SignUp> en mode routing="virtual".
+
+<SignUp
+  routing="virtual"
+  signInUrl="/sign-in"
+  forceRedirectUrl="/"
+  signInForceRedirectUrl="/"
+/>
+
+Ce que Clerk gère automatiquement :
+
+Champ email + mot de passe
+Vérification email (code envoyé par Clerk)
+Règles de mot de passe (min. 8 caractères)
+Affichage des erreurs (email déjà utilisé, etc.)
+Ce que le projet gère :
+
+Après inscription réussie → Clerk déclenche un webhook user.created
+Le webhook ajoute le contact dans Systeme.io (avec tag eugene) + Google Sheets
+6. CONNEXION (mode login)
+Géré entièrement par le composant Clerk <SignIn> en mode routing="virtual".
+
+<SignIn
+  routing="virtual"
+  signUpUrl="/sign-up"
+  forceRedirectUrl="/"
+  signUpForceRedirectUrl="/"
+/>
+
+Ce que Clerk gère automatiquement :
+
+Email + mot de passe
+Connexion sociale (Google, GitHub si configuré dans le dashboard Clerk)
+Messages d'erreur (mauvais mot de passe, etc.)
+7. MOT DE PASSE OUBLIÉ (mode forgot)
+Flux entièrement custom en 3 étapes, géré avec useSignIn de Clerk.
+
+Étape 1 — Saisie de l'email
+await signIn.create({
+  strategy: "reset_password_email_code",
+  identifier: email,
+});
+// → Clerk envoie un code à 6 chiffres par email
+// → Passe à l'étape 2
+
+Étape 2 — Saisie du code + nouveau mot de passe
+const result = await signIn.attemptFirstFactor({
+  strategy: "reset_password_email_code",
+  code: code,   // code reçu par email
+});
+if (result.status === "needs_new_password") {
+  await signIn.resetPassword({
+    password: newPassword,
+    signOutOfOtherSessions: true,
+  });
+}
+// → Passe à l'étape 3
+
+Étape 3 — Confirmation
+Affichage du message "Mot de passe modifié !" + bouton "← Retour à la connexion".
+
+Validations front :
+Mot de passe minimum 8 caractères
+Les deux mots de passe doivent correspondre
+Bouton "Réessayer" si le code n'est pas reçu (retour à l'étape 1)
+Import hook :
+import { useSignIn } from "@clerk/react/legacy";
+// ⚠️ Utiliser le hook "legacy" pour accéder à .create() et .attemptFirstFactor()
+
+8. PROTECTION DES ROUTES (App.tsx)
+// Route protégée : redirige si déjà connecté
+function AuthRoute() {
+  return (
+    <>
+      <Show when="signed-in">
+        <Navigate to="/" replace />
+      </Show>
+      <Show when="signed-out">
+        <Auth />
+      </Show>
+    </>
+  );
+}
+
+9. VÉRIFICATION AUTH CÔTÉ API (Express)
+import { clerkMiddleware, getAuth } from "@clerk/express";
+app.use(clerkMiddleware());
+// Dans une route protégée :
+const { userId } = getAuth(req);
+if (!userId) {
+  res.status(401).json({ error: "Non authentifié" });
+  return;
+}
+
+10. WEBHOOK CLERK → ACTIONS POST-INSCRIPTION
+Déclenché automatiquement à chaque user.created :
+
+POST /webhook/clerk
+Headers: svix-id, svix-timestamp, svix-signature (vérification HMAC)
+
+Actions déclenchées en parallèle :
+
+Ajout du contact dans Systeme.io avec tag eugene
+Ajout d'une ligne dans Google Sheets (email, prénom, nom, date, clerkId)
+const [sheetsResult, systemeResult] = await Promise.allSettled([
+  appendToGoogleSheet(email, firstName, lastName, clerkId),
+  createSystemeIoContact(email, firstName, lastName),
+]);
+// Les erreurs externes ne bloquent jamais la réponse 200 au webhook
+
+11. POINTS CLÉS À RETENIR
+routing="virtual" : obligatoire pour embarquer Clerk dans une SPA sans que Clerk prenne le contrôle des URLs
+useSignIn legacy : le hook standard Clerk v6 n'expose pas encore create() et attemptFirstFactor() dans ses types TypeScript — utiliser @clerk/react/legacy et caster via unknown
+Webhook = seul endroit où les intégrations externes (Systeme.io, Sheets) sont appelées — jamais depuis le frontend
+Erreurs silencieuses : les échecs des services externes (Systeme.io, Sheets) sont loggés mais ne bloquent jamais l'utilisateur
+Reset par code (pas par lien) : Clerk envoie un code 6 chiffres — l'interface doit obligatoirement avoir une étape pour le saisir

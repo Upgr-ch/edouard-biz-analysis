@@ -1,9 +1,8 @@
-import { useEffect, useRef } from "react";
-import { ClerkProvider, SignIn, SignUp, AuthenticateWithRedirectCallback } from "@clerk/react";
+import { ClerkProvider, SignIn, SignUp } from "@clerk/react";
 import { publishableKeyFromHost } from "@clerk/react/internal";
 import { shadcn } from "@clerk/themes";
 import { frFR } from "@clerk/localizations";
-import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, Navigate, useNavigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
@@ -13,7 +12,6 @@ import { BrainLogoSm } from "@/components/BrainLogo";
 import Index from "./pages/Index.tsx";
 import ResetPassword from "./pages/ResetPassword.tsx";
 import ForgotPassword from "./pages/ForgotPassword.tsx";
-import SignUpCustom from "./pages/SignUpCustom.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Cookies from "./pages/legal/Cookies.tsx";
 import Confidentialite from "./pages/legal/Confidentialite.tsx";
@@ -38,8 +36,8 @@ if (!clerkPubKey) {
 const clerkAppearance = {
   baseTheme: shadcn,
   variables: {
-    colorPrimary: "#F5E090",           /* or UpGrade */
-    colorBackground: "#080F1E",        /* midnight navy */
+    colorPrimary: "#F5E090",
+    colorBackground: "#080F1E",
     colorForeground: "#FFFFFF",
     colorMutedForeground: "rgba(255,255,255,0.55)",
     colorNeutral: "rgba(255,255,255,0.10)",
@@ -47,59 +45,67 @@ const clerkAppearance = {
     colorInput: "rgba(255,255,255,0.04)",
     colorDanger: "hsl(0 84% 60%)",
     fontFamily: "'Raleway', sans-serif",
-    borderRadius: "2px",               /* style luxe minimal */
+    borderRadius: "2px",
   },
   elements: {
     rootBox: "w-full flex justify-center",
     cardBox: "w-[440px] max-w-full overflow-hidden",
     card: "!shadow-none !border-0 !rounded-none",
     footer: "!shadow-none !border-0 !rounded-none",
-
-    /* Header — masqué car remplacé par AuthHeader */
     headerTitle: "!hidden",
     headerSubtitle: "!hidden",
     logoImage: "!hidden",
-
-    /* Champs */
     formFieldLabel: "!text-white/70",
     formFieldInput:
       "!bg-white/[0.03] !border !border-white/10 !text-white focus:!border-[#F5E090]/50 !rounded-[2px]",
     formFieldInputShowPasswordButton: "!text-white/40",
-
-    /* Bouton principal */
     formButtonPrimary:
       "!bg-[#F5E090] !text-[#080F1E] !font-semibold hover:!opacity-90 !rounded-[2px] !shadow-[0_6px_20px_-6px_rgba(245,224,144,0.45)]",
-
-    /* Boutons sociaux */
     socialButtonsBlockButton:
       "!bg-white/[0.04] !border !border-white/10 !text-white hover:!bg-white/[0.08] !rounded-[2px]",
     socialButtonsBlockButtonText: "!text-white",
-
-    /* Liens footer */
     footerActionLink: "!text-[#F5E090] hover:!text-white",
     footerActionText: "!text-white/40",
-
-    /* Séparateur */
     dividerLine: "!bg-white/10",
     dividerText: "!text-white/30",
-
-    /* Badges / alternatives */
     alternativeMethodsBlockButton:
       "!bg-white/[0.04] !border !border-white/10 !text-white hover:!bg-white/[0.08] !rounded-[2px]",
-
-    /* Lien mot de passe oublié */
     formFieldAction: "!text-[#F5E090] hover:!text-white",
-
-    /* Alert erreurs */
     formFieldErrorText: "!text-red-400",
     alert: "!border-red-500/20 !bg-red-950/20",
     alertText: "!text-red-300",
   },
 };
 
-function ClerkQueryCacheInvalidator() {
-  return null;
-}
+const clerkLocalization = {
+  ...frFR,
+  signIn: {
+    ...frFR.signIn,
+    start: {
+      ...frFR.signIn?.start,
+      title: "Connexion",
+      subtitle: "Bienvenue sur Édouard",
+      actionText: "Pas encore de compte ?",
+      actionLink: "S'inscrire",
+    },
+  },
+  signUp: {
+    ...frFR.signUp,
+    start: {
+      ...frFR.signUp?.start,
+      title: "Créer un compte",
+      subtitle: "Rejoignez Édouard",
+      actionText: "Déjà un compte ?",
+      actionLink: "Se connecter",
+    },
+  },
+  formFieldInputPlaceholder__password: "Créer un mot de passe",
+  formFieldInputPlaceholder__newPassword: "Nouveau mot de passe",
+  formFieldInputPlaceholder__confirmPassword: "Confirmer le mot de passe",
+  userButton: { ...frFR.userButton },
+  userProfile: { ...frFR.userProfile },
+};
+
 
 function AuthHeader({ backTo = "/" }: { backTo?: string }) {
   const navigate = useNavigate();
@@ -118,7 +124,6 @@ function AuthHeader({ backTo = "/" }: { backTo?: string }) {
         width: "100%",
       }}
     >
-      {/* Back button */}
       <div style={{ width: "100%", display: "flex", alignItems: "center" }}>
         <button
           onClick={() => navigate(backTo)}
@@ -188,9 +193,10 @@ function AuthRoute() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4 py-8">
       <AuthHeader />
       <SignIn
-        routing="path"
-        path={`${basePath}/auth`}
-        signUpUrl={`${basePath}/auth/sign-up`}
+        routing="virtual"
+        signUpUrl="/auth/sign-up"
+        forceRedirectUrl="/"
+        signUpForceRedirectUrl="/"
         appearance={clerkAppearance}
       />
       <button
@@ -225,9 +231,10 @@ function SignUpRoute() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4 py-8">
       <AuthHeader backTo="/auth" />
       <SignUp
-        routing="path"
-        path={`${basePath}/auth/sign-up`}
-        signInUrl={`${basePath}/auth`}
+        routing="virtual"
+        signInUrl="/auth"
+        forceRedirectUrl="/"
+        signInForceRedirectUrl="/"
         appearance={clerkAppearance}
       />
     </div>
@@ -242,57 +249,20 @@ function AppRoutes() {
       publishableKey={clerkPubKey}
       proxyUrl={clerkProxyUrl}
       appearance={clerkAppearance}
-      localization={{
-        ...frFR,
-        signIn: {
-          ...frFR.signIn,
-          start: {
-            ...frFR.signIn?.start,
-            title: "Connexion",
-            subtitle: "Bienvenue sur Édouard",
-            actionText: "Pas encore de compte ?",
-            actionLink: "S'inscrire",
-          },
-        },
-        signUp: {
-          ...frFR.signUp,
-          start: {
-            ...frFR.signUp?.start,
-            title: "Créer un compte",
-            subtitle: "Rejoignez Édouard",
-            actionText: "Déjà un compte ?",
-            actionLink: "Se connecter",
-          },
-        },
-        formFieldInputPlaceholder__password: "Créer un mot de passe",
-        formFieldInputPlaceholder__newPassword: "Nouveau mot de passe",
-        formFieldInputPlaceholder__confirmPassword: "Confirmer le mot de passe",
-        userButton: { ...frFR.userButton },
-        userProfile: { ...frFR.userProfile },
-      }}
-      signInUrl={`${basePath}/auth`}
-      signUpUrl={`${basePath}/auth/sign-up`}
-      routerPush={(to) => {
-        const stripped = basePath && to.startsWith(basePath)
-          ? to.slice(basePath.length) || "/"
-          : to;
-        navigate(stripped);
-      }}
-      routerReplace={(to) => {
-        const stripped = basePath && to.startsWith(basePath)
-          ? to.slice(basePath.length) || "/"
-          : to;
-        navigate(stripped, { replace: true });
-      }}
+      localization={clerkLocalization}
+      signInUrl="/auth"
+      signUpUrl="/auth/sign-up"
+      signInFallbackRedirectUrl="/"
+      signUpFallbackRedirectUrl="/"
+      routerPush={(to) => navigate(to)}
+      routerReplace={(to) => navigate(to, { replace: true })}
     >
       <QueryClientProvider client={queryClient}>
-        <ClerkQueryCacheInvalidator />
         <TooltipProvider>
           <Toaster />
           <Sonner />
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/sso-callback" element={<AuthenticateWithRedirectCallback />} />
             <Route path="/auth/sign-up" element={<SignUpRoute />} />
             <Route path="/auth/sign-up/*" element={<SignUpRoute />} />
             <Route path="/auth" element={<AuthRoute />} />

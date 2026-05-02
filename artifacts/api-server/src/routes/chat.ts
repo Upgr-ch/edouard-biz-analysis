@@ -101,7 +101,51 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
     /* ── 6. System prompt ────────────────────────────────────────── */
     const systemPrompt: ChatMessage = {
       role: "system",
-      content: `Tu es Édouard, un consultant senior en faisabilité et rentabilité de projets entrepreneuriaux. Tu es direct, exigeant et pragmatique. Tu ne fais jamais de compliments gratuits.
+      content: `## ⚠️ RÈGLE DE PRODUCTION ABSOLUE — LIS CECI EN PREMIER
+
+Chaque fois que tu as suffisamment d'informations pour clôturer une étape et passer à la suivante, tu DOIS produire ce bloc COMPLET avant toute transition. Sans aucune exception. Ne jamais écrire "Passons à l'étape X" ou "Étape X/10" sans avoir d'abord produit ce bloc :
+
+---
+**📋 Récapitulatif — Étape [X] : [Nom]**
+A. [fait collecté]
+B. [fait collecté]
+C. [fait collecté]
+
+**Points d'action :**
+- [action 1]
+- [action 2]
+- [action 3]
+
+%%FICHE:[NomDeLEtape]%%
+
+---
+[Une phrase de transition vers l'étape suivante]
+
+Exemple de clôture correcte de l'étape 2 :
+
+---
+**📋 Récapitulatif — Étape 2 : Cadrage**
+A. Cible : DAF/DG de PME 20-100 salariés
+B. Valeur : OCR + export EBP/Sage + conformité fiscale
+C. Prix : freemium, premium 49€/mois
+D. Distribution : cold email puis réseau experts-comptables
+
+**Points d'action :**
+- Signer 1 LOI avec un prospect pour valider l'intérêt
+- Documenter les flux EBP/Sage avant le dev
+- Tester le pricing avec 5 entretiens DAF
+
+%%FICHE:Cadrage%%
+
+---
+Passons au marché — Étape 3/10.
+
+Le marqueur %%FICHE:NomDeLEtape%% est OBLIGATOIRE. Noms valides : Projet, Cadrage, Marché, Diagnostic, Objectifs, Économie & Financement, Faisabilité, Acquisition, Synthèse.
+Exception : étape 7 (Statut et Fiscalité) = pas de clôture, tu passes directement à l'étape 8.
+
+---
+
+Tu es Édouard, un consultant senior en faisabilité et rentabilité de projets entrepreneuriaux. Tu es direct, exigeant et pragmatique. Tu ne fais jamais de compliments gratuits.
 
 ## ÉTAPE 0 — Détection du niveau
 L'interface présente automatiquement la question de niveau avec les 3 options A/B/C. Tu n'as PAS à la reposer.
@@ -175,6 +219,7 @@ Tu classes chaque projet selon 5 niveaux :
 3. Tu ne génères jamais de faux chiffres ou de données inventées.
 4. Tu structures tes réponses avec des titres et des listes quand c'est pertinent.
 5. Tu adaptes ta profondeur d'analyse à l'étape en cours ET au niveau de l'utilisateur.
+6. **CLÔTURE D'ÉTAPE OBLIGATOIRE** : Tu ne passes JAMAIS à une étape suivante sans avoir d'abord produit le bloc de clôture complet (récapitulatif + points d'action + marqueur %%FICHE%%). JAMAIS. Aucune exception. "Passons à l'étape suivante" sans le bloc = INTERDIT.
 
 ## RÈGLE D'ASSISTANCE SYSTÉMATIQUE
 - À chaque étape, si l'utilisateur semble hésiter ou écrit "aide-moi" (ou toute variante), tu lui proposes immédiatement 3 options concrètes étiquetées A, B, C avec des chiffres ou des exemples métiers adaptés à son projet.
@@ -244,32 +289,53 @@ Puis tu donnes un **VERDICT GLOBAL** avec une seule pastille et une phrase de co
 - Tu ne reviens à une étape précédente que si l'utilisateur le demande explicitement.
 - Adapte tes questions et analyses à l'étape en cours indiquée dans le contexte.
 
-## FORMAT DE CLÔTURE D'ÉTAPE — OBLIGATOIRE ET NON NÉGOCIABLE
-Quand tu as suffisamment d'informations pour passer à l'étape suivante, tu DOIS obligatoirement terminer ton message avec ce bloc EXACT (c'est une exception à la règle des 3 phrases) :
+## FORMAT DE CLÔTURE D'ÉTAPE — RÈGLE ABSOLUE, JAMAIS NÉGOCIABLE
+
+Quand tu as suffisamment d'informations pour passer à l'étape suivante, tu DOIS IMPÉRATIVEMENT produire ce bloc en entier. C'est une exception explicite à la règle des 3 phrases. AUCUNE transition vers l'étape suivante sans ce bloc.
+
+**FORMAT OBLIGATOIRE :**
 
 ---
 **📋 Récapitulatif — Étape [X] : [Nom de l'étape]**
-A. [Premier élément collecté, factuellement]
+A. [Premier élément collecté]
 B. [Deuxième élément collecté]
 C. [Troisième élément collecté]
-(ajoute autant de lettres que nécessaire pour couvrir tous les éléments clés)
+(autant de lettres que nécessaire)
 
 **Points d'action :**
 - [Action concrète prioritaire 1]
 - [Action concrète prioritaire 2]
-- [Action concrète prioritaire 3 si pertinente]
+- [Action concrète prioritaire 3]
 
 %%FICHE:[NomDeLEtape]%%
 
 ---
-Puis tu annonces le passage à l'étape suivante en UNE seule phrase directe.
+[UNE phrase d'annonce du passage à l'étape suivante]
 
-RÈGLES DU FORMAT DE CLÔTURE :
-- Tu utilises ce format UNIQUEMENT lors de la clôture d'étape, jamais pour les réponses intermédiaires.
-- Le marqueur %%FICHE:[NomDeLEtape]%% est OBLIGATOIRE à chaque clôture. Remplace [NomDeLEtape] par le nom exact de l'étape (ex : %%FICHE:Marché%%, %%FICHE:Acquisition%%, %%FICHE:Synthèse%%).
+**EXEMPLE CONCRET — clôture de l'étape 2 (Cadrage) :**
+
+---
+**📋 Récapitulatif — Étape 2 : Cadrage**
+A. Cible : DAF et DG de PME 20-100 salariés, tous secteurs
+B. Proposition de valeur : automatisation OCR + export EBP/Sage + conformité fiscale automatique
+C. Positionnement : différenciation par intégration comptable FR, pas uniquement le prix
+D. Distribution : cold email/LinkedIn les 6 premiers mois, puis réseau d'experts-comptables
+
+**Points d'action :**
+- Signer au moins 1 LOI avec un des 3 prospects pour valider l'intérêt réel
+- Documenter précisément les flux comptables EBP/Sage pour prioriser le développement
+- Confirmer le pricing avec 5 entretiens DAF avant de fixer définitivement
+
+%%FICHE:Cadrage%%
+
+---
+Passons au marché — Étape 3/10.
+
+**RÈGLES STRICTES :**
+- Le marqueur %%FICHE:[NomDeLEtape]%% est OBLIGATOIRE. Nom exact : Projet, Cadrage, Marché, Diagnostic, Objectifs, Économie & Financement, Faisabilité, Acquisition, Synthèse.
+- Pour l'étape 7 (Statut et Fiscalité), tu ne produis PAS de clôture — tu passes directement à l'étape 8.
 - Pour l'étape 10 (Synthèse), utilise %%FICHE:Synthèse%%.
-- Pour l'étape 7 (Statut et Fiscalité) que tu ne traites pas directement, tu n'émets pas de clôture — tu passes directement à l'étape 8.
-- Le récapitulatif est factuel : uniquement ce qui a été dit dans la conversation. Jamais d'invention.${geoCtx}${levelContext}`,
+- Le récapitulatif = uniquement les faits de la conversation. Zéro invention.${geoCtx}${levelContext}`,
     };
 
     /* ── 7. Appel IA avec timeout 60 s ──────────────────────────── */
@@ -313,6 +379,96 @@ RÈGLES DU FORMAT DE CLÔTURE :
 
     const data = (await response.json()) as OpenRouterResponse;
     const content = data.choices?.[0]?.message?.content ?? "";
+
+    /* ── 8. Détection transition d'étape sans clôture ─────────────── */
+    const STEP_NAMES = [
+      "", "Projet", "Cadrage", "Marché", "Diagnostic", "Objectifs",
+      "Économie & Financement", "Statut et Fiscalité", "Faisabilité",
+      "Acquisition", "Synthèse",
+    ];
+    const SKIP_CLOSURE_STEP = 7; // Statut et Fiscalité, géré par l'interface
+
+    const prevStepMsg = [...filteredMessages]
+      .reverse()
+      .find((m) => m.role === "assistant" && /\*\*Étape \d+\/10/.test(m.content));
+    const prevStepNum = prevStepMsg
+      ? parseInt(prevStepMsg.content.match(/\*\*Étape (\d+)\/10/)![1])
+      : null;
+    const allNewStepMatches = [...content.matchAll(/\*\*Étape (\d+)\/10/g)];
+    const newStepNum = allNewStepMatches.length > 0
+      ? Math.max(...allNewStepMatches.map((m) => parseInt(m[1])))
+      : null;
+
+    const hasStepTransition =
+      prevStepNum !== null &&
+      newStepNum !== null &&
+      newStepNum > prevStepNum &&
+      prevStepNum !== SKIP_CLOSURE_STEP;
+    const hasFiche = content.includes("%%FICHE:");
+
+    if (hasStepTransition && !hasFiche) {
+      const completedStepName = STEP_NAMES[prevStepNum] ?? `Étape ${prevStepNum}`;
+
+      const convText = filteredMessages
+        .filter((m) => m.role !== "system")
+        .map((m) => `${m.role === "user" ? "Utilisateur" : "Édouard"}: ${m.content}`)
+        .join("\n\n");
+
+      const closurePrompt = `Tu es Édouard. À partir de la conversation ci-dessous, génère UNIQUEMENT le bloc de clôture de l'étape ${prevStepNum} (${completedStepName}).
+
+Format EXACT — ne dévie pas d'un caractère :
+
+**📋 Récapitulatif — Étape ${prevStepNum} : ${completedStepName}**
+A. [premier fait collecté dans la conversation]
+B. [deuxième fait]
+C. [troisième fait]
+(autant de points que nécessaire, uniquement les faits réels)
+
+**Points d'action :**
+- [action concrète 1]
+- [action concrète 2]
+- [action concrète 3]
+
+%%FICHE:${completedStepName}%%
+
+Ne produis RIEN d'autre. Pas de phrase de transition, pas d'introduction. Uniquement ce bloc.
+
+Conversation :
+${convText}`;
+
+      try {
+        const closureCtrl = new AbortController();
+        const closureTimeout = setTimeout(() => closureCtrl.abort(), 30_000);
+        const closureResp = await fetch(`${OPENROUTER_BASE}/chat/completions`, {
+          method: "POST",
+          signal: closureCtrl.signal,
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://upgrade-app.replit.app",
+            "X-Title": "UpGrade – Clôture étape",
+          },
+          body: JSON.stringify({
+            model: AI_MODEL,
+            max_tokens: 1024,
+            temperature: 0.2,
+            messages: [{ role: "user", content: closurePrompt }],
+          }),
+        });
+        clearTimeout(closureTimeout);
+
+        if (closureResp.ok) {
+          const closureData = (await closureResp.json()) as OpenRouterResponse;
+          const closureBlock = closureData.choices?.[0]?.message?.content?.trim() ?? "";
+          if (closureBlock) {
+            res.json({ content: `${closureBlock}\n\n---\n\n${content}` });
+            return;
+          }
+        }
+      } catch {
+        // Si le second appel échoue, on renvoie quand même la réponse principale
+      }
+    }
 
     res.json({ content });
 

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useAuth as useClerkAuth } from "@clerk/react";
 import ChatPanel from "@/components/ChatPanel";
 import AppSidebar from "@/components/AppSidebar";
 import MainHeader from "@/components/MainHeader";
@@ -47,10 +48,14 @@ interface TempChatMessage {
   content: string;
 }
 
-async function apiFetch<T>(path: string, options?: RequestInit): Promise<T | null> {
+async function apiFetch<T>(path: string, options?: RequestInit, token?: string | null): Promise<T | null> {
   const res = await fetch(`/api${path}`, {
     credentials: "include",
-    headers: { "Content-Type": "application/json", ...(options?.headers ?? {}) },
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(options?.headers ?? {}),
+    },
     ...options,
   });
   if (!res.ok) throw new Error(`API error ${res.status}`);
@@ -79,6 +84,7 @@ function mapMsg(m: ApiMessage): Message {
 
 const Index = () => {
   const { user } = useAuth();
+  const { getToken } = useClerkAuth();
   useNewUserSync();
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -86,6 +92,14 @@ const Index = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isPdfLoading, setIsPdfLoading] = useState(false);
   const restorationProcessed = useRef(false);
+
+  const authedFetch = useCallback(
+    async <T>(path: string, options?: RequestInit): Promise<T | null> => {
+      const token = await getToken();
+      return apiFetch<T>(path, options, token);
+    },
+    [getToken],
+  );
 
   const handleDownloadPdf = useCallback(async () => {
     if (isPdfLoading || messages.length === 0) return;
@@ -107,17 +121,17 @@ const Index = () => {
 
   const fetchMessages = useCallback(async (id: string) => {
     try {
-      const data = await apiFetch<ApiMessage[]>(`/conversations/${id}/messages`);
+      const data = await authedFetch<ApiMessage[]>(`/conversations/${id}/messages`);
       setMessages((data ?? []).map(mapMsg));
     } catch (e) {
       console.error("Fetch messages error:", e);
     }
-  }, []);
+  }, [authedFetch]);
 
   const fetchConversations = useCallback(async () => {
     if (!user) return;
     try {
-      const data = await apiFetch<ApiConversation[]>("/conversations");
+      const data = await authedFetch<ApiConversation[]>("/conversations");
       const convs = (data ?? []).map(mapConv);
       setConversations(convs);
       if (!conversationId && convs[0]) {
@@ -128,12 +142,12 @@ const Index = () => {
     } catch (e) {
       console.error("Fetch conversations error:", e);
     }
-  }, [conversationId, fetchMessages, user]);
+  }, [conversationId, fetchMessages, user, authedFetch]);
 
   const handleCreateConversation = async (title: string): Promise<string | null> => {
     if (!user) return null;
     try {
-      const data = await apiFetch<ApiConversation>("/conversations", {
+      const data = await authedFetch<ApiConversation>("/conversations", {
         method: "POST",
         body: JSON.stringify({ title }),
       });
@@ -151,7 +165,7 @@ const Index = () => {
 
   const handleSaveMessage = async (id: string, role: "user" | "assistant", content: string) => {
     try {
-      const data = await apiFetch<ApiMessage>(`/conversations/${id}/messages`, {
+      const data = await authedFetch<ApiMessage>(`/conversations/${id}/messages`, {
         method: "POST",
         body: JSON.stringify({ role, content }),
       });
@@ -193,7 +207,7 @@ const Index = () => {
         const newConversationId = await handleCreateConversation("Analyse récupérée");
         if (!newConversationId) throw new Error("Conversation non créée");
 
-        await apiFetch<ApiMessage[]>(
+        await authedFetch<ApiMessage[]>(
           `/conversations/${newConversationId}/messages/bulk`,
           {
             method: "POST",
@@ -221,7 +235,7 @@ const Index = () => {
 
   const handleRenameConversation = async (id: string, title: string) => {
     try {
-      await apiFetch<ApiConversation>(`/conversations/${id}`, {
+      await authedFetch<ApiConversation>(`/conversations/${id}`, {
         method: "PATCH",
         body: JSON.stringify({ title }),
       });
@@ -237,7 +251,7 @@ const Index = () => {
     setCurrentStep(step);
     if (conversationId) {
       try {
-        await apiFetch<ApiConversation>(`/conversations/${conversationId}`, {
+        await authedFetch<ApiConversation>(`/conversations/${conversationId}`, {
           method: "PATCH",
           body: JSON.stringify({ currentStep: step }),
         });
@@ -261,7 +275,7 @@ const Index = () => {
 
   const handleDeleteConversation = async (id: string) => {
     try {
-      await apiFetch<null>(`/conversations/${id}`, { method: "DELETE" });
+      await authedFetch<null>(`/conversations/${id}`, { method: "DELETE" });
       setConversations((prev) => prev.filter((c) => c.id !== id));
       if (conversationId === id) {
         setConversationId(null);

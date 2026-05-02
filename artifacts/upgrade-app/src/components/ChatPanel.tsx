@@ -3,6 +3,7 @@ import { Send, ArrowRight, Check, LogOut, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import { useAuth } from "@/hooks/useAuth";
+import { useAuth as useClerkAuth } from "@clerk/react";
 import { toast } from "sonner";
 import { Link, useNavigate } from "react-router-dom";
 import * as AnonChat from "@/lib/anonymousChat";
@@ -62,11 +63,14 @@ const Footer = () => (
   </footer>
 );
 
-async function invokeChat(messages: DisplayMessage[]): Promise<string> {
+async function invokeChat(messages: DisplayMessage[], token?: string | null): Promise<string> {
   const res = await fetch("/api/chat", {
     method: "POST",
     credentials: "include",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
     body: JSON.stringify({ messages }),
   });
   if (!res.ok) {
@@ -91,6 +95,7 @@ const ChatPanel = ({
   onRenameConversation,
 }: ChatPanelProps) => {
   const { user, signOut } = useAuth();
+  const { getToken } = useClerkAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [input, setInput] = useState("");
@@ -165,10 +170,11 @@ const ChatPanel = ({
             conversationId ?? (await onCreateConversation?.("Nouvelle analyse")) ?? null;
           if (!activeConversationId) return;
           await saveMessage(activeConversationId, "user", letter);
+          const token = await getToken();
           const reply = await invokeChat([
             ...persistedMessages,
             { role: "user", content: letter },
-          ]);
+          ], token);
           if (reply) {
             const cleanReply = stripSentinel(reply);
             await saveMessage(activeConversationId, "assistant", cleanReply);
@@ -239,10 +245,11 @@ Avant de commencer, j'ai besoin de savoir où tu en es.
           return;
         }
         await saveMessage(activeConversationId, "user", content);
+        const token = await getToken();
         const reply = await invokeChat([
           ...persistedMessages,
           { role: "user", content },
-        ]);
+        ], token);
         if (reply) {
           const cleanReply = stripSentinel(reply);
           await saveMessage(activeConversationId, "assistant", cleanReply);

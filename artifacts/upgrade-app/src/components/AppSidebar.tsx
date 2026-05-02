@@ -6,6 +6,7 @@ import {
 import { useState } from "react";
 import type { Conversation } from "@/hooks/useConversations";
 import { BrainLogoSm } from "@/components/BrainLogo";
+import SidebarAdBanner from "@/components/ads/SidebarAdBanner";
 
 const steps = [
   { id: 0, label: "Projet",                  icon: Brain },
@@ -273,6 +274,9 @@ const SidebarContent = ({
           })}
         </div>
       </nav>
+
+      {/* ── Sidebar Ad Banner (desktop, 300×250) ── */}
+      <SidebarAdBanner />
 
       {/* ── Footer ── */}
       {!collapsed && (

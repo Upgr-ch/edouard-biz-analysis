@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Fragment } from "react";
 import { Send, ArrowRight, Check, LogOut, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Link, useNavigate } from "react-router-dom";
 import * as AnonChat from "@/lib/anonymousChat";
 import { BrainLogoSm } from "@/components/BrainLogo";
+import AdSlot from "@/components/ads/AdSlot";
 
 interface DisplayMessage {
   role: "user" | "assistant";
@@ -181,6 +182,7 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
   };
 
   let userMsgCounter = 0;
+  let assistantMsgCounter = 0;
 
   return (
     <div className="flex flex-col h-screen bg-background relative overflow-hidden">
@@ -276,54 +278,58 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
           <div className="max-w-2xl w-full flex-1 space-y-6 pb-20">
             {displayMessages.map((msg, i) => {
               if (msg.role === "user") userMsgCounter++;
+              if (msg.role === "assistant") assistantMsgCounter++;
+              const showAd = msg.role === "assistant" && assistantMsgCounter % 6 === 0;
               return (
-                <div
-                  key={i}
-                  className={cn(
-                    "flex flex-col animate-in fade-in",
-                    msg.role === "user" ? "items-end" : "items-start",
-                  )}
-                >
-                  <div className={cn("flex gap-3 max-w-[85%]", msg.role === "user" ? "flex-row-reverse" : "")}>
-                    {/* Avatar */}
-                    {msg.role === "assistant" ? (
-                      <BrainLogoSm className="shrink-0 mt-0.5" />
-                    ) : (
-                      <div
-                        className="w-8 h-8 rounded-sm flex items-center justify-center shrink-0 font-bold text-xs border"
-                        style={{
-                          background: "rgba(245,224,144,0.08)",
-                          borderColor: "rgba(245,224,144,0.25)",
-                          color: "#F5E090",
-                        }}
-                      >
-                        {userMsgCounter}
-                      </div>
+                <Fragment key={i}>
+                  <div
+                    className={cn(
+                      "flex flex-col animate-in fade-in",
+                      msg.role === "user" ? "items-end" : "items-start",
                     )}
+                  >
+                    <div className={cn("flex gap-3 max-w-[85%]", msg.role === "user" ? "flex-row-reverse" : "")}>
+                      {/* Avatar */}
+                      {msg.role === "assistant" ? (
+                        <BrainLogoSm className="shrink-0 mt-0.5" />
+                      ) : (
+                        <div
+                          className="w-8 h-8 rounded-sm flex items-center justify-center shrink-0 font-bold text-xs border"
+                          style={{
+                            background: "rgba(245,224,144,0.08)",
+                            borderColor: "rgba(245,224,144,0.25)",
+                            color: "#F5E090",
+                          }}
+                        >
+                          {userMsgCounter}
+                        </div>
+                      )}
 
-                    {/* Bubble */}
-                    <div
-                      className="rounded-sm px-4 py-3 text-sm border"
-                      style={
-                        msg.role === "assistant"
-                          ? {
-                              background: "rgba(255,255,255,0.03)",
-                              borderColor: "rgba(255,255,255,0.08)",
-                              color: "rgba(255,255,255,0.85)",
-                            }
-                          : {
-                              background: "rgba(245,224,144,0.07)",
-                              borderColor: "rgba(245,224,144,0.20)",
-                              color: "#ffffff",
-                            }
-                      }
-                    >
-                      <div className="prose prose-sm dark:prose-invert" style={{ fontFamily: "var(--up-font)" }}>
-                        <ReactMarkdown>{msg.content}</ReactMarkdown>
+                      {/* Bubble */}
+                      <div
+                        className="rounded-sm px-4 py-3 text-sm border"
+                        style={
+                          msg.role === "assistant"
+                            ? {
+                                background: "rgba(255,255,255,0.03)",
+                                borderColor: "rgba(255,255,255,0.08)",
+                                color: "rgba(255,255,255,0.85)",
+                              }
+                            : {
+                                background: "rgba(245,224,144,0.07)",
+                                borderColor: "rgba(245,224,144,0.20)",
+                                color: "#ffffff",
+                              }
+                        }
+                      >
+                        <div className="prose prose-sm dark:prose-invert" style={{ fontFamily: "var(--up-font)" }}>
+                          <ReactMarkdown>{msg.content}</ReactMarkdown>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                  {showAd && <AdSlot />}
+                </Fragment>
               );
             })}
 

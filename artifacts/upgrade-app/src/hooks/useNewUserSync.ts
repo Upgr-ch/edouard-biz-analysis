@@ -1,3 +1,7 @@
+// Contact sync is now handled server-side via Clerk webhook (POST /api/webhooks/clerk).
+// This hook is kept as a lightweight fallback in case the webhook misses an event
+// (e.g. webhook not yet configured in Clerk dashboard).
+
 import { useEffect, useRef } from "react";
 import { useUser } from "@clerk/react";
 
@@ -44,7 +48,7 @@ export function useNewUserSync() {
       .then((r) => {
         if (r.ok) {
           localStorage.setItem(`${STORAGE_KEY}_${user.id}`, "1");
-          console.info("[useNewUserSync] contact synced to Systeme.io");
+          console.info("[useNewUserSync] fallback contact sync ok");
         }
       })
       .catch((err) => console.warn("[useNewUserSync]", err));

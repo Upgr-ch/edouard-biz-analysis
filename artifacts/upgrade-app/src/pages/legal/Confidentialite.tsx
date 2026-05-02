@@ -7,7 +7,7 @@ const Confidentialite = () => (
 
     <h2>2. Responsable du traitement</h2>
     <p>Le responsable du traitement des données est :</p>
-    <p>Kévin Lavergne – UpGrade<br/>Route de Peillonex 12, 1225 Chêne-Bourg, GE – Switzerland<br/>CHE‑422.229.205 — Id Reg : 1.2I1S7A<br/>Contact : kl@upgr.ch</p>
+    <p>Kévin LAVERGNE – UpGrade<br/>Raison individuelle, Route de Peillonex 10<br/>1225 Chêne-Bourg – GE, Switzerland<br/>CHE‑422.229.205 | Id Reg : 1.2I1S7A<br/>Email : kl@upgr.ch</p>
 
     <h2>3. Données collectées</h2>
     <p>L'application peut collecter les catégories de données suivantes :</p>

@@ -3,7 +3,7 @@ import LegalLayout from "./LegalLayout";
 const MentionsLegales = () => (
   <LegalLayout title="Mentions légales">
     <h2>Éditeur de l'application</h2>
-    <p>Kévin LAVERGNE – UpGrade<br/>Raison individuelle, Route de Peillonex 12<br/>1225 Chêne-Bourg – GE, Suisse<br/>CHE‑422.229.205 | Id Reg : 1.2I1S7A<br/>Email : kl@upgr.ch</p>
+    <p>Kévin LAVERGNE – UpGrade<br/>Raison individuelle, Route de Peillonex 10<br/>1225 Chêne-Bourg – GE, Switzerland<br/>CHE‑422.229.205 | Id Reg : 1.2I1S7A<br/>Email : kl@upgr.ch</p>
 
     <h2>Responsable de publication</h2>
     <p>Kévin LAVERGNE</p>

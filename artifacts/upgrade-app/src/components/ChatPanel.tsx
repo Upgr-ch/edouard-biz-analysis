@@ -254,19 +254,22 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
               >
                 {isChecked && <Check size={12} />}
               </div>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-tight">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-tight leading-relaxed">
                 <span className="font-bold text-foreground">AVERTISSEMENT :</span> Les analyses sont
-                fournies à titre informatif et consultatif uniquement.
+                fournies à titre informatif et consultatif uniquement. Elles ne constituent pas une
+                garantie de résultat ni un conseil engageant. L'utilisation des informations et les
+                décisions prises relèvent entièrement de la responsabilité de l'utilisateur.
               </p>
             </div>
 
             <button
               disabled={!isChecked || isLoading}
               onClick={() => void startConversation()}
-              className="w-full py-4 font-bold flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed rounded-sm"
+              className="w-full py-4 font-bold flex items-center justify-center gap-2 transition-all active:scale-95 disabled:cursor-not-allowed rounded-sm border"
               style={{
-                background: isChecked ? "#F5E090" : "rgba(245,224,144,0.15)",
-                color: "#080F1E",
+                background: isChecked ? "#F5E090" : "rgba(245,224,144,0.07)",
+                color: isChecked ? "#080F1E" : "rgba(245,224,144,0.55)",
+                borderColor: isChecked ? "transparent" : "rgba(245,224,144,0.22)",
                 boxShadow: isChecked ? "0 10px 30px -10px rgba(245,224,144,0.40)" : "none",
               }}
             >

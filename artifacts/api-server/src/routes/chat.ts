@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { getAuth } from "@clerk/express";
 import { isRateLimited } from "../lib/rateLimiter";
+import { detectRegion, regionalContext } from "../lib/geoLocate";
 
 const router = Router();
 
@@ -36,12 +37,13 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
     const { userId } = getAuth(req);
     const isAnon = !userId;
 
-    /* ── 2. Rate limiting ────────────────────────────────────────── */
+    /* ── 2. IP + rate limiting + géolocalisation ─────────────────── */
+    const ip =
+      (req.headers["x-forwarded-for"] as string | undefined)?.split(",")[0].trim() ??
+      req.socket.remoteAddress ??
+      "unknown";
+
     if (isAnon) {
-      const ip =
-        (req.headers["x-forwarded-for"] as string | undefined)?.split(",")[0].trim() ??
-        req.socket.remoteAddress ??
-        "unknown";
       if (isRateLimited(`anon:${ip}`, LIMIT_ANON_DAY)) {
         res.status(429).json({ error: "Limite journalière atteinte. Crée un compte gratuit pour continuer." });
         return;
@@ -52,6 +54,10 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
         return;
       }
     }
+
+    // Géolocalisation silencieuse (ne bloque pas si elle échoue)
+    const region = await detectRegion(ip);
+    const geoCtx = regionalContext(region);
 
     /* ── 3. Validation body ──────────────────────────────────────── */
     const body = req.body as { messages?: ChatMessage[] };
@@ -81,7 +87,7 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
 Tu t'exprimes de manière ferme, assertive et juste. Ton travail est de dire la vérité business, pas de flatter.
 Tu analyses les idées business avec structure et honnêteté, en utilisant des données réelles et vérifiables.
 Tu guides l'utilisateur à travers une analyse en plusieurs étapes : profil, idée, marché, faisabilité, rentabilité.
-Réponds toujours en français. Sois direct, précis et utile.`,
+Réponds toujours en français. Sois direct, précis et utile.${geoCtx}`,
     };
 
     /* ── 7. Appel IA avec timeout 60 s ──────────────────────────── */

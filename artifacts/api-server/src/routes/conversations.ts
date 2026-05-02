@@ -17,6 +17,13 @@ type MessageInsert = {
   createdAt?: string;
 };
 
+// ── Param helpers ──────────────────────────────────────────────────────────
+
+/** Express param values are typed as `string | string[]`; routes always get a plain string. */
+function param(val: string | string[]): string {
+  return Array.isArray(val) ? val[0] : val;
+}
+
 // ── Middleware ─────────────────────────────────────────────────────────────
 
 function requireAuth(
@@ -44,7 +51,7 @@ async function requireConversationOwner(
   res: Response,
   next: NextFunction,
 ): Promise<void> {
-  const { id } = req.params;
+  const id = param(req.params.id);
   const userId = (req as AuthedRequest).userId;
 
   const [conv] = await db
@@ -117,7 +124,7 @@ router.patch(
   async (req: Request, res: Response): Promise<void> => {
     try {
       const { userId } = req as AuthedRequest;
-      const { id } = req.params;
+      const id = param(req.params.id);
       const { title, currentStep } = req.body as {
         title?: string;
         currentStep?: number;
@@ -158,7 +165,7 @@ router.delete(
   async (req: Request, res: Response): Promise<void> => {
     try {
       const { userId } = req as AuthedRequest;
-      const { id } = req.params;
+      const id = param(req.params.id);
 
       // Confirm ownership before touching any rows
       const [owned] = await db
@@ -201,7 +208,7 @@ router.get(
   requireConversationOwner,
   async (req: Request, res: Response): Promise<void> => {
     try {
-      const { id } = req.params;
+      const id = param(req.params.id);
       const rows = await db
         .select()
         .from(chatMessagesTable)
@@ -222,7 +229,7 @@ router.post(
   requireConversationOwner,
   async (req: Request, res: Response): Promise<void> => {
     try {
-      const { id } = req.params;
+      const id = param(req.params.id);
       const { role, content, createdAt } = req.body as {
         role: "user" | "assistant";
         content: string;
@@ -262,7 +269,7 @@ router.post(
   requireConversationOwner,
   async (req: Request, res: Response): Promise<void> => {
     try {
-      const { id } = req.params;
+      const id = param(req.params.id);
       const { messages } = req.body as { messages: MessageInsert[] };
 
       if (!Array.isArray(messages) || messages.length === 0) {
@@ -303,7 +310,8 @@ router.patch(
   requireConversationOwner,
   async (req: Request, res: Response): Promise<void> => {
     try {
-      const { id, msgId } = req.params;
+      const id = param(req.params.id);
+      const msgId = param(req.params.msgId);
       const { content } = req.body as { content: string };
 
       const [row] = await db

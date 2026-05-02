@@ -1,28 +1,34 @@
 import jsPDF from "jspdf";
 
-const REPORT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-report`;
-
-/** Call edge function to get structured synthesis */
+/** Call the API to get a structured synthesis for the PDF report */
 export async function fetchSynthesis(
   messages: { role: string; content: string }[],
   projectName: string,
 ): Promise<string> {
-  const resp = await fetch(REPORT_URL, {
+  const resp = await fetch("/api/chat", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-    },
-    body: JSON.stringify({ messages, projectName }),
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      messages: [
+        ...messages,
+        {
+          role: "user",
+          content: `Génère une synthèse structurée et professionnelle de cette analyse business pour "${projectName}". 
+Inclus : résumé exécutif, points forts, risques identifiés, recommandations, et conclusion.
+Format Markdown avec titres (##) et puces (-)`,
+        },
+      ],
+    }),
   });
 
   if (!resp.ok) {
-    const data = await resp.json().catch(() => ({}));
-    throw new Error(data.error || "Erreur lors de la génération du rapport");
+    const data = (await resp.json().catch(() => ({}))) as { error?: string };
+    throw new Error(data.error ?? "Erreur lors de la génération du rapport");
   }
 
-  const data = await resp.json();
-  return data.report;
+  const data = (await resp.json()) as { content?: string };
+  return data.content ?? "";
 }
 
 /** Render markdown-like synthesis to a styled PDF */

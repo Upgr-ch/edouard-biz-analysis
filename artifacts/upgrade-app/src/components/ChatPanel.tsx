@@ -94,6 +94,7 @@ const ChatPanel = ({
       }, 4000);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [totalUserMessages, isLoading, isAnonymous, navigate]);
 
   useEffect(() => {

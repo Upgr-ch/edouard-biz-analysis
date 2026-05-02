@@ -476,7 +476,7 @@ Avant de commencer, j'ai besoin de savoir où tu en es.
               >
                 {isChecked && <Check size={13} strokeWidth={3} />}
               </div>
-              <p className="text-[10px] uppercase tracking-tight leading-relaxed" style={{ color: "#ffffff" }}>
+              <p className="text-xs uppercase tracking-tight leading-relaxed" style={{ color: "#ffffff" }}>
                 <span className="font-bold" style={{ color: "#F5E090" }}>AVERTISSEMENT :</span> Les analyses sont
                 fournies à titre informatif et consultatif uniquement. Elles ne constituent pas une
                 garantie de résultat ni un conseil engageant. L'utilisation des informations et les

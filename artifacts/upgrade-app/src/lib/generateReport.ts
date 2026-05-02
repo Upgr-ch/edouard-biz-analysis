@@ -237,6 +237,181 @@ export function renderReportPdf(reportMarkdown: string, projectName: string) {
   doc.save(`Synthese-Edouard-${safeName}.pdf`);
 }
 
+// ── Compilation PDF (all steps + synthesis) ──────────────────────────────────
+
+export const STEP_LABELS = [
+  "Projet", "Cadrage", "Marché", "Diagnostic", "Objectifs",
+  "Économie & Financement", "Statut et Fiscalité", "Faisabilité", "Acquisition",
+] as const;
+
+export async function fetchAllStepReports(
+  messages: { role: string; content: string }[],
+  projectName: string,
+  token?: string | null,
+  onStepComplete?: (label: string, done: number, total: number) => void,
+): Promise<Array<{ label: string; content: string }>> {
+  let done = 0;
+  return Promise.all(
+    STEP_LABELS.map(async (label) => {
+      const content = await fetchStepReport(messages, projectName, label, token);
+      done += 1;
+      onStepComplete?.(label, done, STEP_LABELS.length);
+      return { label, content };
+    }),
+  );
+}
+
+export function renderCompilationPdf(
+  stepReports: Array<{ label: string; content: string }>,
+  synthesisReport: string,
+  projectName: string,
+) {
+  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  const margin = 18;
+  const contentW = pageW - margin * 2;
+  const dateStr = new Date().toLocaleDateString("fr-FR", {
+    day: "numeric", month: "long", year: "numeric",
+  });
+
+  // ── Cover page ────────────────────────────────────────────────────────────
+  doc.setFillColor(...NAVY);
+  doc.rect(0, 0, pageW, pageH, "F");
+
+  // Left gold accent bar
+  doc.setFillColor(...GOLD);
+  doc.rect(0, 0, 3.5, pageH, "F");
+
+  // Brand
+  doc.setTextColor(...GOLD);
+  doc.setFontSize(28);
+  doc.setFont("helvetica", "bold");
+  doc.text("ÉDOUARD", margin, 38);
+
+  doc.setTextColor(...GREY_LIGHT);
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "normal");
+  doc.text("Consultant en faisabilité & rentabilité", margin, 47);
+
+  doc.setFillColor(...GOLD);
+  doc.rect(margin, 52, contentW, 0.6, "F");
+
+  // Project name
+  doc.setTextColor(...WHITE);
+  doc.setFontSize(17);
+  doc.setFont("helvetica", "bold");
+  const projW = doc.splitTextToSize(projectName.toUpperCase(), contentW);
+  doc.text(projW, margin, 64);
+
+  const afterProj = 64 + projW.length * 8;
+
+  doc.setTextColor(...GOLD);
+  doc.setFontSize(9.5);
+  doc.setFont("helvetica", "bold");
+  doc.text("RAPPORT COMPLET — 10 ÉTAPES ANALYSÉES", margin, afterProj + 8);
+
+  doc.setTextColor(...TEXT_MUTED);
+  doc.setFontSize(8);
+  doc.setFont("helvetica", "normal");
+  doc.text(dateStr, margin, afterProj + 16);
+
+  // Step index
+  doc.setFillColor(255, 255, 255, 0.04);
+  const indexY = afterProj + 28;
+  doc.setFillColor(...GOLD);
+  doc.rect(margin, indexY, contentW, 0.4, "F");
+
+  let iy = indexY + 10;
+  STEP_LABELS.forEach((label, i) => {
+    doc.setFontSize(8.5);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(...GOLD);
+    doc.text(`${i + 1}. `, margin, iy);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(...WHITE);
+    doc.text(label, margin + 7, iy);
+    iy += 7.5;
+  });
+
+  doc.setFontSize(8.5);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(...GOLD);
+  doc.text("10. ", margin, iy);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(...WHITE);
+  doc.text("Synthèse — Verdict final", margin + 9, iy);
+
+  // Cover footer
+  doc.setTextColor(...TEXT_MUTED);
+  doc.setFontSize(7);
+  doc.text("© 2026 - Kévin Lavergne – UpGrade", margin, pageH - 10);
+
+  // ── Step sections ─────────────────────────────────────────────────────────
+  for (let i = 0; i < stepReports.length; i++) {
+    const { label, content } = stepReports[i];
+    doc.addPage();
+
+    // Section mini-header
+    doc.setFillColor(...NAVY);
+    doc.rect(0, 0, pageW, 22, "F");
+    doc.setFillColor(...GOLD);
+    doc.rect(0, 22, pageW, 0.8, "F");
+    doc.setFillColor(...GOLD);
+    doc.rect(0, 0, 3.5, 22, "F");
+
+    doc.setFontSize(7);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(...GOLD);
+    doc.text(`ÉTAPE ${i + 1}/9  ·  ${label.toUpperCase()}`, margin, 14);
+
+    doc.setTextColor(...TEXT_MUTED);
+    doc.setFontSize(7);
+    doc.setFont("helvetica", "normal");
+    doc.text(projectName, pageW - margin, 14, { align: "right" });
+
+    parseMdToDoc(doc, content.split("\n"), margin, contentW, pageW, pageH, 30);
+  }
+
+  // ── Synthesis section ─────────────────────────────────────────────────────
+  doc.addPage();
+  drawPageHeader(doc, pageW, false);
+
+  doc.setTextColor(...GOLD);
+  doc.setFontSize(22);
+  doc.setFont("helvetica", "bold");
+  doc.text("SYNTHÈSE FINALE", margin, 19);
+
+  doc.setTextColor(...TEXT_MUTED);
+  doc.setFontSize(8.5);
+  doc.setFont("helvetica", "normal");
+  doc.text("Verdict global sur la faisabilité et la rentabilité", margin, 27);
+
+  doc.setTextColor(...TEXT_MUTED);
+  doc.setFontSize(7.5);
+  doc.text(dateStr, pageW - margin, 27, { align: "right" });
+
+  doc.setTextColor(...WHITE);
+  doc.setFontSize(13);
+  doc.setFont("helvetica", "bold");
+  const synW = doc.splitTextToSize(projectName.toUpperCase(), contentW - 20);
+  doc.text(synW, margin, 39);
+
+  parseMdToDoc(doc, synthesisReport.split("\n"), margin, contentW, pageW, pageH, 55);
+
+  // ── Page footers (skip cover = page 1) ────────────────────────────────────
+  const totalPages = doc.getNumberOfPages();
+  for (let p = 2; p <= totalPages; p++) {
+    doc.setPage(p);
+    drawPageFooter(doc, pageW, pageH, p - 1, totalPages - 1, projectName);
+  }
+
+  const safeName = projectName
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9\s-]/g, "").replace(/\s+/g, "-").slice(0, 60);
+  doc.save(`Rapport-Complet-Edouard-${safeName}.pdf`);
+}
+
 // ── Step fiche PDF ────────────────────────────────────────────────────────────
 
 export async function fetchStepReport(

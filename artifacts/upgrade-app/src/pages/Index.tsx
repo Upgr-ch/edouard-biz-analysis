@@ -11,7 +11,8 @@ import { useNewUserSync } from "@/hooks/useNewUserSync";
 import { toast } from "sonner";
 import {
   fetchSynthesis,
-  renderReportPdf,
+  fetchAllStepReports,
+  renderCompilationPdf,
   fetchStepReport,
   renderStepPdf,
 } from "@/lib/generateReport";
@@ -105,9 +106,10 @@ const Index = () => {
   const restorationProcessed = useRef(false);
   const continuationPromptShownFor = useRef<string | null>(null);
   const nextStepPromptedLabels = useRef<Set<string>>(new Set());
+  const [pdfProgressStage, setPdfProgressStage] = useState<string | null>(null);
 
   // Safety: reset any stale loading state on mount (e.g. after HMR mid-request)
-  useEffect(() => { setPdfLoadingStep(null); }, []);
+  useEffect(() => { setPdfLoadingStep(null); setPdfProgressStage(null); }, []);
 
   const FISCAL_DISCLAIMER_STEP = 6;      // sidebar index 6 = "Statut et Fiscalité"
   const ACQUISITION_DISCLAIMER_STEP = 8; // sidebar index 8 = "Acquisition Client"
@@ -326,12 +328,25 @@ const Index = () => {
     }
     if (pdfLoadingStep) return;
     setPdfLoadingStep("final");
+    setPdfProgressStage("Génération des 9 fiches étapes en parallèle…");
     try {
       const token = await getToken();
       const chatMessages = messages.map((m) => ({ role: m.role, content: m.content }));
       const projectName = activeConversationTitle ?? "Analyse";
-      const report = await fetchSynthesis(chatMessages, projectName, token);
-      renderReportPdf(report, projectName);
+
+      // Fetch all step fiches + synthesis in parallel
+      const [stepReports, synthesisReport] = await Promise.all([
+        fetchAllStepReports(chatMessages, projectName, token, (_label, done, total) => {
+          setPdfProgressStage(`Analyse des étapes… (${done}/${total})`);
+        }),
+        fetchSynthesis(chatMessages, projectName, token).then((r) => {
+          setPdfProgressStage("Synthèse finale générée…");
+          return r;
+        }),
+      ]);
+
+      setPdfProgressStage("Compilation du rapport PDF complet…");
+      renderCompilationPdf(stepReports, synthesisReport, projectName);
 
       // Inject continuation prompt once per conversation
       if (conversationId && continuationPromptShownFor.current !== conversationId) {
@@ -339,13 +354,14 @@ const Index = () => {
         void handleSaveMessage(
           conversationId,
           "assistant",
-          "**Votre rapport de synthèse est prêt.** 📄\n\nNous avons parcouru les 10 étapes. Si tu veux aller plus loin, je peux :\n\n- **Approfondir un point** de l'analyse (économie, marché, acquisition…)\n- **Retravailler une étape** avec de nouvelles données ou hypothèses\n- **Challenger ton modèle** sur des points spécifiques\n- **Répondre à une question libre** sur ton projet\n\nDis-moi ce que tu veux explorer.",
+          "**Votre rapport complet est prêt.** 📄\n\nIl compile les 9 fiches étapes et la synthèse finale en un seul document. Si tu veux aller plus loin, je peux :\n\n- **Approfondir un point** de l'analyse (économie, marché, acquisition…)\n- **Retravailler une étape** avec de nouvelles données ou hypothèses\n- **Challenger ton modèle** sur des points spécifiques\n- **Répondre à une question libre** sur ton projet\n\nDis-moi ce que tu veux explorer.",
         );
       }
     } catch (err) {
       toast.error((err as Error).message ?? "Erreur lors de la génération du rapport");
     } finally {
       setPdfLoadingStep(null);
+      setPdfProgressStage(null);
     }
   };
 
@@ -385,7 +401,8 @@ const Index = () => {
           <PdfProgressOverlay
             isVisible={pdfLoadingStep !== null}
             isFinal={pdfLoadingStep === "final"}
-            onCancel={() => setPdfLoadingStep(null)}
+            onCancel={() => { setPdfLoadingStep(null); setPdfProgressStage(null); }}
+            stage={pdfProgressStage ?? undefined}
           />
           <ChatPanel
             conversationId={conversationId}

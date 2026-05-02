@@ -13,9 +13,10 @@ interface PdfProgressOverlayProps {
   isVisible: boolean;
   isFinal?: boolean;
   onCancel?: () => void;
+  stage?: string;
 }
 
-export default function PdfProgressOverlay({ isVisible, isFinal = false, onCancel }: PdfProgressOverlayProps) {
+export default function PdfProgressOverlay({ isVisible, isFinal = false, onCancel, stage }: PdfProgressOverlayProps) {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
@@ -67,7 +68,7 @@ export default function PdfProgressOverlay({ isVisible, isFinal = false, onCance
           className="text-sm font-semibold text-center tracking-wide"
           style={{ color: "#F5E090", fontFamily: "var(--up-font)", letterSpacing: "0.06em" }}
         >
-          {isFinal ? "Génération du rapport de synthèse" : "Génération de la fiche"}
+          {isFinal ? "Génération du rapport complet" : "Génération de la fiche"}
         </p>
 
         <div
@@ -91,7 +92,7 @@ export default function PdfProgressOverlay({ isVisible, isFinal = false, onCance
             className="text-[11px] leading-snug"
             style={{ color: "rgba(255,255,255,0.42)", fontFamily: "var(--up-font)" }}
           >
-            {statusText}
+            {stage ?? statusText}
           </p>
           <p
             className="text-[11px] font-semibold"

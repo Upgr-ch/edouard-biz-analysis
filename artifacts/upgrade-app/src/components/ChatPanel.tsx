@@ -62,19 +62,20 @@ const Footer = () => (
   </footer>
 );
 
-async function invokeChat(messages: DisplayMessage[], attempt = 1): Promise<string> {
+async function invokeChat(messages: DisplayMessage[]): Promise<string> {
   const res = await fetch("/api/chat", {
     method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ messages }),
   });
-  if (res.status === 429 && attempt < 3) {
-    await new Promise((r) => setTimeout(r, 2500 * attempt));
-    return invokeChat(messages, attempt + 1);
-  }
   if (!res.ok) {
-    const err = new Error(`Chat API error ${res.status}`) as Error & { status: number };
+    let serverMessage: string | undefined;
+    try {
+      const body = (await res.json()) as { error?: string };
+      serverMessage = body.error;
+    } catch { /* ignore parse errors */ }
+    const err = new Error(serverMessage ?? `Chat API error ${res.status}`) as Error & { status: number };
     err.status = res.status;
     throw err;
   }
@@ -169,12 +170,13 @@ const ChatPanel = ({
             { role: "user", content: letter },
           ]);
           if (reply) {
-            const analysisName = extractAnalysisName(reply);
             const cleanReply = stripSentinel(reply);
             await saveMessage(activeConversationId, "assistant", cleanReply);
-            if (analysisName) await onRenameConversation?.(activeConversationId, analysisName);
           }
         }
+      } catch (err) {
+        const msg = (err as Error).message;
+        toast.error(msg.startsWith("Chat API error") ? "Erreur lors de l'envoi" : msg);
       } finally {
         setIsLoading(false);
       }
@@ -258,12 +260,8 @@ Avant de commencer, j'ai besoin de savoir où tu en es.
         }
       }
     } catch (err) {
-      const status = (err as { status?: number }).status;
-      if (status === 429) {
-        toast.error("Trop de requêtes — attends quelques secondes puis réessaie.");
-      } else {
-        toast.error("Erreur lors de l'envoi");
-      }
+      const msg = (err as Error).message;
+      toast.error(msg.startsWith("Chat API error") ? "Erreur lors de l'envoi" : msg);
     } finally {
       setIsLoading(false);
     }

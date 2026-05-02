@@ -14,7 +14,7 @@ const MAX_TOKENS      = 8192;
 const CONTEXT_MSGS    = 20;   // derniers messages envoyés à Gemini
 const TIMEOUT_MS      = 60_000; // 60 secondes
 
-const LIMIT_ANON_DAY  = 10;  // anonyme / IP / jour
+const LIMIT_ANON_DAY  = 50;  // anonyme / IP / jour
 const LIMIT_AUTH_DAY  = 60;  // connecté / userId / jour
 
 interface ChatMessage {

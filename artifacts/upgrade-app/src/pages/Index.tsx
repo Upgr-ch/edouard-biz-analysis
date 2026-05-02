@@ -6,7 +6,6 @@ import MainHeader from "@/components/MainHeader";
 import { useAuth } from "@/hooks/useAuth";
 import { useNewUserSync } from "@/hooks/useNewUserSync";
 import { toast } from "sonner";
-import { fetchSynthesis, renderReportPdf } from "@/lib/generateReport";
 
 interface ApiConversation {
   id: string;
@@ -90,7 +89,6 @@ const Index = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
-  const [isPdfLoading, setIsPdfLoading] = useState(false);
   const restorationProcessed = useRef(false);
 
   const authedFetch = useCallback(
@@ -100,24 +98,6 @@ const Index = () => {
     },
     [getToken],
   );
-
-  const handleDownloadPdf = useCallback(async () => {
-    if (isPdfLoading || messages.length === 0) return;
-    setIsPdfLoading(true);
-    const projectName =
-      conversations.find((c) => c.id === conversationId)?.title ?? "Analyse";
-    try {
-      const markdown = await fetchSynthesis(
-        messages.map((m) => ({ role: m.role, content: m.content })),
-        projectName,
-      );
-      renderReportPdf(markdown, projectName);
-    } catch (err) {
-      toast.error((err as Error).message ?? "Erreur lors de la génération du PDF");
-    } finally {
-      setIsPdfLoading(false);
-    }
-  }, [isPdfLoading, messages, conversations, conversationId]);
 
   const fetchMessages = useCallback(async (id: string) => {
     try {
@@ -305,12 +285,7 @@ const Index = () => {
         onDeleteConversation={handleDeleteConversation}
       />
       <main className="flex-1 min-w-0 flex flex-col">
-        <MainHeader
-          conversationTitle={activeConversationTitle}
-          onDownloadPdf={() => void handleDownloadPdf()}
-          isPdfLoading={isPdfLoading}
-          canDownload={!!user && messages.length > 0}
-        />
+        <MainHeader conversationTitle={activeConversationTitle} />
         <div className="flex-1 min-h-0">
           <ChatPanel
             conversationId={conversationId}

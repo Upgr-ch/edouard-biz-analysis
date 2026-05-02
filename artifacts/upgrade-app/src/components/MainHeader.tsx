@@ -1,19 +1,13 @@
 import { Link } from "react-router-dom";
-import { LogOut, LogIn, MessageSquare, FileText, Loader2 } from "lucide-react";
+import { LogOut, LogIn, MessageSquare } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 interface MainHeaderProps {
   conversationTitle?: string | null;
-  onDownloadPdf?: () => void;
-  isPdfLoading?: boolean;
-  canDownload?: boolean;
 }
 
 const MainHeader = ({
   conversationTitle,
-  onDownloadPdf,
-  isPdfLoading = false,
-  canDownload = false,
 }: MainHeaderProps) => {
   const { user, signOut } = useAuth();
 
@@ -53,41 +47,6 @@ const MainHeader = ({
 
       {/* Actions droite */}
       <div className="flex items-center gap-2 shrink-0">
-        {/* Bouton Synthèse PDF — visible uniquement si conversation active avec messages */}
-        {user && canDownload && (
-          <button
-            onClick={onDownloadPdf}
-            disabled={isPdfLoading}
-            title="Générer la synthèse PDF"
-            className="flex items-center gap-1.5 text-xs px-3 py-1.5 border rounded-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{
-              color: isPdfLoading ? "rgba(245,224,144,0.50)" : "#F5E090",
-              borderColor: "rgba(245,224,144,0.25)",
-              background: "rgba(245,224,144,0.06)",
-              fontFamily: "var(--up-font)",
-            }}
-            onMouseEnter={(e) => {
-              if (!isPdfLoading) {
-                e.currentTarget.style.background = "rgba(245,224,144,0.12)";
-                e.currentTarget.style.borderColor = "rgba(245,224,144,0.45)";
-              }
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = "rgba(245,224,144,0.06)";
-              e.currentTarget.style.borderColor = "rgba(245,224,144,0.25)";
-            }}
-          >
-            {isPdfLoading ? (
-              <Loader2 size={12} className="animate-spin" />
-            ) : (
-              <FileText size={12} />
-            )}
-            <span className="hidden sm:inline">
-              {isPdfLoading ? "Génération…" : "Synthèse PDF"}
-            </span>
-          </button>
-        )}
-
         {/* Connexion / déconnexion */}
         {user ? (
           <div className="flex items-center gap-3">

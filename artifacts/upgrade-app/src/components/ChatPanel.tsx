@@ -476,8 +476,8 @@ Avant de commencer, j'ai besoin de savoir où tu en es.
               >
                 {isChecked && <Check size={13} strokeWidth={3} />}
               </div>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-tight leading-relaxed">
-                <span className="font-bold text-foreground">AVERTISSEMENT :</span> Les analyses sont
+              <p className="text-[10px] uppercase tracking-tight leading-relaxed" style={{ color: "#ffffff" }}>
+                <span className="font-bold" style={{ color: "#F5E090" }}>AVERTISSEMENT :</span> Les analyses sont
                 fournies à titre informatif et consultatif uniquement. Elles ne constituent pas une
                 garantie de résultat ni un conseil engageant. L'utilisation des informations et les
                 décisions prises relèvent entièrement de la responsabilité de l'utilisateur.

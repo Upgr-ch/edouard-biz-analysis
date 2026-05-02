@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { ClerkProvider, SignIn, SignUp } from "@clerk/react";
 import { publishableKeyFromHost } from "@clerk/react/internal";
 import { shadcn } from "@clerk/themes";
@@ -74,6 +75,7 @@ const clerkAppearance = {
     formFieldErrorText: "!text-red-400",
     alert: "!border-red-500/20 !bg-red-950/20",
     alertText: "!text-red-300",
+    badge: "!hidden !pointer-events-none !h-0 !overflow-hidden !absolute",
   },
 };
 
@@ -241,6 +243,25 @@ function SignUpRoute() {
   );
 }
 
+function HideClerkDevBadge() {
+  useEffect(() => {
+    function hideBadge() {
+      document.querySelectorAll("a, div, span").forEach((el) => {
+        if (el.textContent?.trim() === "Development mode") {
+          (el as HTMLElement).style.setProperty("display", "none", "important");
+          const parent = el.parentElement;
+          if (parent) parent.style.setProperty("display", "none", "important");
+        }
+      });
+    }
+    hideBadge();
+    const observer = new MutationObserver(hideBadge);
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, []);
+  return null;
+}
+
 function AppRoutes() {
   const navigate = useNavigate();
 
@@ -258,6 +279,7 @@ function AppRoutes() {
       routerReplace={(to) => navigate(to, { replace: true })}
     >
       <QueryClientProvider client={queryClient}>
+        <HideClerkDevBadge />
         <TooltipProvider>
           <Toaster />
           <Sonner />

@@ -267,7 +267,10 @@ const SidebarContent = ({
 
                     {!collapsed && (
                       <div className="flex flex-col items-start min-w-0">
-                        <span className="font-medium text-xs leading-tight truncate">
+                        <span
+                          className="font-medium text-xs leading-tight truncate"
+                          style={{ color: isActive ? "#F5E090" : "#ffffff" }}
+                        >
                           {step.label}
                         </span>
                         <span
@@ -339,7 +342,7 @@ const SidebarContent = ({
       {/* ── Footer ── */}
       {!collapsed && (
         <div className="p-4 border-t border-border shrink-0">
-          <p className="text-[10px] text-muted-foreground/50 leading-relaxed">
+          <p className="text-[10px] leading-relaxed" style={{ color: "#ffffff" }}>
             Les analyses fournies sont des recommandations. L'utilisateur reste seul responsable des décisions.
           </p>
         </div>

@@ -71,6 +71,20 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
       .filter((m) => m.role !== "system")
       .slice(-CONTEXT_MSGS);
 
+    /* ── 4b. Détection choix de niveau (lettre seule A/B/C) ──────── */
+    const userMessages = filteredMessages.filter((m) => m.role === "user");
+    const lastUserRaw  = userMessages[userMessages.length - 1]?.content?.trim() ?? "";
+    const levelKey     = lastUserRaw.toUpperCase();
+    const isFirstLevel = userMessages.length === 1 && /^[ABC]$/.test(levelKey);
+    const levelLabel: Record<string, string> = {
+      A: "Novice",
+      B: "Intermédiaire",
+      C: "Confirmé",
+    };
+    const levelContext = isFirstLevel
+      ? `\n\n## ⚡ CONTEXTE IMMÉDIAT — ACTION REQUISE\nL'interface a déjà posé la question de niveau. L'utilisateur vient de choisir : **${levelKey} = ${levelLabel[levelKey]}**.\nTu dois :\n1. Confirmer son choix en UNE phrase courte.\n2. Passer immédiatement à **Étape 1/10 — Projet** et demander la description de son idée.\nNE redemande PAS le niveau. NE répète PAS les options.`
+      : "";
+
     /* ── 5. API key ──────────────────────────────────────────────── */
     const apiKey =
       process.env.AI_INTEGRATIONS_OPENROUTER_API_KEY ??
@@ -85,14 +99,11 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
       role: "system",
       content: `Tu es Édouard, un consultant senior en faisabilité et rentabilité de projets entrepreneuriaux. Tu es direct, exigeant et pragmatique. Tu ne fais jamais de compliments gratuits.
 
-## ÉTAPE 0 — Détection du niveau (OBLIGATOIRE, avant toute analyse)
-Ta TOUTE PREMIÈRE question est TOUJOURS de demander le niveau de l'utilisateur. Tu proposes 3 choix avec des exemples courts pour qu'il se situe :
-
-- **A. Novice** — "C'est mon tout premier projet, je pars de zéro"
-- **B. Intermédiaire** — "J'ai déjà lancé un projet, je connais les bases"
-- **C. Confirmé** — "J'ai plusieurs projets à mon actif, je veux aller vite"
-
-Tu attends sa réponse avant de commencer l'analyse.
+## ÉTAPE 0 — Détection du niveau
+L'interface présente automatiquement au démarrage la question de niveau avec les 3 options A/B/C. Tu n'as PAS à la reposer. Quand l'utilisateur répond A, B ou C (quelle que soit la casse), tu DOIS :
+1. Confirmer son niveau en une phrase courte et directe.
+2. Passer immédiatement à l'Étape 1 (description du projet).
+Tu ne redemandes JAMAIS le niveau si l'utilisateur a déjà répondu A, B ou C.
 
 ## Adaptation du langage selon le niveau
 
@@ -222,7 +233,7 @@ Puis tu donnes un **VERDICT GLOBAL** avec une seule pastille et une phrase de co
 - Tu restes sur l'étape en cours tant que tu n'as pas suffisamment d'informations pour avancer.
 - Quand tu as assez d'éléments, tu fais une courte synthèse de l'étape puis tu annonces le passage à l'étape suivante.
 - Tu ne reviens à une étape précédente que si l'utilisateur le demande explicitement.
-- Adapte tes questions et analyses à l'étape en cours indiquée dans le contexte.${geoCtx}`,
+- Adapte tes questions et analyses à l'étape en cours indiquée dans le contexte.${geoCtx}${levelContext}`,
     };
 
     /* ── 7. Appel IA avec timeout 60 s ──────────────────────────── */

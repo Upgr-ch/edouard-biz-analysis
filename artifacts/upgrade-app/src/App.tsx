@@ -8,6 +8,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
+import { BrainLogoSm } from "@/components/BrainLogo";
 import Index from "./pages/Index.tsx";
 import ResetPassword from "./pages/ResetPassword.tsx";
 import NotFound from "./pages/NotFound.tsx";
@@ -90,6 +91,10 @@ const clerkAppearance = {
     formFieldErrorText: "!text-red-400",
     alert: "!border-red-500/20 !bg-red-950/20",
     alertText: "!text-red-300",
+
+    /* On masque le titre/sous-titre Clerk — remplacés par notre AuthHeader */
+    headerTitle: "!hidden",
+    headerSubtitle: "!hidden",
   },
 };
 
@@ -97,12 +102,61 @@ function ClerkQueryCacheInvalidator() {
   return null;
 }
 
+function AuthHeader() {
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: "16px",
+        marginBottom: "28px",
+        textAlign: "center",
+        maxWidth: 400,
+        marginLeft: "auto",
+        marginRight: "auto",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        <BrainLogoSm />
+        <span
+          style={{
+            fontFamily: "var(--up-font)",
+            fontSize: "1.35rem",
+            fontWeight: 700,
+            letterSpacing: "0.12em",
+            textTransform: "uppercase",
+            color: "#F5E090",
+          }}
+        >
+          Édouard
+        </span>
+      </div>
+      <p
+        style={{
+          fontFamily: "var(--up-font)",
+          fontSize: "0.82rem",
+          lineHeight: 1.65,
+          color: "rgba(255,255,255,0.55)",
+          letterSpacing: "0.02em",
+          maxWidth: 340,
+        }}
+      >
+        Afin de garantir la continuité de votre service et de sécuriser
+        l'historique de vos échanges, la création d'un compte est nécessaire
+        pour poursuivre cette session.
+      </p>
+    </div>
+  );
+}
+
 function AuthRoute() {
   const { user, loading } = useAuth();
   if (loading) return null;
   if (user) return <Navigate to="/" replace />;
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-8">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4 py-8">
+      <AuthHeader />
       <SignIn
         routing="path"
         path={`${basePath}/auth`}
@@ -118,7 +172,8 @@ function SignUpRoute() {
   if (loading) return null;
   if (user) return <Navigate to="/" replace />;
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-8">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4 py-8">
+      <AuthHeader />
       <SignUp
         routing="path"
         path={`${basePath}/auth/sign-up`}

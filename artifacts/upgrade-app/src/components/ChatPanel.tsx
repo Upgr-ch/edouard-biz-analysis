@@ -244,21 +244,23 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
             {/* Disclaimer checkbox */}
             <div
               onClick={() => setIsChecked(!isChecked)}
-              className="p-6 rounded-sm border cursor-pointer flex gap-4 transition-all"
+              className="p-6 rounded-sm border-2 cursor-pointer flex gap-4 transition-all"
               style={{
-                background: isChecked ? "rgba(245,224,144,0.04)" : "transparent",
-                borderColor: isChecked ? "rgba(245,224,144,0.30)" : "rgba(255,255,255,0.08)",
+                background: isChecked ? "rgba(245,224,144,0.06)" : "rgba(245,224,144,0.02)",
+                borderColor: isChecked ? "rgba(245,224,144,0.50)" : "rgba(245,224,144,0.25)",
+                boxShadow: isChecked ? "0 0 20px -6px rgba(245,224,144,0.20)" : "none",
               }}
             >
               <div
-                className="mt-1 w-5 h-5 rounded-sm border flex items-center justify-center shrink-0 transition-colors"
+                className="mt-0.5 w-6 h-6 rounded-sm border-2 flex items-center justify-center shrink-0 transition-all"
                 style={{
-                  background: isChecked ? "#F5E090" : "transparent",
-                  borderColor: isChecked ? "#F5E090" : "rgba(255,255,255,0.20)",
+                  background: isChecked ? "#F5E090" : "rgba(245,224,144,0.08)",
+                  borderColor: isChecked ? "#F5E090" : "rgba(245,224,144,0.55)",
                   color: "#080F1E",
+                  boxShadow: isChecked ? "none" : "0 0 8px rgba(245,224,144,0.15)",
                 }}
               >
-                {isChecked && <Check size={12} />}
+                {isChecked && <Check size={13} strokeWidth={3} />}
               </div>
               <p className="text-[10px] text-muted-foreground uppercase tracking-tight leading-relaxed">
                 <span className="font-bold text-foreground">AVERTISSEMENT :</span> Les analyses sont

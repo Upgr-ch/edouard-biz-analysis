@@ -6,10 +6,10 @@ const API_BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 const NAVY        = [8,  15,  30]  as const;
 const GOLD        = [245, 224, 144] as const;
 const WHITE       = [255, 255, 255] as const;
-const GREY_LIGHT  = [200, 200, 210] as const;
-const TEXT_BODY   = [220, 220, 230] as const;
-const TEXT_MUTED  = [140, 145, 165] as const;
-const TEXT_H3     = [200, 205, 215] as const;
+const GREY_LIGHT  = [160, 165, 180] as const;
+const TEXT_BODY   = [30,  35,  55]  as const;
+const TEXT_MUTED  = [90,  95, 115]  as const;
+const TEXT_H3     = [50,  55,  80]  as const;
 
 // ── Shared helpers ────────────────────────────────────────────────────────────
 

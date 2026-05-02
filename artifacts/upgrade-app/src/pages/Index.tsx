@@ -3,6 +3,7 @@ import { useAuth as useClerkAuth } from "@clerk/react";
 import ChatPanel from "@/components/ChatPanel";
 import AppSidebar from "@/components/AppSidebar";
 import MainHeader from "@/components/MainHeader";
+import FiscalDisclaimer from "@/components/FiscalDisclaimer";
 import { useAuth } from "@/hooks/useAuth";
 import { useNewUserSync } from "@/hooks/useNewUserSync";
 import { toast } from "sonner";
@@ -96,7 +97,10 @@ const Index = () => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
   const [pdfLoadingStep, setPdfLoadingStep] = useState<string | null>(null);
+  const [pendingStepAfterDisclaimer, setPendingStepAfterDisclaimer] = useState<number | null>(null);
   const restorationProcessed = useRef(false);
+
+  const FISCAL_DISCLAIMER_STEP = 6; // sidebar index 6 = "Statut et Fiscalité"
 
   const authedFetch = useCallback(
     async <T>(path: string, options?: RequestInit): Promise<T | null> => {
@@ -336,27 +340,41 @@ const Index = () => {
       />
       <main className="flex-1 min-w-0 flex flex-col">
         <MainHeader conversationTitle={activeConversationTitle} />
-        <div className="flex-1 min-h-0">
-          <ChatPanel
-            conversationId={conversationId}
-            conversationTitle={activeConversationTitle}
-            persistedMessages={messages}
-            saveMessage={handleSaveMessage}
-            onCreateConversation={handleCreateConversation}
-            onRenameConversation={handleRenameConversation}
-            onDownloadFiche={(label) => {
-              if (label === "Synthèse") {
-                void handleDownloadFinalPdf();
-              } else {
-                void handleDownloadStepPdf(0, label);
-              }
-            }}
-            onStepDetected={(detectedStep) => {
-              if (detectedStep > currentStep) {
-                void handleStepChange(detectedStep);
-              }
-            }}
-          />
+        <div className="flex-1 min-h-0 flex flex-col">
+          {currentStep === FISCAL_DISCLAIMER_STEP
+            ? <FiscalDisclaimer
+                onContinue={() => {
+                  const next = pendingStepAfterDisclaimer ?? FISCAL_DISCLAIMER_STEP + 1;
+                  setPendingStepAfterDisclaimer(null);
+                  void handleStepChange(next);
+                }}
+              />
+            : <ChatPanel
+                conversationId={conversationId}
+                conversationTitle={activeConversationTitle}
+                persistedMessages={messages}
+                saveMessage={handleSaveMessage}
+                onCreateConversation={handleCreateConversation}
+                onRenameConversation={handleRenameConversation}
+                onDownloadFiche={(label) => {
+                  if (label === "Synthèse") {
+                    void handleDownloadFinalPdf();
+                  } else {
+                    void handleDownloadStepPdf(0, label);
+                  }
+                }}
+                onStepDetected={(detectedStep) => {
+                  if (detectedStep > currentStep) {
+                    if (currentStep < FISCAL_DISCLAIMER_STEP && detectedStep > FISCAL_DISCLAIMER_STEP) {
+                      void handleStepChange(FISCAL_DISCLAIMER_STEP);
+                      setPendingStepAfterDisclaimer(detectedStep);
+                    } else {
+                      void handleStepChange(detectedStep);
+                    }
+                  }
+                }}
+              />
+          }
         </div>
       </main>
     </div>

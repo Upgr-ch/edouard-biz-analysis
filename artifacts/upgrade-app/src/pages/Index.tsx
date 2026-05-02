@@ -115,7 +115,7 @@ const Index = () => {
   const ACQUISITION_DISCLAIMER_STEP = 8; // sidebar index 8 = "Acquisition Client"
 
   const authedFetch = useCallback(
-    async <T>(path: string, options?: RequestInit): Promise<T | null> => {
+    async <T,>(path: string, options?: RequestInit): Promise<T | null> => {
       const token = await getToken();
       return apiFetch<T>(path, options, token);
     },

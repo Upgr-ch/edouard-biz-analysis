@@ -1,7 +1,8 @@
 import { useEffect, useRef } from "react";
-import { ClerkProvider, SignIn, SignUp } from "@clerk/react";
+import { ClerkProvider, SignIn, AuthenticateWithRedirectCallback } from "@clerk/react";
 import { publishableKeyFromHost } from "@clerk/react/internal";
 import { shadcn } from "@clerk/themes";
+import { frFR } from "@clerk/localizations";
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, Navigate, useNavigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -12,6 +13,7 @@ import { BrainLogoSm } from "@/components/BrainLogo";
 import Index from "./pages/Index.tsx";
 import ResetPassword from "./pages/ResetPassword.tsx";
 import ForgotPassword from "./pages/ForgotPassword.tsx";
+import SignUpCustom from "./pages/SignUpCustom.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Cookies from "./pages/legal/Cookies.tsx";
 import Confidentialite from "./pages/legal/Confidentialite.tsx";
@@ -219,17 +221,7 @@ function SignUpRoute() {
   const { user, loading } = useAuth();
   if (loading) return null;
   if (user) return <Navigate to="/" replace />;
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4 py-8">
-      <AuthHeader />
-      <SignUp
-        routing="path"
-        path={`${basePath}/auth/sign-up`}
-        signInUrl={`${basePath}/auth`}
-        appearance={clerkAppearance}
-      />
-    </div>
-  );
+  return <SignUpCustom />;
 }
 
 function AppRoutes() {
@@ -240,6 +232,31 @@ function AppRoutes() {
       publishableKey={clerkPubKey}
       proxyUrl={clerkProxyUrl}
       appearance={clerkAppearance}
+      localization={{
+        ...frFR,
+        signIn: {
+          ...frFR.signIn,
+          start: {
+            ...frFR.signIn?.start,
+            title: "Connexion",
+            subtitle: "Bienvenue sur Édouard",
+            actionText: "Pas encore de compte ?",
+            actionLink: "S'inscrire",
+          },
+        },
+        signUp: {
+          ...frFR.signUp,
+          start: {
+            ...frFR.signUp?.start,
+            title: "Créer un compte",
+            subtitle: "Rejoignez Édouard",
+            actionText: "Déjà un compte ?",
+            actionLink: "Se connecter",
+          },
+        },
+        userButton: { ...frFR.userButton },
+        userProfile: { ...frFR.userProfile },
+      }}
       signInUrl={`${basePath}/auth`}
       signUpUrl={`${basePath}/auth/sign-up`}
       routerPush={(to) => {
@@ -262,6 +279,7 @@ function AppRoutes() {
           <Sonner />
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/sso-callback" element={<AuthenticateWithRedirectCallback />} />
             <Route path="/auth/sign-up" element={<SignUpRoute />} />
             <Route path="/auth/sign-up/*" element={<SignUpRoute />} />
             <Route path="/auth" element={<AuthRoute />} />

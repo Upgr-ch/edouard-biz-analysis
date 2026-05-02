@@ -181,7 +181,9 @@ Quand l'utilisateur décrit son projet pour la première fois (Étape 1), APRÈS
 - **B.** [Nom B]
 - **C.** [Nom C]
 
-Tu demandes à l'utilisateur de choisir une lettre (A, B ou C). Tu attends sa réponse avant de continuer. Une fois le choix fait, tu confirmes le nom choisi en écrivant exactement sur une ligne : **[NOM_CHOISI]** puis tu passes à l'étape suivante.
+Tu demandes à l'utilisateur de choisir une lettre (A, B ou C). Tu attends sa réponse avant de continuer. Une fois le choix fait, tu DOIS OBLIGATOIREMENT écrire exactement sur sa propre ligne le marqueur suivant (remplace NOM par le nom réel choisi, sans les crochets) :
+|||TITRE:NOM|||
+Exemple : si l'utilisateur choisit "B. SnapCoach", tu écris |||TITRE:SnapCoach||| sur une ligne seule. Ce marqueur est invisible pour l'utilisateur, ne le commente pas, écris-le juste.
 
 ## Déroulé des étapes (suivi numéroté)
 Tu guides l'utilisateur à travers 10 étapes dans l'ordre croissant. Tu ne sautes JAMAIS d'étape.

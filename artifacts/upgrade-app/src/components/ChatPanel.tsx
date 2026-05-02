@@ -22,10 +22,15 @@ interface ChatPanelProps {
   onRenameConversation?: (id: string, title: string) => Promise<void>;
 }
 
-/** Extract analysis name from Édouard's **[NOM_CHOISI]** pattern */
+/** Extract analysis name from Édouard's |||TITRE:NAME||| sentinel */
 function extractAnalysisName(text: string): string | null {
-  const match = text.match(/\*\*\[([^\]]+)\]\*\*/);
+  const match = text.match(/\|\|\|TITRE:([^|]{1,80})\|\|\|/);
   return match ? match[1].trim() : null;
+}
+
+/** Strip the invisible sentinel before displaying the message */
+function stripSentinel(text: string): string {
+  return text.replace(/\|\|\|TITRE:[^|]*\|\|\|\n?/g, "").trim();
 }
 
 const Footer = () => (
@@ -181,8 +186,9 @@ Avant de commencer, j'ai besoin de savoir où tu en es. Tape simplement la lettr
           { role: "user", content },
         ]);
         if (reply) {
-          await saveMessage(activeConversationId, "assistant", reply);
           const analysisName = extractAnalysisName(reply);
+          const cleanReply = stripSentinel(reply);
+          await saveMessage(activeConversationId, "assistant", cleanReply);
           if (analysisName) {
             await onRenameConversation?.(activeConversationId, analysisName);
           }

@@ -403,6 +403,34 @@ Avant de commencer, j'ai besoin de savoir où tu en es.
               );
             })}
 
+            {/* ── Level choice chips — below the intro bubble ── */}
+            {needsLevelChoice && !isLoading && (
+              <div className="flex flex-wrap gap-2 ml-11 mt-1">
+                {[
+                  { key: "A", label: "Novice" },
+                  { key: "B", label: "Intermédiaire" },
+                  { key: "C", label: "Confirmé" },
+                ].map(({ key, label }) => (
+                  <button
+                    key={key}
+                    onClick={() => handleLevelChoice(key)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[12px] font-medium transition-all"
+                    style={{
+                      background: "rgba(245,224,144,0.05)",
+                      borderColor: "rgba(245,224,144,0.28)",
+                      color: "rgba(255,255,255,0.80)",
+                      fontFamily: "var(--up-font)",
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#F5E090"; e.currentTarget.style.color = "#F5E090"; e.currentTarget.style.background = "rgba(245,224,144,0.10)"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(245,224,144,0.28)"; e.currentTarget.style.color = "rgba(255,255,255,0.80)"; e.currentTarget.style.background = "rgba(245,224,144,0.05)"; }}
+                  >
+                    <span className="font-bold text-[11px]" style={{ color: "#F5E090" }}>{key}</span>
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
+
             {isLoading && (
               <div
                 className="text-xs animate-pulse ml-11 font-medium italic"
@@ -431,35 +459,6 @@ Avant de commencer, j'ai besoin de savoir où tu en es.
               >
                 <MessageCircle size={13} />
                 Message {totalUserMessages} / 6 avant inscription gratuite.
-              </div>
-            )}
-
-            {/* ── Level choice chips ── */}
-            {needsLevelChoice && (
-              <div className="mb-2 flex flex-wrap gap-2">
-                {[
-                  { key: "A", label: "Novice" },
-                  { key: "B", label: "Intermédiaire" },
-                  { key: "C", label: "Confirmé" },
-                ].map(({ key, label }) => (
-                  <button
-                    key={key}
-                    onClick={() => handleLevelChoice(key)}
-                    disabled={isLoading}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[12px] font-medium transition-all disabled:opacity-40"
-                    style={{
-                      background: "rgba(245,224,144,0.05)",
-                      borderColor: "rgba(245,224,144,0.28)",
-                      color: "rgba(255,255,255,0.80)",
-                      fontFamily: "var(--up-font)",
-                    }}
-                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#F5E090"; e.currentTarget.style.color = "#F5E090"; e.currentTarget.style.background = "rgba(245,224,144,0.10)"; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(245,224,144,0.28)"; e.currentTarget.style.color = "rgba(255,255,255,0.80)"; e.currentTarget.style.background = "rgba(245,224,144,0.05)"; }}
-                  >
-                    <span className="font-bold text-[11px]" style={{ color: "#F5E090" }}>{key}</span>
-                    {label}
-                  </button>
-                ))}
               </div>
             )}
 

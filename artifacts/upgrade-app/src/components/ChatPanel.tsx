@@ -35,10 +35,11 @@ function stripSentinel(text: string): string {
 function extractChosenName(letter: string, messages: DisplayMessage[]): string | null {
   const lastAssistant = [...messages].reverse().find((m) => m.role === "assistant");
   if (!lastAssistant) return null;
-  // Matches **A.** Name  or  **A.** [Name]  (with optional brackets)
-  const re = new RegExp(`\\*\\*${letter.toUpperCase()}\\.\\*\\*\\s+\\[?([^\\]\\n*|<]{2,40})`, "i");
+  const L = letter.toUpperCase();
+  // Matches both:  **A.** Name   and   A. Name   (with or without bold/brackets)
+  const re = new RegExp(`(?:\\*\\*)?${L}\\.(?:\\*\\*)?\\s+\\[?([^\\]\\n*|<]{2,50})`, "i");
   const match = lastAssistant.content.match(re);
-  return match ? match[1].trim() : null;
+  return match ? match[1].trim().replace(/\s*→.*$/, "") : null;
 }
 
 const Footer = () => (
@@ -240,10 +241,8 @@ Avant de commencer, j'ai besoin de savoir où tu en es.
           const isSingleLetter = /^[ABC]$/i.test(content);
           const alreadyHasMessages = persistedMessages.filter((m) => m.role === "user").length > 0;
           if (isSingleLetter && alreadyHasMessages) {
-            const chosenName = extractChosenName(
-              content.toUpperCase(),
-              [...persistedMessages, { role: "assistant" as const, content: cleanReply }],
-            );
+            // Look in persistedMessages (the previous assistant msg has the name proposals)
+            const chosenName = extractChosenName(content.toUpperCase(), persistedMessages);
             if (chosenName) {
               await onRenameConversation?.(activeConversationId, chosenName);
             }

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { getAuth } from "@clerk/express";
 import { upsertContact } from "../lib/systemeio";
+import { appendContactRow } from "../lib/googlesheets";
 
 const router = Router();
 
@@ -23,7 +24,10 @@ router.post("/signup", async (req, res) => {
   }
 
   try {
-    await upsertContact({ email, firstName, lastName });
+    await Promise.allSettled([
+      upsertContact({ email, firstName, lastName }),
+      appendContactRow({ email, firstName, lastName }),
+    ]);
     res.status(200).json({ ok: true });
   } catch (err) {
     console.error("[integrations/signup]", err);

@@ -1,9 +1,7 @@
-
-
 import { cn } from "@/lib/utils";
 import {
   Target, BarChart3, Grid3X3, Flag, Calculator, TrendingUp, Users, FileText,
-  Brain, ChevronLeft, ChevronRight, Plus, Trash2, MessageSquare, Check, Scale
+  Brain, ChevronLeft, ChevronRight, Plus, Trash2, MessageSquare, Check, Scale, Menu, X,
 } from "lucide-react";
 import { useState } from "react";
 import type { Conversation } from "@/hooks/useConversations";
@@ -32,24 +30,24 @@ interface AppSidebarProps {
   onDeleteConversation: (id: string) => void;
 }
 
-const AppSidebar = ({
-  currentStep, onStepChange, completedSteps,
-  conversations, activeConversationId,
-  onNewConversation, onSwitchConversation, onDeleteConversation,
-}: AppSidebarProps) => {
-  const [collapsed, setCollapsed] = useState(false);
-
+const SidebarContent = ({
+  collapsed,
+  currentStep,
+  onStepChange,
+  completedSteps,
+  conversations,
+  activeConversationId,
+  onNewConversation,
+  onSwitchConversation,
+  onDeleteConversation,
+  onClose,
+}: AppSidebarProps & { collapsed: boolean; onClose?: () => void }) => {
   const progressPercent = Math.round((completedSteps.length / steps.length) * 100);
 
   return (
-    <aside
-      className={cn(
-        "h-screen bg-secondary/50 border-r border-border flex flex-col transition-all duration-300",
-        collapsed ? "w-16" : "w-64"
-      )}
-    >
+    <>
       {/* Header */}
-      <div className="p-4 border-b border-border flex items-center justify-between">
+      <div className="p-4 border-b border-border flex items-center justify-between shrink-0">
         {!collapsed && (
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
@@ -61,17 +59,20 @@ const AppSidebar = ({
             </div>
           </div>
         )}
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="p-1.5 rounded-md hover:bg-accent transition-colors text-muted-foreground"
-        >
-          {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-        </button>
+        {/* On mobile show X, on desktop show collapse arrows */}
+        {onClose ? (
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-md hover:bg-accent transition-colors text-muted-foreground ml-auto"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        ) : null}
       </div>
 
       {/* Progress bar */}
       {!collapsed && (
-        <div className="px-4 py-3 border-b border-border">
+        <div className="px-4 py-3 border-b border-border shrink-0">
           <div className="flex items-center justify-between mb-1.5">
             <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Progression</span>
             <span className="text-[10px] font-semibold text-primary">{progressPercent}%</span>
@@ -89,14 +90,14 @@ const AppSidebar = ({
       )}
 
       {/* Conversations */}
-      <div className="border-b border-border">
+      <div className="border-b border-border shrink-0">
         <div className="p-2">
           <button
             onClick={onNewConversation}
             className={cn(
               "w-full flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg transition-colors",
               "bg-primary/10 text-primary hover:bg-primary/20",
-              collapsed && "justify-center px-2"
+              collapsed && "justify-center px-2",
             )}
           >
             <Plus className="w-3.5 h-3.5 flex-shrink-0" />
@@ -113,17 +114,14 @@ const AppSidebar = ({
                   "group flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs cursor-pointer transition-colors",
                   conv.id === activeConversationId
                     ? "bg-accent text-foreground"
-                    : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                    : "text-muted-foreground hover:text-foreground hover:bg-accent/50",
                 )}
-                onClick={() => onSwitchConversation(conv.id)}
+                onClick={() => { onSwitchConversation(conv.id); onClose?.(); }}
               >
                 <MessageSquare className="w-3 h-3 flex-shrink-0" />
                 <span className="truncate flex-1">{conv.title}</span>
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDeleteConversation(conv.id);
-                  }}
+                  onClick={(e) => { e.stopPropagation(); onDeleteConversation(conv.id); }}
                   className="opacity-0 group-hover:opacity-100 p-0.5 hover:text-destructive transition-all"
                 >
                   <Trash2 className="w-3 h-3" />
@@ -134,14 +132,13 @@ const AppSidebar = ({
         )}
       </div>
 
-      {/* Steps with numbered progression */}
+      {/* Steps */}
       <nav className="flex-1 py-3 overflow-y-auto">
         {!collapsed && (
           <div className="px-4 mb-2">
             <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Étapes d'analyse</span>
           </div>
         )}
-
         <div className="relative">
           {steps.map((step, index) => {
             const isActive = currentStep === step.id;
@@ -152,30 +149,23 @@ const AppSidebar = ({
 
             return (
               <div key={step.id} className="relative">
-                {/* Vertical connector line */}
                 {!isLast && (
                   <div
                     className={cn(
-                      "absolute left-[1.65rem] top-[2.25rem] w-[2px] h-[calc(100%-0.5rem)]",
+                      "absolute top-[2.25rem] w-[2px] h-[calc(100%-0.5rem)]",
                       collapsed ? "left-[1.85rem]" : "left-[1.65rem]",
-                      isCompleted ? "bg-primary/40" : "bg-border"
+                      isCompleted ? "bg-primary/40" : "bg-border",
                     )}
                   />
                 )}
-
                 <button
-                  onClick={() => onStepChange(step.id)}
+                  onClick={() => { onStepChange(step.id); onClose?.(); }}
                   className={cn(
                     "w-full flex items-center gap-3 px-3 py-2 text-sm transition-all relative z-10",
-                    isActive
-                      ? "text-primary"
-                      : isCompleted
-                        ? "text-foreground/80"
-                        : "text-muted-foreground hover:text-foreground",
-                    collapsed && "justify-center px-2"
+                    isActive ? "text-primary" : isCompleted ? "text-foreground/80" : "text-muted-foreground hover:text-foreground",
+                    collapsed && "justify-center px-2",
                   )}
                 >
-                  {/* Step number circle */}
                   <div
                     className={cn(
                       "w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-[11px] font-bold border-2 transition-all",
@@ -183,34 +173,21 @@ const AppSidebar = ({
                         ? "border-primary bg-primary/15 text-primary shadow-[0_0_8px_hsl(var(--primary)/0.3)]"
                         : isCompleted
                           ? "border-primary bg-primary text-primary-foreground"
-                          : "border-border bg-secondary text-muted-foreground"
+                          : "border-border bg-secondary text-muted-foreground",
                     )}
                   >
-                    {isCompleted ? (
-                      <Check className="w-3.5 h-3.5" />
-                    ) : (
-                      stepNumber
-                    )}
+                    {isCompleted ? <Check className="w-3.5 h-3.5" /> : stepNumber}
                   </div>
-
                   {!collapsed && (
                     <div className="flex flex-col items-start min-w-0">
-                      <span className={cn(
-                        "font-medium text-xs leading-tight truncate",
-                        isActive && "text-primary"
-                      )}>
+                      <span className={cn("font-medium text-xs leading-tight truncate", isActive && "text-primary")}>
                         {step.label}
                       </span>
-                      <span className={cn(
-                        "text-[10px] leading-tight",
-                        isActive ? "text-primary/60" : "text-muted-foreground/50"
-                      )}>
+                      <span className={cn("text-[10px] leading-tight", isActive ? "text-primary/60" : "text-muted-foreground/50")}>
                         Étape {stepNumber}/{steps.length}
                       </span>
                     </div>
                   )}
-
-                  {/* Active indicator */}
                   {isActive && !collapsed && (
                     <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                   )}
@@ -223,13 +200,67 @@ const AppSidebar = ({
 
       {/* Footer */}
       {!collapsed && (
-        <div className="p-4 border-t border-border">
+        <div className="p-4 border-t border-border shrink-0">
           <p className="text-[10px] text-muted-foreground/60 leading-relaxed">
             Les analyses fournies sont des recommandations. L'utilisateur reste seul responsable des décisions.
           </p>
         </div>
       )}
-    </aside>
+    </>
+  );
+};
+
+const AppSidebar = (props: AppSidebarProps) => {
+  const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  return (
+    <>
+      {/* ── Mobile hamburger button ─────────────────────────────────── */}
+      <button
+        onClick={() => setMobileOpen(true)}
+        className="md:hidden fixed top-3 left-3 z-50 p-2 rounded-lg bg-secondary/80 border border-border text-muted-foreground backdrop-blur-sm shadow"
+      >
+        <Menu className="w-5 h-5" />
+      </button>
+
+      {/* ── Mobile overlay backdrop ─────────────────────────────────── */}
+      {mobileOpen && (
+        <div
+          className="md:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      {/* ── Mobile drawer ───────────────────────────────────────────── */}
+      <aside
+        className={cn(
+          "md:hidden fixed inset-y-0 left-0 z-50 w-72 bg-background border-r border-border flex flex-col transition-transform duration-300",
+          mobileOpen ? "translate-x-0" : "-translate-x-full",
+        )}
+      >
+        <SidebarContent {...props} collapsed={false} onClose={() => setMobileOpen(false)} />
+      </aside>
+
+      {/* ── Desktop sidebar ─────────────────────────────────────────── */}
+      <aside
+        className={cn(
+          "hidden md:flex h-screen bg-secondary/50 border-r border-border flex-col transition-all duration-300",
+          collapsed ? "w-16" : "w-64",
+        )}
+      >
+        {/* Desktop collapse toggle */}
+        <div className="absolute top-4 right-[-12px] z-10 hidden md:block">
+          <button
+            onClick={() => setCollapsed(!collapsed)}
+            className="w-6 h-6 rounded-full bg-background border border-border flex items-center justify-center shadow text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {collapsed ? <ChevronRight className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}
+          </button>
+        </div>
+        <SidebarContent {...props} collapsed={collapsed} />
+      </aside>
+    </>
   );
 };
 

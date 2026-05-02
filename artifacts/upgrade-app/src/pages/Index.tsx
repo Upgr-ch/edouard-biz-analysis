@@ -351,6 +351,11 @@ const Index = () => {
                 void handleDownloadStepPdf(0, label);
               }
             }}
+            onStepDetected={(detectedStep) => {
+              if (detectedStep > currentStep) {
+                void handleStepChange(detectedStep);
+              }
+            }}
           />
         </div>
       </main>

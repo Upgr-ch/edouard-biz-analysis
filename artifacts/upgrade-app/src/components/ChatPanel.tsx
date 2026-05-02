@@ -23,6 +23,15 @@ interface ChatPanelProps {
   onCreateConversation?: (title: string) => Promise<string | null>;
   onRenameConversation?: (id: string, title: string) => Promise<void>;
   onDownloadFiche?: (label: string) => void;
+  onStepDetected?: (step: number) => void;
+}
+
+/** Scan an AI reply for the highest **Étape X/10 marker and return the 0-based sidebar step */
+function detectStepFromContent(content: string): number | null {
+  const matches = [...content.matchAll(/\*\*Étape (\d+)\/10/g)];
+  if (matches.length === 0) return null;
+  const maxStep = Math.max(...matches.map((m) => parseInt(m[1])));
+  return maxStep - 1; // Étape 1 → index 0, Étape 2 → index 1, etc.
 }
 
 const FicheButton = ({
@@ -166,6 +175,7 @@ const ChatPanel = ({
   onCreateConversation,
   onRenameConversation,
   onDownloadFiche,
+  onStepDetected,
 }: ChatPanelProps) => {
   const { user, signOut } = useAuth();
   const { getToken } = useClerkAuth();
@@ -242,6 +252,8 @@ const ChatPanel = ({
           if (reply) {
             AnonChat.appendAnonMessage("assistant", stripSentinel(reply));
             forceUpdate((n) => n + 1);
+            const step = detectStepFromContent(reply);
+            if (step !== null) onStepDetected?.(step);
           }
         } else {
           const activeConversationId =
@@ -256,6 +268,8 @@ const ChatPanel = ({
           if (reply) {
             const cleanReply = stripSentinel(reply);
             await saveMessage(activeConversationId, "assistant", cleanReply);
+            const step = detectStepFromContent(reply);
+            if (step !== null) onStepDetected?.(step);
           }
         }
       } catch (err) {
@@ -314,6 +328,8 @@ Avant de commencer, j'ai besoin de savoir où tu en es.
         if (reply) {
           AnonChat.appendAnonMessage("assistant", stripSentinel(reply));
           forceUpdate((n) => n + 1);
+          const step = detectStepFromContent(reply);
+          if (step !== null) onStepDetected?.(step);
         }
       } else {
         const activeConversationId =
@@ -332,11 +348,13 @@ Avant de commencer, j'ai besoin de savoir où tu en es.
           const cleanReply = stripSentinel(reply);
           await saveMessage(activeConversationId, "assistant", cleanReply);
 
+          const step = detectStepFromContent(reply);
+          if (step !== null) onStepDetected?.(step);
+
           /* ── Name pick: A/B/C after level already chosen ──────── */
           const isSingleLetter = /^[ABC]$/i.test(content);
           const alreadyHasMessages = persistedMessages.filter((m) => m.role === "user").length > 0;
           if (isSingleLetter && alreadyHasMessages) {
-            // Look in persistedMessages (the previous assistant msg has the name proposals)
             const chosenName = extractChosenName(content.toUpperCase(), persistedMessages);
             if (chosenName) {
               await onRenameConversation?.(activeConversationId, chosenName);

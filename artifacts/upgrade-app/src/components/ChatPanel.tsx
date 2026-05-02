@@ -185,7 +185,7 @@ Précision pour l'utilisateur : Tu peux répondre par la lettre de ton choix (A,
   let assistantMsgCounter = 0;
 
   return (
-    <div className="flex flex-col h-screen bg-background relative overflow-hidden">
+    <div className="flex flex-col h-full bg-background relative overflow-hidden">
       {/* Reset button */}
       <div className="fixed top-2 right-2 z-[100] opacity-20 hover:opacity-100 transition-opacity">
         <button

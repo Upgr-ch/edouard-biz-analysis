@@ -159,8 +159,8 @@ function AppRoutes() {
           <Sonner />
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/auth/*" element={<AuthRoute />} />
-            <Route path="/auth/sign-up/*" element={<SignUpRoute />} />
+            <Route path="/auth/sign-up/*?" element={<SignUpRoute />} />
+            <Route path="/auth/*?" element={<AuthRoute />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/cookies" element={<Cookies />} />
             <Route path="/confidentialite" element={<Confidentialite />} />

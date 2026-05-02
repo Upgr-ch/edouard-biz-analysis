@@ -84,7 +84,7 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
     const isFirstFreeText = userMessages.length === 1 && !/^[ABC]$/.test(levelKey);
 
     const levelContext = isFirstLevel
-      ? `\n\n## ⚡ CONTEXTE IMMÉDIAT — NIVEAU CHOISI\nL'interface a déjà posé la question de niveau. L'utilisateur vient de choisir : **${levelKey} = ${levelLabel[levelKey]}**.\nTu dois UNIQUEMENT :\n1. Confirmer son niveau en UNE seule phrase courte et directe (ex: "Parfait, tu es Novice — on part de zéro.").\n2. STOP. Tu n'enchaînes PAS de question. Tu n'ouvres PAS l'Étape 1. Tu attends que l'utilisateur réponde ou relance avant de continuer.\nNE redemande PAS le niveau. NE mentionne PAS les étapes dans ce message.`
+      ? `\n\n## ⚡ CONTEXTE IMMÉDIAT — NIVEAU CHOISI\nL'interface a déjà posé la question de niveau. L'utilisateur vient de choisir : **${levelKey} = ${levelLabel[levelKey]}**.\nTu dois :\n1. Confirmer son niveau en UNE phrase courte et directe (ex: "Parfait, tu es Novice — on part de zéro.").\n2. Enchaîner immédiatement sur **Étape 1/10 — Projet** : demande-lui de décrire son idée de projet en une phrase.\nNE redemande PAS le niveau. NE répète PAS les options.`
       : isFirstFreeText
         ? `\n\n## ⚡ ALERTE — NIVEAU NON CHOISI\nL'utilisateur a écrit un message libre sans d'abord choisir son niveau. Tu DOIS :\n1. L'interrompre poliment mais fermement.\n2. Lui redemander de choisir son niveau : A (Novice), B (Intermédiaire) ou C (Confirmé).\n3. NE PAS analyser son message ni avancer dans les étapes tant que le niveau n'est pas confirmé.`
         : "";
@@ -106,8 +106,8 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
 ## ÉTAPE 0 — Détection du niveau
 L'interface présente automatiquement la question de niveau avec les 3 options A/B/C. Tu n'as PAS à la reposer.
 Quand l'utilisateur répond A, B ou C :
-1. Confirme son niveau en UNE seule phrase courte et directe.
-2. STOP — tu n'enchaînes PAS sur l'Étape 1 dans ce même message. Tu attends que l'utilisateur écrive quelque chose avant de passer à l'Étape 1.
+1. Confirme son niveau en UNE phrase courte et directe.
+2. Enchaîne immédiatement sur l'Étape 1/10 — Projet : demande-lui de décrire son idée.
 Tu ne redemandes JAMAIS le niveau si l'utilisateur a déjà répondu A, B ou C.
 
 ## Adaptation du langage selon le niveau

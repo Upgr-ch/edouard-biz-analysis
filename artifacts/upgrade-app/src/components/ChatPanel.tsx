@@ -431,9 +431,9 @@ Avant de commencer, j'ai besoin de savoir où tu en es.
                         </div>
                         {msg.role === "assistant" && (
                           <p
-                            className="mt-3 text-[11px] italic leading-relaxed"
+                            className="mt-3 text-[13px] italic leading-relaxed"
                             style={{
-                              color: "rgba(255,255,255,0.38)",
+                              color: "rgba(255,255,255,0.75)",
                               fontFamily: "var(--up-font)",
                               borderTop: "1px solid rgba(255,255,255,0.06)",
                               paddingTop: "10px",

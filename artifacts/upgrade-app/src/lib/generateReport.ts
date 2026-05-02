@@ -455,8 +455,8 @@ export async function fetchAllStepReports(
     return { label, content };
   });
 
-  // Max 3 concurrent AI requests to avoid rate-limit 429
-  return withConcurrencyLimit(tasks, 3);
+  // Sequential (1 at a time) — avoids rate-limit 429 on OpenRouter free tier
+  return withConcurrencyLimit(tasks, 1);
 }
 
 export function renderCompilationPdf(

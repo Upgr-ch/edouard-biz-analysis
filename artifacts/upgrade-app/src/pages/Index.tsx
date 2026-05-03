@@ -150,6 +150,7 @@ const Index = () => {
   const handleCreateConversation = async (title: string): Promise<string | null> => {
     if (!user) return null;
     try {
+      setMessages([]);
       const data = await authedFetch<ApiConversation>("/conversations", {
         method: "POST",
         body: JSON.stringify({ title }),

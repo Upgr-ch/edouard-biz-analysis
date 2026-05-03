@@ -229,6 +229,11 @@ const ChatPanel = ({
     return () => window.removeEventListener("storage", handler);
   }, []);
 
+  useEffect(() => {
+    setDisclaimerAccepted(false);
+    setIsChecked(false);
+  }, [conversationId]);
+
   const saveTemporaryChat = () => {
     const latestMessages = AnonChat.getAnonMessages();
     localStorage.setItem("temp_chat", JSON.stringify(latestMessages));

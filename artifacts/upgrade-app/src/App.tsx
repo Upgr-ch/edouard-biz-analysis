@@ -50,7 +50,7 @@ const clerkAppearance = {
   },
   elements: {
     rootBox: "w-full flex justify-center",
-    cardBox: "w-[440px] max-w-full overflow-hidden",
+    cardBox: "w-[440px] max-w-full",
     card: "!shadow-none !border-0 !rounded-none",
     footer: "!shadow-none !border-0 !rounded-none",
     headerTitle: "!hidden",
@@ -194,10 +194,11 @@ function AuthRoute() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4 py-8">
       <AuthHeader />
+      {/* routing="virtual" keeps the component stable — no URL sub-path navigation */}
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
       <SignIn
-        routing="path"
-        path={`${basePath}/auth`}
-        signUpUrl={`${basePath}/auth/sign-up`}
+        {...({ routing: "virtual" } as any)}
+        signUpUrl="/auth/sign-up"
         forceRedirectUrl="/"
         signUpForceRedirectUrl="/"
         appearance={clerkAppearance}
@@ -233,10 +234,11 @@ function SignUpRoute() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4 py-8">
       <AuthHeader backTo="/auth" />
+      {/* routing="virtual" keeps the component stable — no URL sub-path navigation */}
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
       <SignUp
-        routing="path"
-        path={`${basePath}/auth/sign-up`}
-        signInUrl={`${basePath}/auth`}
+        {...({ routing: "virtual" } as any)}
+        signInUrl="/auth"
         forceRedirectUrl="/"
         signInForceRedirectUrl="/"
         appearance={clerkAppearance}
@@ -249,10 +251,11 @@ function HideClerkDevBadge() {
   useEffect(() => {
     function hideBadge() {
       document.querySelectorAll("a, div, span").forEach((el) => {
-        if (el.textContent?.trim() === "Development mode") {
+        const text = el.textContent?.trim();
+        if (text === "Development mode") {
+          // Hide only the element itself — never the parent, to avoid
+          // masking Cloudflare Turnstile or other Clerk UI elements.
           (el as HTMLElement).style.setProperty("display", "none", "important");
-          const parent = el.parentElement;
-          if (parent) parent.style.setProperty("display", "none", "important");
         }
       });
     }

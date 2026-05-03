@@ -444,7 +444,7 @@ const Index = () => {
             persistedMessages={messages}
             saveMessage={handleSaveMessage}
             newConversationKey={newConversationKey}
-            onCreateConversation={handleCreateConversation}
+            onCreateConversation={(title) => handleCreateConversation(title, true)}
             onRenameConversation={handleRenameConversation}
             onDownloadFiche={(label) => {
               if (label === "Synthèse") {

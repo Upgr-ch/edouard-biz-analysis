@@ -159,7 +159,7 @@ const SidebarContent = ({
                 <span className="truncate flex-1">{conv.title}</span>
                 <button
                   onClick={(e) => { e.stopPropagation(); onDeleteConversation(conv.id); }}
-                  className="opacity-0 group-hover:opacity-100 p-0.5 hover:text-destructive transition-all"
+                  className="opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto p-0.5 hover:text-destructive transition-all"
                 >
                   <Trash2 className="w-3 h-3" />
                 </button>

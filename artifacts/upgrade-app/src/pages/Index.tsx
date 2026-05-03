@@ -100,6 +100,7 @@ const Index = () => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
   const [pdfLoadingStep, setPdfLoadingStep] = useState<string | null>(null);
+  const [newConversationKey, setNewConversationKey] = useState(0);
   const [showFiscalModal, setShowFiscalModal] = useState(false);
   const [showAcquisitionModal, setShowAcquisitionModal] = useState(false);
   const [pendingStepAfterDisclaimer, setPendingStepAfterDisclaimer] = useState<number | null>(null);
@@ -151,6 +152,7 @@ const Index = () => {
     if (!user) return null;
     try {
       setMessages([]);
+      setNewConversationKey((k) => k + 1);
       const data = await authedFetch<ApiConversation>("/conversations", {
         method: "POST",
         body: JSON.stringify({ title }),
@@ -411,6 +413,7 @@ const Index = () => {
             conversationTitle={activeConversationTitle}
             persistedMessages={messages}
             saveMessage={handleSaveMessage}
+            newConversationKey={newConversationKey}
             onCreateConversation={handleCreateConversation}
             onRenameConversation={handleRenameConversation}
             onDownloadFiche={(label) => {

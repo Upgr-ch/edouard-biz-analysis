@@ -25,6 +25,9 @@ interface ChatPanelProps {
   onDownloadFiche?: (label: string) => void;
   onStepDetected?: (step: number) => void;
   onNextStep?: () => void;
+  /** Incremented by Index when a brand-new conversation is created from the sidebar.
+   *  ChatPanel resets its disclaimer state when this changes. */
+  newConversationKey?: number;
 }
 
 /** Scan an AI reply for the highest **Étape X/10 marker and return the 0-based sidebar step */
@@ -201,6 +204,7 @@ const ChatPanel = ({
   onDownloadFiche,
   onStepDetected,
   onNextStep,
+  newConversationKey,
 }: ChatPanelProps) => {
   const { user, signOut } = useAuth();
   const { getToken } = useClerkAuth();
@@ -229,10 +233,16 @@ const ChatPanel = ({
     return () => window.removeEventListener("storage", handler);
   }, []);
 
+  // Reset disclaimer only when the parent signals a brand-new conversation was
+  // created from the sidebar (newConversationKey increments). This avoids false
+  // resets when startConversation() auto-creates the first conversation
+  // (null → newId) or when switching to an existing one.
+  const isFirstRender = useRef(true);
   useEffect(() => {
+    if (isFirstRender.current) { isFirstRender.current = false; return; }
     setDisclaimerAccepted(false);
     setIsChecked(false);
-  }, [conversationId]);
+  }, [newConversationKey]);
 
   const saveTemporaryChat = () => {
     const latestMessages = AnonChat.getAnonMessages();

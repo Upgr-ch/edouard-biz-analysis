@@ -194,11 +194,10 @@ function AuthRoute() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4 py-8">
       <AuthHeader />
-      {/* routing="virtual" is correct for Replit proxy env; cast bypasses outdated type def */}
       <SignIn
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        {...({ routing: "virtual" } as any)}
-        signUpUrl="/auth/sign-up"
+        routing="path"
+        path={`${basePath}/auth`}
+        signUpUrl={`${basePath}/auth/sign-up`}
         forceRedirectUrl="/"
         signUpForceRedirectUrl="/"
         appearance={clerkAppearance}
@@ -234,11 +233,10 @@ function SignUpRoute() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4 py-8">
       <AuthHeader backTo="/auth" />
-      {/* routing="virtual" is correct for Replit proxy env; cast bypasses outdated type def */}
       <SignUp
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        {...({ routing: "virtual" } as any)}
-        signInUrl="/auth"
+        routing="path"
+        path={`${basePath}/auth/sign-up`}
+        signInUrl={`${basePath}/auth`}
         forceRedirectUrl="/"
         signInForceRedirectUrl="/"
         appearance={clerkAppearance}

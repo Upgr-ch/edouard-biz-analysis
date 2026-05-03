@@ -237,7 +237,8 @@ const Index = () => {
             ) === index,
         );
 
-        const title = extractTitleFromMessages(uniqueMessages);
+        const sentinelTitle = localStorage.getItem("temp_title");
+        const title = sentinelTitle?.trim() || extractTitleFromMessages(uniqueMessages);
         const newConversationId = await handleCreateConversation(title, true);
         if (!newConversationId) throw new Error("Conversation non créée");
 
@@ -256,6 +257,7 @@ const Index = () => {
 
         await fetchMessages(newConversationId);
         localStorage.removeItem("temp_chat");
+        localStorage.removeItem("temp_title");
         localStorage.removeItem("pending_anon_chat");
         toast.success("Discussion récupérée !");
       } catch (error) {

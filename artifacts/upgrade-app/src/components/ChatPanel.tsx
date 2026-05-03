@@ -136,6 +136,15 @@ function stripSentinel(text: string): string {
 }
 
 /**
+ * Extract the chosen title from the AI reply sentinel |||TITRE:NOM|||.
+ * This is the primary and most reliable source of the conversation name.
+ */
+function extractTitleSentinel(text: string): string | null {
+  const match = text.match(/\|\|\|TITRE:([^|]+)\|\|\|/);
+  return match ? match[1].trim() : null;
+}
+
+/**
  * When user picks A/B/C for a name, look in the last assistant message
  * for the matching "**A.** SomeName" pattern and return SomeName.
  * This is 100% reliable because it reads from our own stored messages.
@@ -365,6 +374,11 @@ Avant de commencer, j'ai besoin de savoir où tu en es.
         const msgs = AnonChat.getAnonMessages();
         const reply = await invokeChat(msgs);
         if (reply) {
+          /* ── Save sentinel title to localStorage for post-auth restore ── */
+          const sentinelTitle = extractTitleSentinel(reply);
+          if (sentinelTitle) {
+            localStorage.setItem("temp_title", sentinelTitle);
+          }
           AnonChat.appendAnonMessage("assistant", stripSentinel(reply));
           forceUpdate((n) => n + 1);
           const step = detectStepFromContent(reply);
@@ -390,14 +404,20 @@ Avant de commencer, j'ai besoin de savoir où tu en es.
           const step = detectStepFromContent(reply);
           if (step !== null) onStepDetected?.(step);
 
-          /* ── Name pick: A/B/C after level already chosen ──────── */
-          const isSingleLetter = /^[ABC]$/i.test(content);
-          const alreadyHasMessages = persistedMessages.filter((m) => m.role === "user").length > 0;
-          if (isSingleLetter && alreadyHasMessages) {
-            const chosenName = extractChosenName(content.toUpperCase(), persistedMessages);
-            if (chosenName) {
-              await onRenameConversation?.(activeConversationId, chosenName);
-              setTitleValidated(true);
+          /* ── Name pick: sentinel (primary) or regex fallback ──────────── */
+          const sentinelTitle = extractTitleSentinel(reply);
+          if (sentinelTitle) {
+            await onRenameConversation?.(activeConversationId, sentinelTitle);
+            setTitleValidated(true);
+          } else {
+            const isSingleLetter = /^[ABC]$/i.test(content);
+            const alreadyHasMessages = persistedMessages.filter((m) => m.role === "user").length > 0;
+            if (isSingleLetter && alreadyHasMessages) {
+              const chosenName = extractChosenName(content.toUpperCase(), persistedMessages);
+              if (chosenName) {
+                await onRenameConversation?.(activeConversationId, chosenName);
+                setTitleValidated(true);
+              }
             }
           }
         }

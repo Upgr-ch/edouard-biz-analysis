@@ -51,6 +51,7 @@ export function appendAnonMessage(role: "user" | "assistant", content: string) {
 export function clearAnonMessages() {
   localStorage.removeItem(STORAGE_KEY);
   localStorage.removeItem(PENDING_KEY);
+  localStorage.removeItem("temp_title");
 }
 
 /** * Compte uniquement les messages envoyés par l'utilisateur

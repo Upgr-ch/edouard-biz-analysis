@@ -8,6 +8,7 @@ import FiscalDisclaimer from "@/components/FiscalDisclaimer";
 import AcquisitionDisclaimer from "@/components/AcquisitionDisclaimer";
 import { useAuth } from "@/hooks/useAuth";
 import { useNewUserSync } from "@/hooks/useNewUserSync";
+import * as AnonChat from "@/lib/anonymousChat";
 import { toast } from "sonner";
 import {
   fetchSynthesis,
@@ -117,7 +118,7 @@ function mapMsg(m: ApiMessage): Message {
 }
 
 const Index = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { getToken } = useClerkAuth();
   useNewUserSync();
   const [conversationId, setConversationId] = useState<string | null>(null);
@@ -136,6 +137,14 @@ const Index = () => {
 
   // Safety: reset any stale loading state on mount (e.g. after HMR mid-request)
   useEffect(() => { setPdfLoadingStep(null); setPdfProgressStage(null); }, []);
+
+  // Anonymous users get no persistent history: clear anon localStorage whenever
+  // Clerk confirms the session is unauthenticated (page load OR after sign-out).
+  useEffect(() => {
+    if (!authLoading && !user) {
+      AnonChat.clearAnonMessages();
+    }
+  }, [authLoading, user]);
 
   const FISCAL_DISCLAIMER_STEP = 6;      // sidebar index 6 = "Statut et Fiscalité"
   const ACQUISITION_DISCLAIMER_STEP = 8; // sidebar index 8 = "Acquisition Client"

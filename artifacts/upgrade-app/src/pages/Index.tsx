@@ -148,11 +148,13 @@ const Index = () => {
     }
   }, [conversationId, fetchMessages, user, authedFetch]);
 
-  const handleCreateConversation = async (title: string): Promise<string | null> => {
+  const handleCreateConversation = async (title: string, skipReset = false): Promise<string | null> => {
     if (!user) return null;
     try {
-      setMessages([]);
-      setNewConversationKey((k) => k + 1);
+      if (!skipReset) {
+        setMessages([]);
+        setNewConversationKey((k) => k + 1);
+      }
       const data = await authedFetch<ApiConversation>("/conversations", {
         method: "POST",
         body: JSON.stringify({ title }),
@@ -210,7 +212,7 @@ const Index = () => {
             ) === index,
         );
 
-        const newConversationId = await handleCreateConversation("Analyse récupérée");
+        const newConversationId = await handleCreateConversation("Analyse récupérée", true);
         if (!newConversationId) throw new Error("Conversation non créée");
 
         await authedFetch<ApiMessage[]>(

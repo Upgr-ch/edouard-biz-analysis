@@ -101,7 +101,7 @@ const clerkLocalization = {
       actionLink: "Se connecter",
     },
   },
-  formFieldInputPlaceholder__password: "Créer un mot de passe",
+  formFieldInputPlaceholder__password: "Mot de passe",
   formFieldInputPlaceholder__newPassword: "Nouveau mot de passe",
   formFieldInputPlaceholder__confirmPassword: "Confirmer le mot de passe",
   userButton: { ...frFR.userButton },

@@ -57,6 +57,31 @@ interface TempChatMessage {
   content: string;
 }
 
+/**
+ * Scan the anonymous messages for the naming choice (A/B/C after the first user message)
+ * and extract the corresponding title from the preceding assistant message.
+ * Falls back to "Analyse récupérée" if not found.
+ */
+function extractTitleFromMessages(messages: TempChatMessage[]): string {
+  for (let i = 1; i < messages.length; i++) {
+    const msg = messages[i];
+    if (msg.role !== "user") continue;
+    const letter = msg.content.trim().toUpperCase();
+    if (!/^[ABC]$/.test(letter)) continue;
+
+    const priorUserCount = messages.slice(0, i).filter((m) => m.role === "user").length;
+    if (priorUserCount === 0) continue;
+
+    const prevAssistant = [...messages.slice(0, i)].reverse().find((m) => m.role === "assistant");
+    if (!prevAssistant) continue;
+
+    const re = new RegExp(`(?:\\*\\*)?${letter}\\.(?:\\*\\*)?\\s+\\[?([^\\]\\n*|<]{2,50})`, "i");
+    const match = prevAssistant.content.match(re);
+    if (match) return match[1].trim().replace(/\s*→.*$/, "");
+  }
+  return "Analyse récupérée";
+}
+
 async function apiFetch<T>(path: string, options?: RequestInit, token?: string | null): Promise<T | null> {
   const res = await fetch(`/api${path}`, {
     credentials: "include",
@@ -212,7 +237,8 @@ const Index = () => {
             ) === index,
         );
 
-        const newConversationId = await handleCreateConversation("Analyse récupérée", true);
+        const title = extractTitleFromMessages(uniqueMessages);
+        const newConversationId = await handleCreateConversation(title, true);
         if (!newConversationId) throw new Error("Conversation non créée");
 
         await authedFetch<ApiMessage[]>(

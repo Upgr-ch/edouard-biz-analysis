@@ -422,7 +422,7 @@ const Index = () => {
             }}
             onStepDetected={(detectedStep) => {
               if (detectedStep > currentStep) {
-                if (currentStep < FISCAL_DISCLAIMER_STEP && detectedStep > FISCAL_DISCLAIMER_STEP) {
+                if (currentStep < FISCAL_DISCLAIMER_STEP && detectedStep >= FISCAL_DISCLAIMER_STEP) {
                   setShowFiscalModal(true);
                   setPendingStepAfterDisclaimer(detectedStep);
                 } else if (currentStep < ACQUISITION_DISCLAIMER_STEP && detectedStep >= ACQUISITION_DISCLAIMER_STEP) {

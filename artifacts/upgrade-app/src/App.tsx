@@ -370,11 +370,6 @@ function SignUpRoute() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4 py-8">
       <AuthHeader backTo="/auth" />
-      <LegalConsentCheckbox accepted={legalAccepted} onChange={setLegalAccepted} />
-      <OptionalCheckbox checked={marketingAccepted} onChange={setMarketingAccepted}>
-        J&apos;accepte de recevoir des communications d&apos;Édouard (conseils, actualités, offres). Vous pouvez vous désinscrire à tout moment.{" "}
-        <span style={{ color: "rgba(255,255,255,0.28)", fontSize: "0.70rem" }}>(Facultatif)</span>
-      </OptionalCheckbox>
       {/* routing="virtual" keeps the component stable — no URL sub-path navigation */}
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
       <div
@@ -393,10 +388,17 @@ function SignUpRoute() {
           appearance={clerkAppearance}
         />
       </div>
+      <div style={{ marginTop: 20, width: "100%", maxWidth: 440, display: "flex", flexDirection: "column", gap: 0 }}>
+        <LegalConsentCheckbox accepted={legalAccepted} onChange={setLegalAccepted} />
+        <OptionalCheckbox checked={marketingAccepted} onChange={setMarketingAccepted}>
+          J&apos;accepte de recevoir des communications d&apos;Édouard (conseils, actualités, offres). Vous pouvez vous désinscrire à tout moment.{" "}
+          <span style={{ color: "rgba(255,255,255,0.28)", fontSize: "0.70rem" }}>(Facultatif)</span>
+        </OptionalCheckbox>
+      </div>
       {!legalAccepted && (
         <p
           style={{
-            marginTop: 12,
+            marginTop: 8,
             fontFamily: "var(--up-font)",
             fontSize: "0.73rem",
             color: "rgba(255,255,255,0.30)",
@@ -404,7 +406,7 @@ function SignUpRoute() {
             letterSpacing: "0.02em",
           }}
         >
-          Veuillez accepter les conditions ci-dessus pour continuer.
+          Veuillez accepter les conditions ci-dessous pour continuer.
         </p>
       )}
     </div>

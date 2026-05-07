@@ -83,6 +83,66 @@ const FicheButton = ({
   </div>
 );
 
+const SyntheseFicheButton = ({
+  onDownload,
+}: {
+  onDownload: (l: string) => void;
+}) => (
+  <div
+    className="mt-4 p-5 rounded-sm border"
+    style={{
+      background: "linear-gradient(135deg, rgba(8,15,30,0.95) 0%, rgba(20,30,60,0.95) 100%)",
+      borderColor: "rgba(245,224,144,0.45)",
+      boxShadow: "0 0 32px -8px rgba(245,224,144,0.15)",
+    }}
+  >
+    <div className="flex items-start gap-3 mb-4">
+      <div
+        className="flex-shrink-0 w-9 h-9 rounded-sm flex items-center justify-center"
+        style={{ background: "#F5E090" }}
+      >
+        <span style={{ fontSize: 18 }}>📊</span>
+      </div>
+      <div>
+        <p
+          className="text-[11px] font-bold uppercase tracking-widest mb-0.5"
+          style={{ color: "#F5E090", fontFamily: "var(--up-font)" }}
+        >
+          Rapport complet — 10 étapes analysées
+        </p>
+        <p
+          className="text-[10px] leading-relaxed"
+          style={{ color: "rgba(255,255,255,0.50)", fontFamily: "var(--up-font)" }}
+        >
+          Ce rapport compile les 9 fiches étapes + le diagnostic final avec indice de faisabilité-rentabilité.
+        </p>
+      </div>
+    </div>
+    <button
+      onClick={() => onDownload("Synthèse")}
+      className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-sm text-sm font-bold transition-all active:scale-95"
+      style={{
+        background: "#F5E090",
+        color: "#080F1E",
+        fontFamily: "var(--up-font)",
+        boxShadow: "0 6px 20px -4px rgba(245,224,144,0.50)",
+        letterSpacing: "0.02em",
+      }}
+      onMouseEnter={(e) => { e.currentTarget.style.opacity = "0.88"; }}
+      onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; }}
+    >
+      <Download size={15} />
+      Télécharger le rapport complet (PDF)
+    </button>
+    <p
+      className="text-[10px] mt-3 text-center italic"
+      style={{ color: "rgba(255,255,255,0.30)", fontFamily: "var(--up-font)" }}
+    >
+      Génération en cours — peut prendre 30 à 60 secondes selon la longueur de l'analyse.
+    </p>
+  </div>
+);
+
 const HelpHint = () => (
   <div className="ml-11 mt-2">
     <p
@@ -136,7 +196,11 @@ function renderContentWithFiche(
         }
         const ficheMatch = part.match(/%%FICHE:([^%]+)%%/);
         if (ficheMatch && onDownloadFiche) {
-          return <FicheButton key={i} label={ficheMatch[1].trim()} onDownload={onDownloadFiche} />;
+          const ficheLabel = ficheMatch[1].trim();
+          if (ficheLabel === "Synthèse") {
+            return <SyntheseFicheButton key={i} onDownload={onDownloadFiche} />;
+          }
+          return <FicheButton key={i} label={ficheLabel} onDownload={onDownloadFiche} />;
         }
         if (part.trim()) {
           return <ReactMarkdown key={i}>{part}</ReactMarkdown>;

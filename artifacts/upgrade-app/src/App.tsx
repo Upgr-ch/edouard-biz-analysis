@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ClerkProvider, SignIn, SignUp } from "@clerk/react";
 import { publishableKeyFromHost } from "@clerk/react/internal";
 import { shadcn } from "@clerk/themes";
@@ -227,22 +227,116 @@ function AuthRoute() {
   );
 }
 
+function LegalConsentCheckbox({
+  accepted,
+  onChange,
+}: {
+  accepted: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <div
+      style={{
+        width: "100%",
+        maxWidth: 440,
+        marginBottom: 20,
+        display: "flex",
+        alignItems: "flex-start",
+        gap: 10,
+        padding: "14px 16px",
+        background: "rgba(245,224,144,0.04)",
+        border: `1px solid ${accepted ? "rgba(245,224,144,0.30)" : "rgba(255,255,255,0.08)"}`,
+        borderRadius: 2,
+        cursor: "pointer",
+        transition: "border-color 0.2s",
+      }}
+      onClick={() => onChange(!accepted)}
+    >
+      <div
+        style={{
+          flexShrink: 0,
+          marginTop: 1,
+          width: 16,
+          height: 16,
+          borderRadius: 2,
+          border: `1.5px solid ${accepted ? "#F5E090" : "rgba(255,255,255,0.25)"}`,
+          background: accepted ? "#F5E090" : "transparent",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          transition: "background 0.15s, border-color 0.15s",
+        }}
+      >
+        {accepted && (
+          <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+            <path d="M1 4L3.5 6.5L9 1" stroke="#080F1E" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        )}
+      </div>
+      <p
+        style={{
+          fontFamily: "var(--up-font)",
+          fontSize: "0.75rem",
+          lineHeight: 1.7,
+          color: "rgba(255,255,255,0.55)",
+          margin: 0,
+          userSelect: "none",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        J&apos;accepte les{" "}
+        <a href="/cgu" target="_blank" rel="noopener noreferrer" style={{ color: "#F5E090", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>CGU</a>
+        {" "}et la{" "}
+        <a href="/confidentialite" target="_blank" rel="noopener noreferrer" style={{ color: "#F5E090", textDecoration: "underline" }} onClick={(e) => e.stopPropagation()}>politique de confidentialité</a>.
+        {" "}Je reconnais que mes données personnelles sont traitées conformément à la{" "}
+        <strong style={{ color: "rgba(255,255,255,0.70)", fontWeight: 600 }}>LPD</strong>{" "}(Loi fédérale suisse sur la protection des données) et au{" "}
+        <strong style={{ color: "rgba(255,255,255,0.70)", fontWeight: 600 }}>RGPD</strong>{" "}(Règlement général européen sur la protection des données).
+      </p>
+    </div>
+  );
+}
+
 function SignUpRoute() {
   const { user, loading } = useAuth();
+  const [legalAccepted, setLegalAccepted] = useState(false);
   if (loading) return null;
   if (user) return <Navigate to="/" replace />;
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4 py-8">
       <AuthHeader backTo="/auth" />
+      <LegalConsentCheckbox accepted={legalAccepted} onChange={setLegalAccepted} />
       {/* routing="virtual" keeps the component stable — no URL sub-path navigation */}
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-      <SignUp
-        {...({ routing: "virtual" } as any)}
-        signInUrl="/auth"
-        forceRedirectUrl="/"
-        signInForceRedirectUrl="/"
-        appearance={clerkAppearance}
-      />
+      <div
+        style={{
+          opacity: legalAccepted ? 1 : 0.45,
+          pointerEvents: legalAccepted ? "auto" : "none",
+          transition: "opacity 0.25s ease",
+          width: "100%",
+        }}
+      >
+        <SignUp
+          {...({ routing: "virtual" } as any)}
+          signInUrl="/auth"
+          forceRedirectUrl="/"
+          signInForceRedirectUrl="/"
+          appearance={clerkAppearance}
+        />
+      </div>
+      {!legalAccepted && (
+        <p
+          style={{
+            marginTop: 12,
+            fontFamily: "var(--up-font)",
+            fontSize: "0.73rem",
+            color: "rgba(255,255,255,0.30)",
+            textAlign: "center",
+            letterSpacing: "0.02em",
+          }}
+        >
+          Veuillez accepter les conditions ci-dessus pour continuer.
+        </p>
+      )}
     </div>
   );
 }

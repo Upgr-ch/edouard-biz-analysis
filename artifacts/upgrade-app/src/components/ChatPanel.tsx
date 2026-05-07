@@ -83,6 +83,23 @@ const FicheButton = ({
   </div>
 );
 
+const HelpHint = () => (
+  <div className="ml-11 mt-2">
+    <p
+      className="text-[11px] italic leading-relaxed"
+      style={{ color: "rgba(255,255,255,0.32)", fontFamily: "var(--up-font)" }}
+    >
+      À tout moment, tape{" "}
+      <strong>
+        <u>aide moi</u>
+      </strong>{" "}
+      si tu as besoin de suggestions.
+      <br />
+      Si tu dispose de documents tu peux les joindre via l'icône 📎.
+    </p>
+  </div>
+);
+
 const NextStepButton = ({ onNextStep }: { onNextStep: () => void }) => (
   <button
     onClick={onNextStep}
@@ -432,6 +449,7 @@ Avant de commencer, j'ai besoin de savoir où tu en es.
 
   let userMsgCounter = 0;
   let assistantMsgCounter = 0;
+  let stepReachedCadrage = false;
 
   return (
     <div className="flex flex-col h-full bg-background relative overflow-hidden">
@@ -531,6 +549,12 @@ Avant de commencer, j'ai besoin de savoir où tu en es.
               if (msg.role === "user") userMsgCounter++;
               if (msg.role === "assistant") assistantMsgCounter++;
               const showAd = msg.role === "assistant" && assistantMsgCounter % 6 === 0;
+              // Track whether we've reached Cadrage (Étape 2 = index 1) or beyond
+              if (msg.role === "assistant") {
+                const detectedStep = detectStepFromContent(msg.content);
+                if (detectedStep !== null && detectedStep >= 1) stepReachedCadrage = true;
+              }
+              const showHint = msg.role === "assistant" && stepReachedCadrage;
               return (
                 <Fragment key={i}>
                   <div
@@ -579,6 +603,7 @@ Avant de commencer, j'ai besoin de savoir où tu en es.
                       </div>
                     </div>
                   </div>
+                  {showHint && <HelpHint />}
                   {showAd && <AdSlot />}
                 </Fragment>
               );

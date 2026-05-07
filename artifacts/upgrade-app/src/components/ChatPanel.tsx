@@ -447,6 +447,34 @@ Avant de commencer, j'ai besoin de savoir où tu en es.
     }
   };
 
+  const handleNextStep = () => {
+    onNextStep?.();
+    if (!conversationId || isLoading) return;
+    void (async () => {
+      const content = "Passons à l'étape suivante.";
+      setIsLoading(true);
+      try {
+        await saveMessage(conversationId, "user", content);
+        const token = await getToken();
+        const reply = await invokeChat(
+          [...persistedMessages, { role: "user", content }],
+          token,
+        );
+        if (reply) {
+          const cleanReply = stripSentinel(reply);
+          await saveMessage(conversationId, "assistant", cleanReply);
+          const step = detectStepFromContent(reply);
+          if (step !== null) onStepDetected?.(step);
+        }
+      } catch (err) {
+        const msg = (err as Error).message;
+        toast.error(msg.startsWith("Chat API error") ? "Erreur lors de l'envoi" : msg);
+      } finally {
+        setIsLoading(false);
+      }
+    })();
+  };
+
   let userMsgCounter = 0;
   let assistantMsgCounter = 0;
   let stepReachedCadrage = false;
@@ -598,7 +626,7 @@ Avant de commencer, j'ai besoin de savoir où tu en es.
                         }
                       >
                         <div className="prose prose-sm dark:prose-invert" style={{ fontFamily: "var(--up-font)" }}>
-                          {renderContentWithFiche(msg.content, msg.role === "assistant" ? onDownloadFiche : undefined, msg.role === "assistant" ? onNextStep : undefined)}
+                          {renderContentWithFiche(msg.content, msg.role === "assistant" ? onDownloadFiche : undefined, msg.role === "assistant" ? handleNextStep : undefined)}
                         </div>
                       </div>
                     </div>

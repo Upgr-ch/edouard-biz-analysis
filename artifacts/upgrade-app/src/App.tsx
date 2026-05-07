@@ -365,6 +365,11 @@ function SignUpRoute() {
   const { user, loading } = useAuth();
   const [legalAccepted, setLegalAccepted] = useState(false);
   const [marketingAccepted, setMarketingAccepted] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem("edouard_marketing_consent", marketingAccepted ? "1" : "0");
+  }, [marketingAccepted]);
+
   if (loading) return null;
   if (user) return <Navigate to="/" replace />;
   return (

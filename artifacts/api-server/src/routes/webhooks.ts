@@ -55,10 +55,13 @@ router.post(
         data.email_addresses?.[0]?.email_address;
 
       if (email) {
+        // marketingConsent is not available via webhook (browser-side preference).
+        // The useNewUserSync hook sends a follow-up request with the actual value.
         const contact = {
           email,
           firstName: data.first_name ?? "",
           lastName: data.last_name ?? "",
+          marketingConsent: undefined,
         };
         await Promise.allSettled([
           upsertContact(contact),

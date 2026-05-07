@@ -12,10 +12,11 @@ router.post("/signup", async (req, res) => {
     return;
   }
 
-  const { email, firstName, lastName } = req.body as {
+  const { email, firstName, lastName, marketingConsent } = req.body as {
     email?: string;
     firstName?: string;
     lastName?: string;
+    marketingConsent?: boolean;
   };
 
   if (!email) {
@@ -23,10 +24,17 @@ router.post("/signup", async (req, res) => {
     return;
   }
 
+  const contact = {
+    email,
+    firstName,
+    lastName,
+    marketingConsent: marketingConsent === true,
+  };
+
   try {
     await Promise.allSettled([
-      upsertContact({ email, firstName, lastName }),
-      appendContactRow({ email, firstName, lastName }),
+      upsertContact(contact),
+      appendContactRow(contact),
     ]);
     res.status(200).json({ ok: true });
   } catch (err) {
@@ -34,9 +42,5 @@ router.post("/signup", async (req, res) => {
     res.status(500).json({ error: "Internal error" });
   }
 });
-
-
-
-
 
 export default router;

@@ -1,10 +1,11 @@
 const BASE = "https://api.systeme.io/api";
 const API_KEY = process.env.SYSTEME_IO_API_KEY ?? "";
 
-interface SystemeContact {
+export interface SystemeContact {
   email: string;
   firstName?: string;
   lastName?: string;
+  marketingConsent?: boolean;
 }
 
 async function addTag(contactId: number, tagName: string): Promise<void> {
@@ -76,7 +77,6 @@ export async function upsertContact(contact: SystemeContact): Promise<void> {
     const created = (await res.json()) as { id: number };
     contactId = created.id;
   } else if (res.status === 422) {
-    // Contact already exists — look it up by email
     contactId = await findContactByEmail(contact.email);
     if (!contactId) {
       console.error("[systemeio] contact exists but could not be found by email", contact.email);
@@ -90,5 +90,11 @@ export async function upsertContact(contact: SystemeContact): Promise<void> {
   }
 
   await addTag(contactId, "Édouard");
-  console.info("[systemeio] contact upserted + tagged", contact.email);
+
+  if (contact.marketingConsent) {
+    await addTag(contactId, "Email Marketing");
+    console.info("[systemeio] tag 'Email Marketing' added for", contact.email);
+  }
+
+  console.info("[systemeio] contact upserted + tagged", contact.email, "| marketing:", contact.marketingConsent ?? false);
 }

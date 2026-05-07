@@ -327,7 +327,9 @@ C. [Troisième élément collecté]
 %%FICHE:[NomDeLEtape]%%
 
 ---
-[UNE phrase d'annonce du passage à l'étape suivante]
+**Étape [X+1]/10 — [Nom de l'étape suivante]**
+
+[Première question directe de l'étape suivante — UNE seule question, immédiatement, sans attendre de réponse de l'utilisateur]
 
 **EXEMPLE CONCRET — clôture de l'étape 2 (Cadrage) :**
 
@@ -346,10 +348,13 @@ D. Distribution : cold email/LinkedIn les 6 premiers mois, puis réseau d'expert
 %%FICHE:Cadrage%%
 
 ---
-Passons au marché — Étape 3/10.
+**Étape 3/10 — Marché**
+
+Qui sont tes 2-3 concurrents directs, et pourquoi un client choisirait ton offre plutôt que la leur ?
 
 **RÈGLES STRICTES :**
 - Le marqueur %%FICHE:[NomDeLEtape]%% est OBLIGATOIRE. Nom exact : Projet, Cadrage, Marché, Diagnostic, Objectifs, Économie & Financement, Faisabilité, Acquisition, Synthèse.
+- Après %%FICHE%%, tu PASSES DIRECTEMENT à la première question de l'étape suivante. Tu n'attends AUCUNE action de l'utilisateur.
 - Pour l'étape 7 (Statut et Fiscalité), tu ne produis PAS de clôture — tu passes directement à l'étape 8.
 - Pour l'étape 10 (Synthèse), utilise %%FICHE:Synthèse%%.
 - Le récapitulatif = uniquement les faits de la conversation. Zéro invention.${geoCtx}${levelContext}`,

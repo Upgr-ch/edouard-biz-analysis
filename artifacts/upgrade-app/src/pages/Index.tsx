@@ -132,7 +132,6 @@ const Index = () => {
   const [pendingStepAfterDisclaimer, setPendingStepAfterDisclaimer] = useState<number | null>(null);
   const restorationProcessed = useRef(false);
   const continuationPromptShownFor = useRef<string | null>(null);
-  const nextStepPromptedLabels = useRef<Set<string>>(new Set());
   const [pdfProgressStage, setPdfProgressStage] = useState<string | null>(null);
 
   // Safety: reset any stale loading state on mount (e.g. after HMR mid-request)
@@ -346,16 +345,6 @@ const Index = () => {
       const report = await fetchStepReport(chatMessages, projectName, stepLabel, token);
       renderStepPdf(report, projectName, stepLabel);
 
-      // Inject "next step" prompt once per step label per conversation
-      const promptKey = `${conversationId}:${stepLabel}`;
-      if (conversationId && !nextStepPromptedLabels.current.has(promptKey)) {
-        nextStepPromptedLabels.current.add(promptKey);
-        void handleSaveMessage(
-          conversationId,
-          "assistant",
-          `Ta fiche **${stepLabel}** est prête. On passe à l'étape suivante ?\n\n%%NEXT%%`,
-        );
-      }
     } catch (err) {
       toast.error((err as Error).message ?? "Erreur lors de la génération de la fiche");
     } finally {

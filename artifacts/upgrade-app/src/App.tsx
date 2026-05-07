@@ -296,15 +296,85 @@ function LegalConsentCheckbox({
   );
 }
 
+function OptionalCheckbox({
+  checked,
+  onChange,
+  children,
+}: {
+  checked: boolean;
+  onChange: (v: boolean) => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      style={{
+        width: "100%",
+        maxWidth: 440,
+        marginBottom: 12,
+        display: "flex",
+        alignItems: "flex-start",
+        gap: 10,
+        padding: "11px 16px",
+        background: "transparent",
+        border: `1px solid ${checked ? "rgba(245,224,144,0.20)" : "rgba(255,255,255,0.06)"}`,
+        borderRadius: 2,
+        cursor: "pointer",
+        transition: "border-color 0.2s",
+      }}
+      onClick={() => onChange(!checked)}
+    >
+      <div
+        style={{
+          flexShrink: 0,
+          marginTop: 2,
+          width: 15,
+          height: 15,
+          borderRadius: 2,
+          border: `1.5px solid ${checked ? "#F5E090" : "rgba(255,255,255,0.20)"}`,
+          background: checked ? "#F5E090" : "transparent",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          transition: "background 0.15s, border-color 0.15s",
+        }}
+      >
+        {checked && (
+          <svg width="9" height="7" viewBox="0 0 10 8" fill="none">
+            <path d="M1 4L3.5 6.5L9 1" stroke="#080F1E" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        )}
+      </div>
+      <p
+        style={{
+          fontFamily: "var(--up-font)",
+          fontSize: "0.74rem",
+          lineHeight: 1.65,
+          color: "rgba(255,255,255,0.45)",
+          margin: 0,
+          userSelect: "none",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {children}
+      </p>
+    </div>
+  );
+}
+
 function SignUpRoute() {
   const { user, loading } = useAuth();
   const [legalAccepted, setLegalAccepted] = useState(false);
+  const [marketingAccepted, setMarketingAccepted] = useState(false);
   if (loading) return null;
   if (user) return <Navigate to="/" replace />;
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4 py-8">
       <AuthHeader backTo="/auth" />
       <LegalConsentCheckbox accepted={legalAccepted} onChange={setLegalAccepted} />
+      <OptionalCheckbox checked={marketingAccepted} onChange={setMarketingAccepted}>
+        J&apos;accepte de recevoir des communications d&apos;Édouard (conseils, actualités, offres). Vous pouvez vous désinscrire à tout moment.{" "}
+        <span style={{ color: "rgba(255,255,255,0.28)", fontSize: "0.70rem" }}>(Facultatif)</span>
+      </OptionalCheckbox>
       {/* routing="virtual" keeps the component stable — no URL sub-path navigation */}
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
       <div

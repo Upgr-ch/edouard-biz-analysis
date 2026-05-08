@@ -147,7 +147,7 @@ const HelpHint = () => (
   <div className="ml-11 mt-2">
     <p
       className="text-[11px] italic leading-relaxed"
-      style={{ color: "rgba(255,255,255,0.32)", fontFamily: "var(--up-font)" }}
+      style={{ color: "rgba(255,255,255,1)", fontFamily: "var(--up-font)" }}
     >
       À tout moment, tape{" "}
       <strong>

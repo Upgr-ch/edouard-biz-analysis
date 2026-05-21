@@ -4,7 +4,7 @@
 // It also forwards the marketing consent preference set during sign-up.
 
 import { useEffect, useRef } from "react";
-import { useUser } from "@clerk/react";
+import { useUser, useAuth } from "@clerk/react";
 
 const API_BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 const STORAGE_KEY = "edouard_synced";
@@ -12,6 +12,7 @@ const MARKETING_KEY = "edouard_marketing_consent";
 
 export function useNewUserSync() {
   const { user, isLoaded } = useUser();
+  const { getToken } = useAuth();
   const called = useRef(false);
 
   useEffect(() => {
@@ -19,15 +20,6 @@ export function useNewUserSync() {
 
     const alreadySynced = localStorage.getItem(`${STORAGE_KEY}_${user.id}`);
     if (alreadySynced) return;
-
-    const createdAt = user.createdAt ? new Date(user.createdAt).getTime() : 0;
-    const ageMs = Date.now() - createdAt;
-    const isNew = ageMs < 5 * 60 * 1000;
-
-    if (!isNew) {
-      localStorage.setItem(`${STORAGE_KEY}_${user.id}`, "1");
-      return;
-    }
 
     called.current = true;
 
@@ -39,24 +31,36 @@ export function useNewUserSync() {
 
     const marketingConsent = localStorage.getItem(MARKETING_KEY) === "1";
 
-    fetch(`${API_BASE}/api/integrations/signup`, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email,
-        firstName: user.firstName ?? "",
-        lastName: user.lastName ?? "",
-        marketingConsent,
-      }),
-    })
-      .then((r) => {
+    void (async () => {
+      try {
+        const token = await getToken();
+        const r = await fetch(`${API_BASE}/api/integrations/signup`, {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({
+            email,
+            firstName: user.firstName ?? "",
+            lastName: user.lastName ?? "",
+            marketingConsent,
+          }),
+        });
         if (r.ok) {
           localStorage.setItem(`${STORAGE_KEY}_${user.id}`, "1");
           localStorage.removeItem(MARKETING_KEY);
-          console.info("[useNewUserSync] fallback contact sync ok, marketingConsent:", marketingConsent);
+          console.info("[useNewUserSync] contact sync ok, marketingConsent:", marketingConsent);
+        } else {
+          const body = await r.json().catch(() => ({})) as { error?: string };
+          console.warn("[useNewUserSync] sync failed", r.status, body.error);
+          called.current = false;
         }
-      })
-      .catch((err) => console.warn("[useNewUserSync]", err));
-  }, [isLoaded, user]);
+      } catch (err) {
+        console.warn("[useNewUserSync]", err);
+        called.current = false;
+      }
+    })();
+  }, [isLoaded, user, getToken]);
 }

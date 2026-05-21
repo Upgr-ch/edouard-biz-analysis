@@ -31,16 +31,21 @@ router.post("/signup", async (req, res) => {
     marketingConsent: marketingConsent === true,
   };
 
-  try {
-    await Promise.allSettled([
-      upsertContact(contact),
-      appendContactRow(contact),
-    ]);
-    res.status(200).json({ ok: true });
-  } catch (err) {
-    console.error("[integrations/signup]", err);
-    res.status(500).json({ error: "Internal error" });
+  console.info("[integrations/signup] syncing contact", email, "| marketing:", marketingConsent === true);
+
+  const [siResult, gsResult] = await Promise.allSettled([
+    upsertContact(contact),
+    appendContactRow(contact),
+  ]);
+
+  if (siResult.status === "rejected") {
+    console.error("[integrations/signup] systemeio error", siResult.reason);
   }
+  if (gsResult.status === "rejected") {
+    console.error("[integrations/signup] googlesheets error", gsResult.reason);
+  }
+
+  res.status(200).json({ ok: true });
 });
 
 export default router;

@@ -2,6 +2,7 @@ import { Router, Request, Response, NextFunction } from "express";
 import { getAuth } from "@clerk/express";
 import { db, conversationsTable, chatMessagesTable } from "@workspace/db";
 import { eq, desc, and } from "drizzle-orm";
+import { tagDiagnosticProgress } from "../lib/systemeio";
 
 const router = Router();
 
@@ -110,6 +111,11 @@ router.post(
         .values({ userId, title })
         .returning();
       res.status(201).json(row);
+
+      // Fire-and-forget: tag as diagnostic started in Systeme.io
+      tagDiagnosticProgress(userId, "debut").catch((e) =>
+        console.error("[systemeio] debut tag failed", e),
+      );
     } catch (err) {
       (req as Request & { log: { error: (e: unknown) => void } }).log.error(err);
       res.status(500).json({ error: "Internal server error" });
@@ -150,6 +156,19 @@ router.patch(
         return;
       }
       res.json(row);
+
+      // Fire-and-forget: tag diagnostic milestones in Systeme.io
+      if (typeof currentStep === "number") {
+        if (currentStep === 4) {
+          tagDiagnosticProgress(userId, "mi_parcours").catch((e) =>
+            console.error("[systemeio] mi_parcours tag failed", e),
+          );
+        } else if (currentStep === 9) {
+          tagDiagnosticProgress(userId, "complet").catch((e) =>
+            console.error("[systemeio] complet tag failed", e),
+          );
+        }
+      }
     } catch (err) {
       (req as Request & { log: { error: (e: unknown) => void } }).log.error(err);
       res.status(500).json({ error: "Internal server error" });

@@ -32,12 +32,19 @@ async function resolveTagId(tagName: string): Promise<number | null> {
 
 async function addTagToContact(contactId: number, tagName: string): Promise<void> {
   const tagId = await resolveTagId(tagName);
-  if (!tagId) return;
-  await fetch(`${BASE}/contacts/${contactId}/tags`, {
+  if (!tagId) {
+    console.error("[systemeio] could not resolve tag id for", tagName);
+    return;
+  }
+  const res = await fetch(`${BASE}/contacts/${contactId}/tags`, {
     method: "POST",
     headers: { "X-API-Key": API_KEY, "Content-Type": "application/json", Accept: "application/json" },
     body: JSON.stringify({ tagId }),
   });
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    console.error(`[systemeio] addTagToContact failed (${res.status}) contact=${contactId} tag=${tagName}`, body);
+  }
 }
 
 async function findContactByEmail(email: string): Promise<number | null> {
@@ -141,10 +148,28 @@ export async function tagDiagnosticProgress(
     return;
   }
 
-  const contactId = await findContactByEmail(email);
+  // Find contact — if not found, create it on the fly so tags always land
+  let contactId = await findContactByEmail(email);
   if (!contactId) {
-    console.warn("[systemeio] contact not found for email", email);
-    return;
+    console.info("[systemeio] contact not found, creating on-the-fly for", email);
+    const createRes = await fetch(`${BASE}/contacts`, {
+      method: "POST",
+      headers: { "X-API-Key": API_KEY, "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    if (createRes.ok) {
+      const created = (await createRes.json()) as { id: number };
+      contactId = created.id;
+      // Also apply the base "Édouard" tag
+      await addTagToContact(contactId, "Édouard");
+    } else if (createRes.status === 422) {
+      // Race condition: created between our GET and POST — try lookup again
+      contactId = await findContactByEmail(email);
+    }
+    if (!contactId) {
+      console.error("[systemeio] could not create or find contact for", email);
+      return;
+    }
   }
 
   const tagName = `diagnostic_${event}`;

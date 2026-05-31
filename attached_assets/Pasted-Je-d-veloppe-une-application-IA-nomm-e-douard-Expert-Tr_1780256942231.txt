@@ -1,0 +1,32 @@
+Je développe une application IA nommée « Édouard » (Expert/Transmetteur) qui aide les formateurs à structurer leur pédagogie. Mon tunnel de vente est :
+annonce → lead magnet (diagnostic gratuit en 10 étapes) → emailing (Systeme.io) → vente d’ebooks puis formation.
+
+Je dispose d’un compte Systeme.io déjà connecté (clé API disponible). Je souhaite créer un tableau de bord KPI complet sur Replit, capable de :
+
+1. **Collecter automatiquement** les données suivantes depuis Systeme.io :
+   - Utilisateurs inscrits (opt-ins) avec leurs tags
+   - Ventes (ebooks, formations, bundles) avec montants, dates, pays
+   - Réponses NPS (via champ personnalisé)
+   - Événements de progression dans le diagnostic (début, étapes, fin)
+
+2. **Calculer et afficher** ces KPI spécifiques :
+   - Taux de complétion du diagnostic (10 étapes) = `diagnostic_complet` / `diagnostic_debut`
+   - Net Promoter Score (NPS) = % promoteurs (notes 9-10) – % détracteurs (notes 0-6)
+   - Volume de diagnostics complets en Afrique francophone (hors France), avec répartition par pays (Sénégal, Côte d’Ivoire, Cameroun, RDC, Gabon, etc.)
+   - KPI standards : ROAS, AOV, taux de conversion lead→vente, CPL, etc. (à croiser avec Google Ads si possible)
+
+3. **Afficher un tableau de bord interactif** (Streamlit ou Plotly Dash) avec :
+   - Graphiques d’évolution (jour/semaine/mois)
+   - Alertes de seuil (complétion < 65%, NPS < +30, ROAS < 2)
+   - Filtres par pays, par période, par type de KPI
+
+**MAIS** avant de générer le code, je veux que l’agent IA me **guide pas à pas** pour paramétrer Systeme.io. Plus précisément :
+
+- Quels tags dois-je créer dans Systeme.io ? (ex: `diagnostic_debut`, `diagnostic_etape_5`, `diagnostic_complet`, `nps_score_9`, `pays_senegal`, etc.)
+- Comment mettre en place les **automatisations** (règles) dans Systeme.io pour ajouter ces tags automatiquement en fonction des clics ou des webhooks ?
+- Comment configurer un **webhook entrant** dans Systeme.io pour envoyer les événements temps réel à mon futur dashboard Replit ?
+- Quelle est la procédure pour créer un **champ personnalisé** (ex: `nps_score`) dans Systeme.io et le remplir via l’API ou un lien ?
+
+Une fois ces étapes clarifiées et documentées, l’agent produira le code complet du dashboard Replit (Python, Flask/FastAPI, Streamlit, etc.), avec un fichier `.env` pour la clé API, et un README expliquant comment déployer le tout sur Replit.
+
+L’agent doit être capable de générer à la fois la documentation de configuration Systeme.io et le code opérationnel.

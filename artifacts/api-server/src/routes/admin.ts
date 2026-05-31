@@ -88,11 +88,11 @@ router.get("/admin/kpis", requireAdmin, async (req: Request, res: Response) => {
         : sql`SELECT COUNT(DISTINCT user_id)::int AS count FROM conversations`,
     );
 
-    // ── 3. DB — daily new diagnostics (since date OR last 30 days) ──────────
+    // ── 3. DB — daily new diagnostics (all time, filtered by since if set) ──
     const dailyRows = await db.execute(
       sinceStr
         ? sql`SELECT TO_CHAR(created_at AT TIME ZONE 'UTC','YYYY-MM-DD') AS date, COUNT(*)::int AS count FROM conversations WHERE created_at >= ${sinceStr}::timestamptz GROUP BY 1 ORDER BY 1`
-        : sql`SELECT TO_CHAR(created_at AT TIME ZONE 'UTC','YYYY-MM-DD') AS date, COUNT(*)::int AS count FROM conversations WHERE created_at >= NOW() - INTERVAL '30 days' GROUP BY 1 ORDER BY 1`,
+        : sql`SELECT TO_CHAR(created_at AT TIME ZONE 'UTC','YYYY-MM-DD') AS date, COUNT(*)::int AS count FROM conversations GROUP BY 1 ORDER BY 1`,
     );
 
     // ── 4. DB — total conversations & completed (step 9) ───────────────────

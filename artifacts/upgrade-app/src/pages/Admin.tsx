@@ -98,6 +98,147 @@ const tooltipStyle = {
   itemStyle: { color: GOLD },
 };
 
+const MONTH_NAMES_FR = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
+const DAY_LABELS = ["L","M","M","J","V","S","D"];
+
+function CalendarMonth({
+  dbMap, sioMap,
+}: {
+  dbMap: Record<string, number>;
+  sioMap: Record<string, number>;
+}) {
+  const now = new Date();
+  const [year, setYear] = useState(now.getFullYear());
+  const [month, setMonth] = useState(now.getMonth()); // 0-indexed
+
+  const prevMonth = () => {
+    if (month === 0) { setYear(y => y - 1); setMonth(11); }
+    else setMonth(m => m - 1);
+  };
+  const nextMonth = () => {
+    if (month === 11) { setYear(y => y + 1); setMonth(0); }
+    else setMonth(m => m + 1);
+  };
+
+  // Build calendar grid: days of the week start on Monday
+  const firstDay = new Date(year, month, 1);
+  const lastDay  = new Date(year, month + 1, 0);
+  // ISO day: Mon=1..Sun=7 → offset so Monday is col 0
+  const startOffset = ((firstDay.getDay() + 6) % 7);
+  const totalCells = startOffset + lastDay.getDate();
+  const weeks = Math.ceil(totalCells / 7);
+
+  const today = new Date().toISOString().slice(0, 10);
+
+  // Max value in this month for heatmap scaling
+  let maxVal = 1;
+  for (let d = 1; d <= lastDay.getDate(); d++) {
+    const key = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    const v = (dbMap[key] ?? 0) + (sioMap[key] ?? 0);
+    if (v > maxVal) maxVal = v;
+  }
+
+  const cells: (number | null)[] = [];
+  for (let i = 0; i < startOffset; i++) cells.push(null);
+  for (let d = 1; d <= lastDay.getDate(); d++) cells.push(d);
+  while (cells.length < weeks * 7) cells.push(null);
+
+  return (
+    <div style={{
+      background: "rgba(255,255,255,0.02)",
+      border: "1px solid rgba(255,255,255,0.07)",
+      borderRadius: 4,
+      padding: "20px 24px",
+    }}>
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+        <p style={{ fontSize: "0.72rem", letterSpacing: "0.12em", color: "rgba(255,255,255,0.40)", textTransform: "uppercase", margin: 0 }}>
+          Calendrier KPI
+        </p>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <button onClick={prevMonth} style={{ background: "none", border: "1px solid rgba(255,255,255,0.10)", borderRadius: 3, color: "rgba(255,255,255,0.40)", cursor: "pointer", fontSize: "0.80rem", padding: "3px 10px", fontFamily: "var(--up-font)" }}>‹</button>
+          <span style={{ fontSize: "0.82rem", fontWeight: 600, color: "rgba(255,255,255,0.75)", minWidth: 120, textAlign: "center" }}>
+            {MONTH_NAMES_FR[month]} {year}
+          </span>
+          <button onClick={nextMonth} style={{ background: "none", border: "1px solid rgba(255,255,255,0.10)", borderRadius: 3, color: "rgba(255,255,255,0.40)", cursor: "pointer", fontSize: "0.80rem", padding: "3px 10px", fontFamily: "var(--up-font)" }}>›</button>
+        </div>
+        <div style={{ display: "flex", gap: 16, fontSize: "0.68rem", color: "rgba(255,255,255,0.30)" }}>
+          <span><span style={{ color: GOLD }}>■</span> Diagnostics</span>
+          <span><span style={{ color: "#8BB4C8" }}>■</span> SIO</span>
+        </div>
+      </div>
+
+      {/* Day-of-week headers */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4, marginBottom: 4 }}>
+        {DAY_LABELS.map((l, i) => (
+          <div key={i} style={{ textAlign: "center", fontSize: "0.62rem", color: "rgba(255,255,255,0.22)", letterSpacing: "0.10em", paddingBottom: 4 }}>
+            {l}
+          </div>
+        ))}
+      </div>
+
+      {/* Calendar grid */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4 }}>
+        {cells.map((day, idx) => {
+          if (day === null) {
+            return <div key={idx} />;
+          }
+          const key = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+          const db  = dbMap[key]  ?? 0;
+          const sio = sioMap[key] ?? 0;
+          const total = db + sio;
+          const isToday = key === today;
+          // Heatmap: opacity 0 → 0.55 based on total/maxVal
+          const intensity = total > 0 ? 0.12 + (total / maxVal) * 0.43 : 0;
+
+          return (
+            <div
+              key={key}
+              title={`${key}\nDiagnostics: ${db}\nInscriptions SIO: ${sio}`}
+              style={{
+                background: total > 0 ? `rgba(245,224,144,${intensity})` : "rgba(255,255,255,0.02)",
+                border: isToday ? `1px solid ${GOLD}` : "1px solid rgba(255,255,255,0.05)",
+                borderRadius: 3,
+                padding: "6px 4px 4px",
+                minHeight: 54,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 3,
+                cursor: total > 0 ? "default" : "default",
+              }}
+            >
+              <span style={{ fontSize: "0.65rem", color: isToday ? GOLD : "rgba(255,255,255,0.35)", fontWeight: isToday ? 700 : 400 }}>
+                {day}
+              </span>
+              {db > 0 && (
+                <span style={{ fontSize: "0.72rem", fontWeight: 700, color: GOLD, lineHeight: 1 }}>
+                  {db}
+                </span>
+              )}
+              {sio > 0 && (
+                <span style={{ fontSize: "0.65rem", color: "#8BB4C8", lineHeight: 1 }}>
+                  +{sio}
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Footer legend */}
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: 16, marginTop: 12 }}>
+        {[0.12, 0.27, 0.42, 0.55].map((op, i) => (
+          <div key={i} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <div style={{ width: 12, height: 12, borderRadius: 2, background: `rgba(245,224,144,${op})` }} />
+            <span style={{ fontSize: "0.60rem", color: "rgba(255,255,255,0.20)" }}>{["peu","moyen","élevé","max"][i]}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 const TODAY = new Date().toISOString().slice(0, 10);
 const LS_KEY = "edouard_kpi_since";
 
@@ -312,6 +453,12 @@ export default function Admin() {
               </LineChart>
             </ResponsiveContainer>
           </ChartBox>
+        </div>
+
+        {/* ── Calendrier mensuel ── */}
+        <SectionTitle>Calendrier mensuel</SectionTitle>
+        <div style={{ marginBottom: 40 }}>
+          <CalendarMonth dbMap={dbMap} sioMap={sioMap} />
         </div>
 
         {/* ── Locale + Tags ── */}

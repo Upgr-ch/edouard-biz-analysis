@@ -1,0 +1,41 @@
+Je souhaite un script Python autonome (pas d’interface web) qui calcule des KPI back office par pays et génère des alertes. Ces données seront ensuite lues par une page admin déjà existante (hors de ce script). Le script doit :
+
+1. Se connecter à l’API Systeme.io pour récupérer :
+   - Contacts (avec tags `diagnostic_debut`, `diagnostic_complet`, et champ personnalisé `pays`)
+   - Commandes (ventes d’ebooks et formations, avec montant et date)
+   - Réponses NPS (champ personnalisé `nps_score`)
+
+2. Pour chaque pays prioritaire (Suisse, France, Belgique, Maroc, Tunisie, Gabon), calculer :
+   - Taux de complétion du diagnostic (30 derniers jours) → seuil d’alerte < 65%
+   - Net Promoter Score (90 derniers jours, calcul trimestriel) → seuil d’alerte < +30
+   - Absence de vente (0 vente dans les 90 derniers jours, avec ≥10 diagnostics complets sur la même période) → alerte
+
+3. Écrire les résultats dans un **fichier `kpi_alertes.json`** avec la structure suivante :
+   {
+     "timestamp": "ISO date",
+     "pays": {
+       "Suisse": {
+         "taux_completion": 68.5,
+         "alerte_completion": false,
+         "nps": 35,
+         "alerte_nps": false,
+         "ventes_90j": 12,
+         "diagnostics_complets_90j": 45,
+         "alerte_absence_vente": false,
+         "message_alerte": null
+       },
+       ...
+     },
+     "alertes_globales": ["Alerte : Taux de complétion faible pour Maroc (58%)"]
+   }
+
+4. En option, écrire également dans un fichier `alertes.log` (texte) les alertes avec horodatage.
+
+Contraintes techniques :
+- Utiliser `requests`, `python-dotenv`, `pandas` (si utile).
+- Paginer sur l’API Systeme.io (gérer les lots).
+- Stocker éventuellement les données localement pour les fenêtres glissantes (ou tout recalculer à chaque exécution – au choix).
+- Gérer les erreurs d’API et les timeouts.
+- Fournir un README expliquant comment configurer la clé API Systeme.io et comment exécuter le script (manuellement ou via cron/schedule).
+
+Ne pas générer de code HTML/CSS, seulement le script Python et les fichiers de configuration nécessaires.

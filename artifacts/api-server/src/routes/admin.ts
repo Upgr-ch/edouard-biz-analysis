@@ -67,58 +67,62 @@ async function fetchAllContacts(): Promise<SioContact[]> {
 
 // ── GET /api/admin/kpis ───────────────────────────────────────────────────────
 
-router.get("/admin/kpis", requireAdmin, async (_req: Request, res: Response) => {
+router.get("/admin/kpis", requireAdmin, async (req: Request, res: Response) => {
   try {
+    // ── Parse optional ?since=YYYY-MM-DD filter ─────────────────────────────
+    const sinceParam = typeof req.query.since === "string" ? req.query.since : null;
+    const sinceDate: Date | null = sinceParam ? new Date(`${sinceParam}T00:00:00Z`) : null;
+    const sinceStr = sinceDate ? sinceDate.toISOString() : null;
+
     // ── 1. DB — funnel by step ──────────────────────────────────────────────
-    const funnelRows = await db.execute(sql`
-      SELECT current_step, COUNT(*)::int AS count
-      FROM conversations
-      GROUP BY current_step
-      ORDER BY current_step
-    `);
+    const funnelRows = await db.execute(
+      sinceStr
+        ? sql`SELECT current_step, COUNT(*)::int AS count FROM conversations WHERE created_at >= ${sinceStr}::timestamptz GROUP BY current_step ORDER BY current_step`
+        : sql`SELECT current_step, COUNT(*)::int AS count FROM conversations GROUP BY current_step ORDER BY current_step`,
+    );
 
     // ── 2. DB — total unique users ──────────────────────────────────────────
-    const usersRow = await db.execute(sql`
-      SELECT COUNT(DISTINCT user_id)::int AS count FROM conversations
-    `);
+    const usersRow = await db.execute(
+      sinceStr
+        ? sql`SELECT COUNT(DISTINCT user_id)::int AS count FROM conversations WHERE created_at >= ${sinceStr}::timestamptz`
+        : sql`SELECT COUNT(DISTINCT user_id)::int AS count FROM conversations`,
+    );
 
-    // ── 3. DB — daily new diagnostics last 30 days ──────────────────────────
-    const dailyRows = await db.execute(sql`
-      SELECT
-        TO_CHAR(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD') AS date,
-        COUNT(*)::int AS count
-      FROM conversations
-      WHERE created_at >= NOW() - INTERVAL '30 days'
-      GROUP BY 1
-      ORDER BY 1
-    `);
+    // ── 3. DB — daily new diagnostics (since date OR last 30 days) ──────────
+    const dailyRows = await db.execute(
+      sinceStr
+        ? sql`SELECT TO_CHAR(created_at AT TIME ZONE 'UTC','YYYY-MM-DD') AS date, COUNT(*)::int AS count FROM conversations WHERE created_at >= ${sinceStr}::timestamptz GROUP BY 1 ORDER BY 1`
+        : sql`SELECT TO_CHAR(created_at AT TIME ZONE 'UTC','YYYY-MM-DD') AS date, COUNT(*)::int AS count FROM conversations WHERE created_at >= NOW() - INTERVAL '30 days' GROUP BY 1 ORDER BY 1`,
+    );
 
     // ── 4. DB — total conversations & completed (step 9) ───────────────────
-    const totalsRow = await db.execute(sql`
-      SELECT
-        COUNT(*)::int AS total,
-        COUNT(*) FILTER (WHERE current_step >= 9)::int AS completed
-      FROM conversations
-    `);
+    const totalsRow = await db.execute(
+      sinceStr
+        ? sql`SELECT COUNT(*)::int AS total, COUNT(*) FILTER (WHERE current_step >= 9)::int AS completed FROM conversations WHERE created_at >= ${sinceStr}::timestamptz`
+        : sql`SELECT COUNT(*)::int AS total, COUNT(*) FILTER (WHERE current_step >= 9)::int AS completed FROM conversations`,
+    );
 
     // ── 5. Systeme.io contacts ──────────────────────────────────────────────
-    const contacts = await fetchAllContacts();
+    const allContacts = await fetchAllContacts();
+    const contacts = sinceDate
+      ? allContacts.filter(c => new Date(c.registeredAt) >= sinceDate)
+      : allContacts;
 
     const now = new Date();
     const cutoff7  = new Date(now.getTime() - 7  * 86400_000);
     const cutoff30 = new Date(now.getTime() - 30 * 86400_000);
 
-    const newLast7  = contacts.filter(c => new Date(c.registeredAt) >= cutoff7).length;
-    const newLast30 = contacts.filter(c => new Date(c.registeredAt) >= cutoff30).length;
+    const newLast7  = allContacts.filter(c => new Date(c.registeredAt) >= cutoff7).length;
+    const newLast30 = allContacts.filter(c => new Date(c.registeredAt) >= cutoff30).length;
 
-    // Locale breakdown
+    // Locale breakdown (filtered)
     const localeMap: Record<string, number> = {};
     for (const c of contacts) {
       const loc = (c.locale ?? "inconnu").toUpperCase();
       localeMap[loc] = (localeMap[loc] ?? 0) + 1;
     }
 
-    // Tag breakdown
+    // Tag breakdown (filtered)
     const tagMap: Record<string, number> = {};
     for (const c of contacts) {
       for (const t of c.tags) {
@@ -126,16 +130,14 @@ router.get("/admin/kpis", requireAdmin, async (_req: Request, res: Response) => 
       }
     }
 
-    // Daily SIO registrations last 30 days
+    // Daily SIO registrations (filtered)
     const sioDaily: Record<string, number> = {};
     for (const c of contacts) {
       const d = c.registeredAt.slice(0, 10);
-      if (new Date(c.registeredAt) >= cutoff30) {
-        sioDaily[d] = (sioDaily[d] ?? 0) + 1;
-      }
+      sioDaily[d] = (sioDaily[d] ?? 0) + 1;
     }
 
-    // NPS from tags (nps_0 … nps_10)
+    // NPS from tags (filtered)
     let promoters = 0, detractors = 0, passives = 0;
     for (const c of contacts) {
       for (const t of c.tags) {
@@ -153,7 +155,7 @@ router.get("/admin/kpis", requireAdmin, async (_req: Request, res: Response) => 
       ? Math.round((promoters / npsTotal - detractors / npsTotal) * 100)
       : null;
 
-    // Geo: Africa francophone countries
+    // Geo: Africa francophone (filtered)
     const AFRICAN_LOCALES = ["SN", "CI", "CM", "CD", "GA", "BJ", "BF", "ML", "NE", "TG", "GN", "MG", "MR", "RW", "BI", "TN", "MA", "DZ"];
     const geoAfrica: Record<string, number> = {};
     for (const c of contacts) {
@@ -169,6 +171,7 @@ router.get("/admin/kpis", requireAdmin, async (_req: Request, res: Response) => 
       : 0;
 
     res.json({
+      since: sinceParam ?? null,
       db: {
         totalConversations: totals.total,
         totalUsers: (usersRow.rows[0] as { count: number }).count,

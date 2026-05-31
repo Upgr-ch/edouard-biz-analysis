@@ -98,29 +98,52 @@ const tooltipStyle = {
   itemStyle: { color: GOLD },
 };
 
+const TODAY = new Date().toISOString().slice(0, 10);
+const LS_KEY = "edouard_kpi_since";
+
 export default function Admin() {
   const { user, isLoaded } = useUser();
   const navigate = useNavigate();
   const [data, setData] = useState<KpiData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [since, setSince] = useState<string>(() => localStorage.getItem(LS_KEY) ?? "");
 
   const isAdmin = user?.primaryEmailAddress?.emailAddress?.toLowerCase() === ADMIN_EMAIL;
 
-  useEffect(() => {
-    if (!isLoaded) return;
-    if (!user) { navigate("/auth"); return; }
-    if (!isAdmin) return;
-
+  const loadKpis = (sinceVal: string) => {
+    setLoading(true);
+    setError(null);
     const base = import.meta.env.BASE_URL.replace(/\/$/, "");
-    fetch(`${base}/api/admin/kpis`, { credentials: "include" })
+    const qs = sinceVal ? `?since=${sinceVal}` : "";
+    fetch(`${base}/api/admin/kpis${qs}`, { credentials: "include" })
       .then(async r => {
         if (!r.ok) throw new Error(`${r.status}`);
         return r.json() as Promise<KpiData>;
       })
       .then(d => { setData(d); setLoading(false); })
       .catch(e => { setError(String(e)); setLoading(false); });
+  };
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    if (!user) { navigate("/auth"); return; }
+    if (!isAdmin) return;
+    loadKpis(since);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoaded, user, isAdmin, navigate]);
+
+  const handleSinceChange = (val: string) => {
+    setSince(val);
+    localStorage.setItem(LS_KEY, val);
+    loadKpis(val);
+  };
+
+  const handleReset = () => {
+    setSince("");
+    localStorage.removeItem(LS_KEY);
+    loadKpis("");
+  };
 
   if (!isLoaded || loading) {
     return (
@@ -180,7 +203,7 @@ export default function Admin() {
   return (
     <div style={{ minHeight: "100vh", background: NAVY, fontFamily: "var(--up-font)", color: "#fff" }}>
       {/* ── Header ── */}
-      <div style={{ borderBottom: "1px solid rgba(255,255,255,0.07)", padding: "20px 40px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div style={{ borderBottom: "1px solid rgba(255,255,255,0.07)", padding: "16px 40px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
         <div>
           <span style={{ fontSize: "0.65rem", letterSpacing: "0.30em", color: "rgba(255,255,255,0.25)", textTransform: "uppercase" }}>
             UpGrade — Admin
@@ -189,6 +212,46 @@ export default function Admin() {
             Tableau de bord KPI
           </h1>
         </div>
+
+        {/* ── Filtre date ── */}
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <span style={{ fontSize: "0.70rem", color: "rgba(255,255,255,0.30)", letterSpacing: "0.10em", textTransform: "uppercase" }}>
+            Depuis le
+          </span>
+          <input
+            type="date"
+            value={since}
+            max={TODAY}
+            onChange={e => handleSinceChange(e.target.value)}
+            style={{
+              background: "rgba(255,255,255,0.04)",
+              border: "1px solid rgba(255,255,255,0.12)",
+              borderRadius: 3,
+              color: since ? GOLD : "rgba(255,255,255,0.35)",
+              fontFamily: "var(--up-font)",
+              fontSize: "0.78rem",
+              padding: "5px 10px",
+              outline: "none",
+              cursor: "pointer",
+            }}
+          />
+          {since && (
+            <button
+              onClick={handleReset}
+              title="Afficher toutes les données"
+              style={{
+                background: "none", border: "1px solid rgba(255,255,255,0.10)", borderRadius: 3,
+                color: "rgba(255,255,255,0.35)", cursor: "pointer", fontSize: "0.72rem",
+                padding: "5px 10px", fontFamily: "var(--up-font)",
+              }}
+              onMouseEnter={e => { e.currentTarget.style.color = "#fff"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.25)"; }}
+              onMouseLeave={e => { e.currentTarget.style.color = "rgba(255,255,255,0.35)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.10)"; }}
+            >
+              Tout afficher
+            </button>
+          )}
+        </div>
+
         <button
           onClick={() => navigate("/")}
           style={{ background: "none", border: "none", color: "rgba(255,255,255,0.35)", cursor: "pointer", fontSize: "0.78rem", letterSpacing: "0.04em" }}

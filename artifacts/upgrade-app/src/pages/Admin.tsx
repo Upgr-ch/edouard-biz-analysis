@@ -20,6 +20,7 @@ const COLORS = ["#F5E090", "#B48C28", "#7B6020", "#4A3A10", "#2A2108",
                 "#8BB4C8", "#5B8BA8", "#3B6B88", "#1B4B68", "#0B2B48"];
 
 interface KpiData {
+  since?: string | null;
   db: {
     totalConversations: number;
     totalUsers: number;
@@ -37,6 +38,7 @@ interface KpiData {
     dailyRegistrations: { date: string; count: number }[];
     nps: { score: number | null; promoters: number; detractors: number; passives: number; total: number };
     geoAfrica: { country: string; count: number }[];
+    africaCompleted: { country: string; count: number }[];
   };
 }
 
@@ -88,6 +90,63 @@ function ChartBox({ title, children }: { title: string; children: React.ReactNod
         {title}
       </p>
       {children}
+    </div>
+  );
+}
+
+type AlertStatus = "ok" | "warn" | "nodata";
+
+function AlertCard({ label, value, threshold, status, recommendation, unit = "" }: {
+  label: string;
+  value: string | number;
+  threshold: string;
+  status: AlertStatus;
+  recommendation: string;
+  unit?: string;
+}) {
+  const colors: Record<AlertStatus, { bg: string; border: string; dot: string; label: string }> = {
+    ok:     { bg: "rgba(126,232,162,0.06)", border: "rgba(126,232,162,0.25)", dot: "#7EE8A2", label: "OK" },
+    warn:   { bg: "rgba(245,100,100,0.07)", border: "rgba(245,100,100,0.30)", dot: "#F56464", label: "ALERTE" },
+    nodata: { bg: "rgba(255,255,255,0.02)", border: "rgba(255,255,255,0.08)", dot: "rgba(255,255,255,0.25)", label: "—" },
+  };
+  const c = colors[status];
+  return (
+    <div style={{
+      background: c.bg,
+      border: `1px solid ${c.border}`,
+      borderRadius: 4,
+      padding: "18px 20px",
+      display: "flex",
+      flexDirection: "column",
+      gap: 8,
+    }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <span style={{ fontSize: "0.68rem", letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)" }}>
+          {label}
+        </span>
+        <span style={{ fontSize: "0.60rem", letterSpacing: "0.16em", fontWeight: 700, color: c.dot, textTransform: "uppercase", display: "flex", alignItems: "center", gap: 5 }}>
+          <span style={{ width: 6, height: 6, borderRadius: "50%", background: c.dot, display: "inline-block" }} />
+          {c.label}
+        </span>
+      </div>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+        <span style={{ fontSize: "2rem", fontWeight: 800, color: status === "warn" ? "#F56464" : status === "ok" ? "#7EE8A2" : "rgba(255,255,255,0.25)", lineHeight: 1 }}>
+          {value}{unit}
+        </span>
+        <span style={{ fontSize: "0.70rem", color: "rgba(255,255,255,0.25)" }}>
+          seuil : {threshold}
+        </span>
+      </div>
+      {status === "warn" && (
+        <p style={{ margin: 0, fontSize: "0.72rem", color: "rgba(255,100,100,0.80)", lineHeight: 1.5 }}>
+          ⚠ {recommendation}
+        </p>
+      )}
+      {status === "nodata" && (
+        <p style={{ margin: 0, fontSize: "0.68rem", color: "rgba(255,255,255,0.20)", lineHeight: 1.5 }}>
+          Données insuffisantes pour évaluer cet indicateur.
+        </p>
+      )}
     </div>
   );
 }
@@ -341,6 +400,24 @@ export default function Admin() {
   // NPS
   const nps = sio.nps;
 
+  // ── Alertes KPI ────────────────────────────────────────────────────────────
+  // KPI 1 — Taux de complétion (seuil : ≥ 65%)
+  const completionStatus: AlertStatus = dbData.totalConversations < 5
+    ? "nodata"
+    : dbData.completionRate >= 65 ? "ok" : "warn";
+
+  // KPI 2 — NPS (seuil : ≥ +30)
+  const npsStatus: AlertStatus = nps.total < 5
+    ? "nodata"
+    : nps.score !== null && nps.score >= 30 ? "ok" : "warn";
+
+  // KPI 3 — Afrique francophone : total ≥ 300 ET ≥ 2 pays avec ≥ 150 chacun
+  const africaTotalCompleted = sio.africaCompleted.reduce((s, c) => s + c.count, 0);
+  const africaStrongCountries = sio.africaCompleted.filter(c => c.count >= 150).length;
+  const africaStatus: AlertStatus = africaTotalCompleted === 0
+    ? "nodata"
+    : africaTotalCompleted >= 300 && africaStrongCountries >= 2 ? "ok" : "warn";
+
   return (
     <div style={{ minHeight: "100vh", background: NAVY, fontFamily: "var(--up-font)", color: "#fff" }}>
       {/* ── Header ── */}
@@ -404,6 +481,37 @@ export default function Admin() {
       </div>
 
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 40px" }}>
+
+        {/* ── Alertes KPI ── */}
+        <SectionTitle>Alertes KPI</SectionTitle>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16, marginBottom: 40 }}>
+          <AlertCard
+            label="Taux de complétion du diagnostic"
+            value={dbData.totalConversations < 5 ? "—" : `${dbData.completionRate}`}
+            unit="%"
+            threshold="≥ 65%"
+            status={completionStatus}
+            recommendation="Complétion trop basse → simplifier le diagnostic ou améliorer l'onboarding"
+          />
+          <AlertCard
+            label="Net Promoter Score (NPS)"
+            value={nps.total < 5 ? "—" : nps.score !== null ? `${nps.score > 0 ? "+" : ""}${nps.score}` : "—"}
+            threshold="≥ +30"
+            status={npsStatus}
+            recommendation="NPS insuffisant → recueillir des retours et améliorer la valeur perçue du diagnostic"
+          />
+          <AlertCard
+            label="Diagnostics complets — Afrique francophone"
+            value={africaTotalCompleted}
+            threshold="≥ 300 total · ≥ 2 pays avec 150+"
+            status={africaStatus}
+            recommendation={
+              africaTotalCompleted < 300
+                ? `Volume trop bas (${africaTotalCompleted}/300) → renforcer l'acquisition en Afrique francophone`
+                : `Seulement ${africaStrongCountries} pays avec ≥150 diagnostics → diversifier la présence géographique`
+            }
+          />
+        </div>
 
         {/* ── KPI Cards ── */}
         <SectionTitle>Vue d'ensemble</SectionTitle>

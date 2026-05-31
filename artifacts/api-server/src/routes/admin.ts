@@ -158,10 +158,15 @@ router.get("/admin/kpis", requireAdmin, async (req: Request, res: Response) => {
     // Geo: Africa francophone (filtered)
     const AFRICAN_LOCALES = ["SN", "CI", "CM", "CD", "GA", "BJ", "BF", "ML", "NE", "TG", "GN", "MG", "MR", "RW", "BI", "TN", "MA", "DZ"];
     const geoAfrica: Record<string, number> = {};
+    const africaCompleted: Record<string, number> = {};
     for (const c of contacts) {
       const loc = (c.locale ?? "").toUpperCase();
       if (AFRICAN_LOCALES.includes(loc)) {
         geoAfrica[loc] = (geoAfrica[loc] ?? 0) + 1;
+        const hasCompleted = c.tags.some(t => t.name === "diagnostic_complet");
+        if (hasCompleted) {
+          africaCompleted[loc] = (africaCompleted[loc] ?? 0) + 1;
+        }
       }
     }
 
@@ -201,6 +206,9 @@ router.get("/admin/kpis", requireAdmin, async (req: Request, res: Response) => {
           .map(([date, count]) => ({ date, count })),
         nps: { score: npsScore, promoters, detractors, passives, total: npsTotal },
         geoAfrica: Object.entries(geoAfrica)
+          .sort((a, b) => b[1] - a[1])
+          .map(([country, count]) => ({ country, count })),
+        africaCompleted: Object.entries(africaCompleted)
           .sort((a, b) => b[1] - a[1])
           .map(([country, count]) => ({ country, count })),
       },

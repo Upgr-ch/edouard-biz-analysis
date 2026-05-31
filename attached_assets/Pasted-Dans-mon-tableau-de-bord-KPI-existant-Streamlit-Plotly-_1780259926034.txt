@@ -1,0 +1,30 @@
+Dans mon tableau de bord KPI existant (Streamlit / Plotly Dash) sur Replit, j’ai besoin d’ajouter un module de surveillance et d’alerte pour les trois indicateurs suivants. Pour chacun, le système doit vérifier périodiquement (au moins une fois par jour) si la valeur réelle dépasse ou non les seuils définis, et afficher un message d’alerte clair dans le dashboard.
+
+**KPI 1 – Taux de complétion du diagnostic**  
+- Formule : nombre de diagnostics complets / nombre de diagnostics débutés (sur les 10 étapes)  
+- Seuil d’alerte : < 65 %  
+- Objectif : ≥ 65 %  
+- Donnée source : à récupérer via l’API Systeme.io (tags `diagnostic_debut` et `diagnostic_complet`).  
+
+**KPI 2 – Net Promoter Score (NPS)**  
+- Calcul : % promoteurs (notes 9-10) – % détracteurs (notes 0-6)  
+- Seuil d’alerte : < +30  
+- Objectif : ≥ +30  
+- Donnée source : champ personnalisé `nps_score` dans Systeme.io, ou via webhook.  
+
+**KPI 3 – Volume de diagnostics complets en Afrique francophone hors France**  
+- Définition : diagnostics complets d’utilisateurs localisés dans au moins 2 pays africains francophones distincts (Sénégal, Côte d’Ivoire, Cameroun, RDC, Gabon, etc.)  
+- Seuil d’alerte (cumul 12 mois) : < 300 diagnostics  
+- Seuil de répartition : moins de 2 pays avec ≥150 diagnostics chacun → alerte  
+- Donnée source : géolocalisation IP ou champ `pays` stocké dans Systeme.io.  
+
+**Fonctionnalités à implémenter :**  
+1. Récupérer automatiquement ces données (via API Systeme.io ou webhooks).  
+2. Calculer les indicateurs aux fréquences souhaitées (quotidienne pour le taux de complétion, trimestrielle pour le NPS, mensuelle pour le volume Afrique).  
+3. Afficher dans le dashboard des **cartes d’alerte** avec :  
+   - Valeur actuelle  
+   - Seuil critique  
+   - Message de recommandation (ex : « Complétion trop basse → simplifier le diagnostic »)  
+4. Si un seuil est franchi, envoyer une notification (optionnelle) dans la console du dashboard ou via un email (si vous voulez, mais au minimum un affichage visible en rouge).  
+
+Génère le code nécessaire (Python) pour intégrer ces alertes dans mon tableau de bord actuel. Assure-toi que le code est modulaire, commenté, et compatible avec l’existant.

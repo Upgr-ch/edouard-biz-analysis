@@ -45,6 +45,30 @@ interface SioContact {
   fields: { slug: string; value: string }[];
 }
 
+const PAYS_PRIORITAIRES = ["Suisse", "France", "Belgique", "Maroc", "Tunisie", "Gabon"] as const;
+const LOCALE_TO_PAYS: Record<string, string> = {
+  CH: "Suisse", FR: "France", BE: "Belgique", MA: "Maroc", TN: "Tunisie", GA: "Gabon",
+};
+
+function getContactPays(c: SioContact): string | null {
+  const field = c.fields.find(f => f.slug?.toLowerCase() === "pays");
+  if (field?.value?.trim()) return field.value.trim();
+  return LOCALE_TO_PAYS[(c.locale ?? "").toUpperCase()] ?? null;
+}
+
+function getContactNpsScore(c: SioContact): number | null {
+  const field = c.fields.find(f => f.slug?.toLowerCase() === "nps_score");
+  if (field?.value) {
+    const n = parseInt(field.value);
+    if (!isNaN(n)) return n;
+  }
+  for (const t of c.tags) {
+    const m = t.name.match(/^nps_(\d+)$/i);
+    if (m) return parseInt(m[1]);
+  }
+  return null;
+}
+
 async function fetchAllContacts(): Promise<SioContact[]> {
   if (!SIO_KEY) return [];
   const contacts: SioContact[] = [];
@@ -170,6 +194,60 @@ router.get("/admin/kpis", requireAdmin, async (req: Request, res: Response) => {
       }
     }
 
+    // ── KPI par pays prioritaires ───────────────────────────────────────────
+    const cutoff90 = new Date(now.getTime() - 90 * 86400_000);
+
+    const byCountry = PAYS_PRIORITAIRES.map(pays => {
+      const cs = contacts.filter(c => getContactPays(c) === pays);
+
+      // Taux de complétion (30j)
+      const debuts30   = cs.filter(c => c.tags.some(t => t.name === "diagnostic_debut")
+                                     && new Date(c.registeredAt) >= cutoff30);
+      const complets30 = cs.filter(c => c.tags.some(t => t.name === "diagnostic_complet")
+                                     && new Date(c.registeredAt) >= cutoff30);
+      const tauxCompletion = debuts30.length > 0
+        ? Math.round(complets30.length / debuts30.length * 100)
+        : null;
+
+      // NPS (90j) — champ nps_score ou tags nps_X
+      const npsScores: number[] = [];
+      for (const c of cs) {
+        if (new Date(c.registeredAt) < cutoff90) continue;
+        const score = getContactNpsScore(c);
+        if (score !== null) npsScores.push(score);
+      }
+      let npsValue: number | null = null;
+      if (npsScores.length > 0) {
+        const p = npsScores.filter(s => s >= 9).length;
+        const d = npsScores.filter(s => s <= 6).length;
+        npsValue = Math.round((p / npsScores.length - d / npsScores.length) * 100);
+      }
+
+      // Diagnostics complets 90j
+      const complets90 = cs.filter(c => c.tags.some(t => t.name === "diagnostic_complet")
+                                      && new Date(c.registeredAt) >= cutoff90);
+
+      // Alertes
+      const alerteCompletion = tauxCompletion !== null && debuts30.length >= 5 && tauxCompletion < 65;
+      const alerteNps        = npsValue !== null && npsScores.length >= 5 && npsValue < 30;
+      const alerteVente      = complets90.length >= 10; // ventes = 0 (endpoint non dispo)
+
+      return {
+        pays,
+        contactsTotal: cs.length,
+        debuts30j: debuts30.length,
+        complets30j: complets30.length,
+        tauxCompletion,
+        alerteCompletion,
+        npsRepondants90j: npsScores.length,
+        nps: npsValue,
+        alerteNps,
+        ventes90j: 0,
+        complets90j: complets90.length,
+        alerteAbsenceVente: alerteVente,
+      };
+    });
+
     const totals = totalsRow.rows[0] as { total: number; completed: number };
     const completionRate = totals.total > 0
       ? Math.round((totals.completed / totals.total) * 100)
@@ -212,6 +290,7 @@ router.get("/admin/kpis", requireAdmin, async (req: Request, res: Response) => {
           .sort((a, b) => b[1] - a[1])
           .map(([country, count]) => ({ country, count })),
       },
+      byCountry,
     });
   } catch (err) {
     console.error("[admin/kpis]", err);

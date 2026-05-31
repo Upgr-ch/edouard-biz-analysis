@@ -40,6 +40,20 @@ interface KpiData {
     geoAfrica: { country: string; count: number }[];
     africaCompleted: { country: string; count: number }[];
   };
+  byCountry: {
+    pays: string;
+    contactsTotal: number;
+    debuts30j: number;
+    complets30j: number;
+    tauxCompletion: number | null;
+    alerteCompletion: boolean;
+    npsRepondants90j: number;
+    nps: number | null;
+    alerteNps: boolean;
+    ventes90j: number;
+    complets90j: number;
+    alerteAbsenceVente: boolean;
+  }[];
 }
 
 function KpiCard({ label, value, sub, color = GOLD }: {
@@ -376,7 +390,7 @@ export default function Admin() {
     );
   }
 
-  const { db: dbData, sio } = data!;
+  const { db: dbData, sio, byCountry = [] } = data!;
 
   // Merge daily DB + SIO into one timeline
   const allDates = Array.from(new Set([
@@ -665,6 +679,70 @@ export default function Admin() {
               </div>
             )}
           </ChartBox>
+        </div>
+
+        {/* ── KPI par pays ── */}
+        <SectionTitle>KPI par pays — 6 marchés prioritaires</SectionTitle>
+        <div style={{ marginBottom: 40, overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.78rem" }}>
+            <thead>
+              <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+                {["Pays","Contacts","Débuts 30j","Complets 30j","Complétion","NPS (90j)","Alertes"].map(h => (
+                  <th key={h} style={{ padding: "8px 12px", textAlign: "left", fontSize: "0.62rem", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)", fontWeight: 500 }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {byCountry.map((row, i) => {
+                const hasAlert = row.alerteCompletion || row.alerteNps || row.alerteAbsenceVente;
+                return (
+                  <tr key={row.pays} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)", background: i % 2 === 0 ? "rgba(255,255,255,0.01)" : "transparent" }}>
+                    <td style={{ padding: "10px 12px", fontWeight: 600, color: "rgba(255,255,255,0.80)" }}>{row.pays}</td>
+                    <td style={{ padding: "10px 12px", color: "rgba(255,255,255,0.45)" }}>{row.contactsTotal}</td>
+                    <td style={{ padding: "10px 12px", color: "rgba(255,255,255,0.45)" }}>{row.debuts30j}</td>
+                    <td style={{ padding: "10px 12px", color: "rgba(255,255,255,0.45)" }}>{row.complets30j}</td>
+                    <td style={{ padding: "10px 12px" }}>
+                      {row.tauxCompletion === null ? (
+                        <span style={{ color: "rgba(255,255,255,0.20)" }}>—</span>
+                      ) : (
+                        <span style={{ color: row.alerteCompletion ? "#F56464" : "#7EE8A2", fontWeight: 700 }}>
+                          {row.tauxCompletion}%
+                        </span>
+                      )}
+                    </td>
+                    <td style={{ padding: "10px 12px" }}>
+                      {row.nps === null ? (
+                        <span style={{ color: "rgba(255,255,255,0.20)" }}>—</span>
+                      ) : (
+                        <span style={{ color: row.alerteNps ? "#F56464" : "#7EE8A2", fontWeight: 700 }}>
+                          {row.nps > 0 ? "+" : ""}{row.nps}
+                        </span>
+                      )}
+                    </td>
+                    <td style={{ padding: "10px 12px" }}>
+                      {hasAlert ? (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                          {row.alerteCompletion && <span style={{ fontSize: "0.65rem", color: "#F56464" }}>⚠ Complétion &lt; 65%</span>}
+                          {row.alerteNps        && <span style={{ fontSize: "0.65rem", color: "#F56464" }}>⚠ NPS &lt; +30</span>}
+                          {row.alerteAbsenceVente && <span style={{ fontSize: "0.65rem", color: "#F5C542" }}>⚠ 0 vente ({row.complets90j} complets)</span>}
+                        </div>
+                      ) : (
+                        <span style={{ fontSize: "0.65rem", color: "rgba(126,232,162,0.60)" }}>✓ OK</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+              {byCountry.length === 0 && (
+                <tr><td colSpan={7} style={{ padding: "24px 12px", textAlign: "center", color: "rgba(255,255,255,0.18)", fontSize: "0.75rem" }}>
+                  Aucun contact avec champ <code style={{ background: "rgba(255,255,255,0.05)", padding: "1px 5px", borderRadius: 3 }}>pays</code> ou <code style={{ background: "rgba(255,255,255,0.05)", padding: "1px 5px", borderRadius: 3 }}>locale</code> détecté pour ces pays.
+                </td></tr>
+              )}
+            </tbody>
+          </table>
+          <p style={{ marginTop: 10, fontSize: "0.65rem", color: "rgba(255,255,255,0.15)" }}>
+            Complétion = 30 derniers jours · NPS = 90 derniers jours · Pays détecté via champ Systeme.io <code style={{ background: "rgba(255,255,255,0.04)", padding: "1px 4px", borderRadius: 2 }}>pays</code> ou locale (CH/FR/BE/MA/TN/GA)
+          </p>
         </div>
 
         {/* ── Ventes placeholder ── */}

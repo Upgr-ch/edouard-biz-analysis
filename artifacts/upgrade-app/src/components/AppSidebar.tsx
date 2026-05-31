@@ -339,6 +339,69 @@ const SidebarContent = ({
       {/* ── Sidebar Ad Banner (desktop, 300×250) ── */}
       <SidebarAdBanner />
 
+      {/* ── En savoir plus (SEO content accordion) ── */}
+      {!collapsed && (
+        <div className="shrink-0 border-t border-border" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+          <details className="group">
+            <summary
+              className="flex items-center justify-between px-4 py-3 cursor-pointer select-none list-none"
+              style={{ fontFamily: "var(--up-font)" }}
+            >
+              <span
+                className="text-[10px] font-medium uppercase tracking-widest"
+                style={{ color: "rgba(255,255,255,0.35)", letterSpacing: "0.20em" }}
+              >
+                En savoir plus
+              </span>
+              <svg
+                className="w-3 h-3 transition-transform duration-200 group-open:rotate-180"
+                style={{ color: "rgba(255,255,255,0.25)" }}
+                viewBox="0 0 12 12" fill="none"
+              >
+                <path d="M2 4L6 8L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </summary>
+            <div
+              className="px-4 pb-4 overflow-y-auto"
+              style={{ maxHeight: "260px", fontFamily: "var(--up-font)" }}
+            >
+              <h3
+                className="text-[10px] font-semibold mb-2 leading-tight"
+                style={{ color: "rgba(255,255,255,0.55)", letterSpacing: "0.04em" }}
+              >
+                Guide de Viabilité et de Crash-Test d'Entreprise
+              </h3>
+              <p
+                className="text-[10px] leading-relaxed mb-2"
+                style={{ color: "rgba(255,255,255,0.30)" }}
+              >
+                Évaluer la solidité d'un projet avant son lancement est la clé pour éviter le gaspillage de ressources. Un crash-test chirurgical repose sur trois piliers fondamentaux :
+              </p>
+              <ul className="space-y-2" style={{ paddingLeft: 0, listStyle: "none" }}>
+                <li>
+                  <p className="text-[10px] leading-relaxed" style={{ color: "rgba(255,255,255,0.28)" }}>
+                    <span style={{ color: "rgba(245,224,144,0.55)", fontWeight: 600 }}>Adéquation Offre-Marché</span>
+                    {" "}— Valider qu'une expertise répond à une douleur aiguë, urgente et reconnue par une cible précise.
+                  </p>
+                </li>
+                <li>
+                  <p className="text-[10px] leading-relaxed" style={{ color: "rgba(255,255,255,0.28)" }}>
+                    <span style={{ color: "rgba(245,224,144,0.55)", fontWeight: 600 }}>Rentabilité & Point Mort</span>
+                    {" "}— S'appuyer sur des bases financières strictes pour couvrir charges fixes et variables.
+                  </p>
+                </li>
+                <li>
+                  <p className="text-[10px] leading-relaxed" style={{ color: "rgba(255,255,255,0.28)" }}>
+                    <span style={{ color: "rgba(245,224,144,0.55)", fontWeight: 600 }}>Barrières & Concurrence</span>
+                    {" "}— Analyser les forces en présence pour positionner l'offre de manière stratégique.
+                  </p>
+                </li>
+              </ul>
+            </div>
+          </details>
+        </div>
+      )}
+
       {/* ── Footer ── */}
       {!collapsed && (
         <div className="p-4 border-t border-border shrink-0">

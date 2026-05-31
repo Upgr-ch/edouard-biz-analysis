@@ -1,0 +1,83 @@
+Agis en tant que développeur web expert. Mon application 'Édouard' (edouard-consultant.ch) a été refusée par Google AdSense pour le motif suivant : "Pages ou écrans sans contenu ou avec un contenu à faible valeur informative". Les emplacements publicitaires sont déjà configurés, nous n'avons pas besoin d'y toucher. 
+
+Pour résoudre ce problème de "Thin Content" et valider définitivement la monétisation, applique strictement les deux modifications suivantes dans le code en respectant scrupuleusement mon thème graphique sombre actuel :
+
+1. COMPOSANT TEXTUEL RICHESSE DE CONTENU "EN SAVOIR PLUS"
+Ajoute un bloc de contenu textuel riche tout en bas de ma page d'accueil (juste au-dessus du footer). Pour préserver l'expérience utilisateur (UX) épurée tout en permettant aux robots de Google d'indexer un contenu textuel dense et unique, intègre ce contenu dans un composant accordéon/déroulant (HTML <details> ou équivalent selon mon framework).
+
+- TITRE DE L'ACCORDÉON : "En savoir plus"
+- CHARTE GRAPHIQUE : Parfaite intégration dans le thème sombre. Utilise les mêmes polices, la même couleur de texte principale, et des bordures/fonds très subtils pour qu'il se fonde naturellement dans le design existant.
+- CONTENU TEXTUEL À INSÉRER (Structure-le proprement avec des balises de titres et de listes HTML) :
+
+"### Guide de Viabilité et de Crash-Test d'Entreprise
+Évaluer la solidité d'un projet de savoir avant son lancement est la clé pour éviter le gaspillage de ressources et de temps. Un crash-test chirurgical repose sur trois piliers fondamentaux :
+
+- L'adéquation Offre-Marché (Product-Market Fit) : Valider un business consiste d'abord à vérifier que votre expertise répond à une douleur aiguë, urgente et reconnue par une cible précise.
+- L'analyse de rentabilité et le calcul du Point Mort : Un projet viable doit s'appuyer sur des bases financières strictes pour couvrir vos charges fixes et variables.
+- L'étude des barrières à l'entrée et de la concurrence : Analyser les forces en présence pour positionner votre offre de manière stratégique."
+
+2. MISE À JOUR DU TEXTE "CONFIDENTIALITÉ" (Lien de mon footer et de mon inscription)
+Modifie le fichier ou le composant de contenu qui s'affiche lorsque l'utilisateur clique sur le lien "Confidentialité" dans le footer (ou le lien de mon écran de sign-up). Remplace l'intégralité du texte par cette version mise en conformité stricte avec la LPD suisse, le RGPD et les exigences de déclaration des cookies publicitaires tiers imposées par Google :
+
+"""
+Politique de Confidentialité
+
+1. Introduction
+La présente Politique de Confidentialité décrit comment l'application Édouard, éditée par Kévin Lavergne – UpGrade, collecte, utilise, protège et partage vos données personnelles conformément à la Loi fédérale sur la protection des données (LPD) en Suisse et au Règlement général sur la protection des données (RGPD).
+
+2. Responsable du traitement
+Le responsable du traitement des données est :
+Kévin LAVERGNE – UpGrade
+Raison individuelle, Route de Peillonex 10
+1225 Chêne-Bourg – GE, Switzerland
+CHE‑422.229.205 | Id Reg : 1.2I1S7A
+Email : kl@upgr.ch
+
+3. Données collectées
+L'application peut collecter les catégories de données suivantes :
+- Données d'identification : nom, adresse e-mail, identifiant utilisateur.
+- Données d'utilisation : logs, préférences, historique d'activité.
+- Données techniques : type d'appareil, version du système, adresse IP.
+- Données publicitaires et cookies : Identifiants publicitaires, cookies de navigation et données comportementales liées à l'affichage des annonces (Google AdSense).
+
+4. Finalités du traitement
+Les données collectées servent à :
+- Assurer le bon fonctionnement et la sécurité de l'application.
+- Offrir des fonctionnalités personnalisées.
+- Analyser l'utilisation pour améliorer les services.
+- Assurer la diffusion et la personnalisation d'annonces publicitaires via notre partenaire Google.
+
+5. Partage des données
+Vos données ne sont partagées qu'avec :
+- Des prestataires techniques strictement nécessaires (hébergeur, outils d'analyse).
+- Des partenaires publicitaires tiers, notamment le réseau Google AdSense.
+- Les autorités compétentes, uniquement sur demande légale.
+
+6. Utilisation des cookies et de Google AdSense
+L'application Édouard utilise des cookies pour améliorer votre expérience et diffuser des publicités adaptées.
+- Des fournisseurs tiers, y compris Google, utilisent des cookies pour diffuser des annonces basées sur les visites antérieures des utilisateurs sur ce site ou sur d'autres pages web.
+- Grâce aux cookies publicitaires, Google et ses partenaires adaptent les annonces diffusées en fonction de votre navigation.
+- Vous pouvez choisir de désactiver la publicité personnalisée à tout moment en consultant les Paramètres des annonces Google (https://www.google.com/settings/ads) ou en configurant votre navigateur internet.
+
+7. Conservation des données
+Les données sont conservées le temps nécessaire aux finalités pour lesquelles elles ont été collectées ou dans le respect des durées légales applicables en Suisse et en Europe.
+
+8. Vos droits
+Conformément à la LPD et au RGPD, vous disposez des droits suivants :
+- Droit d'accès, de rectification et de suppression de vos données.
+- Droit d'opposition et de limitation du traitement.
+- Droit à la portabilité (le cas échéant).
+Toute demande peut être adressée à kl@upgr.ch.
+
+9. Sécurité
+L'entreprise met en place les mesures techniques et organisationnelles appropriées pour protéger vos données contre tout accès non autorisé, perte ou divulgation.
+
+10. Modifications
+Cette politique peut être mise à jour à tout moment. La version la plus récente est toujours accessible sur le site internet.
+
+© 2026 - Kévin Lavergne – UpGrade
+"""
+
+Dans la section 6 du texte de confidentialité, assure-toi que le lien vers les paramètres Google utilise une balise HTML cliquable (<a href="https://www.google.com/settings/ads" target="_blank">).
+
+Une fois ces fichiers mis à jour sans altérer mon design ni mes composants de formulaires actuels, confirme-moi que les modifications sont opérationnelles.

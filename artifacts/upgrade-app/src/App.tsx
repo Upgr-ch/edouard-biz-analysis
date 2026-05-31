@@ -11,6 +11,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import { BrainLogoSm } from "@/components/BrainLogo";
 import Index from "./pages/Index.tsx";
+import Admin from "./pages/Admin.tsx";
 import ResetPassword from "./pages/ResetPassword.tsx";
 import ForgotPassword from "./pages/ForgotPassword.tsx";
 import NotFound from "./pages/NotFound.tsx";
@@ -461,6 +462,7 @@ function AppRoutes() {
           <Sonner />
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/admin" element={<Admin />} />
             <Route path="/auth/sign-up" element={<SignUpRoute />} />
             <Route path="/auth/sign-up/*" element={<SignUpRoute />} />
             <Route path="/auth" element={<AuthRoute />} />

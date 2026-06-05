@@ -46,36 +46,37 @@ const FicheButton = ({
   onDownload: (l: string) => void;
 }) => (
   <div
-    className="mt-3 p-4 rounded-sm border"
+    className="mt-4 p-4 rounded-md border"
     style={{
-      background: "rgba(245,224,144,0.04)",
-      borderColor: "rgba(245,224,144,0.22)",
+      background: "rgba(245,224,144,0.07)",
+      borderColor: "rgba(245,224,144,0.35)",
+      boxShadow: "0 0 18px -6px rgba(245,224,144,0.18)",
     }}
   >
     <p
-      className="text-[10px] font-bold uppercase tracking-widest mb-2.5"
-      style={{ color: "rgba(245,224,144,0.60)", fontFamily: "var(--up-font)" }}
+      className="text-[10px] font-bold uppercase tracking-widest mb-3"
+      style={{ color: "rgba(245,224,144,0.70)", fontFamily: "var(--up-font)" }}
     >
       📥 Conserve une trace structurée de cette étape
     </p>
     <button
       onClick={() => onDownload(label)}
-      className="flex items-center gap-2 px-4 py-2 rounded-sm text-xs font-semibold transition-all border active:scale-95"
+      className="w-full flex items-center justify-center gap-2.5 px-5 py-3 rounded-md text-sm font-bold transition-all active:scale-95"
       style={{
         background: "#F5E090",
         color: "#080F1E",
-        borderColor: "transparent",
         fontFamily: "var(--up-font)",
-        boxShadow: "0 4px 14px -4px rgba(245,224,144,0.40)",
+        boxShadow: "0 6px 20px -4px rgba(245,224,144,0.55)",
+        letterSpacing: "0.02em",
       }}
-      onMouseEnter={(e) => { e.currentTarget.style.opacity = "0.88"; }}
-      onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; }}
+      onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 8px 28px -4px rgba(245,224,144,0.75)"; }}
+      onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "0 6px 20px -4px rgba(245,224,144,0.55)"; }}
     >
-      <Download size={13} />
+      <Download size={15} />
       Télécharger la fiche — {label} (PDF)
     </button>
     <p
-      className="text-[10px] mt-2 italic"
+      className="text-[10px] mt-2.5 text-center italic"
       style={{ color: "rgba(255,255,255,0.35)", fontFamily: "var(--up-font)" }}
     >
       Je te recommande de l'enregistrer — elle te servira de référence opérationnelle pour cette étape.
@@ -89,56 +90,66 @@ const SyntheseFicheButton = ({
   onDownload: (l: string) => void;
 }) => (
   <div
-    className="mt-4 p-5 rounded-sm border"
+    className="mt-5 p-6 rounded-lg border-2"
     style={{
-      background: "linear-gradient(135deg, rgba(8,15,30,0.95) 0%, rgba(20,30,60,0.95) 100%)",
-      borderColor: "rgba(245,224,144,0.45)",
-      boxShadow: "0 0 32px -8px rgba(245,224,144,0.15)",
+      background: "linear-gradient(135deg, rgba(8,15,30,0.98) 0%, rgba(18,28,55,0.98) 100%)",
+      borderColor: "#F5E090",
+      boxShadow: "0 0 48px -8px rgba(245,224,144,0.30), inset 0 1px 0 rgba(245,224,144,0.10)",
     }}
   >
-    <div className="flex items-start gap-3 mb-4">
+    {/* Header */}
+    <div className="flex items-center gap-3 mb-5">
       <div
-        className="flex-shrink-0 w-9 h-9 rounded-sm flex items-center justify-center"
-        style={{ background: "#F5E090" }}
+        className="flex-shrink-0 w-11 h-11 rounded-md flex items-center justify-center"
+        style={{ background: "#F5E090", boxShadow: "0 4px 14px -2px rgba(245,224,144,0.50)" }}
       >
-        <span style={{ fontSize: 18 }}>📊</span>
+        <span style={{ fontSize: 22 }}>📊</span>
       </div>
       <div>
         <p
-          className="text-[11px] font-bold uppercase tracking-widest mb-0.5"
+          className="text-sm font-bold uppercase tracking-widest"
           style={{ color: "#F5E090", fontFamily: "var(--up-font)" }}
         >
-          Rapport complet — 10 étapes analysées
+          Diagnostic complet
         </p>
         <p
-          className="text-[10px] leading-relaxed"
-          style={{ color: "rgba(255,255,255,0.50)", fontFamily: "var(--up-font)" }}
+          className="text-[11px] leading-snug mt-0.5"
+          style={{ color: "rgba(255,255,255,0.55)", fontFamily: "var(--up-font)" }}
         >
-          Ce rapport compile les 9 fiches étapes + le diagnostic final avec indice de faisabilité-rentabilité.
+          10 étapes · fiches individuelles · indice de faisabilité-rentabilité
         </p>
       </div>
     </div>
+
+    {/* Main CTA */}
     <button
       onClick={() => onDownload("Synthèse")}
-      className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-sm text-sm font-bold transition-all active:scale-95"
+      className="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-md text-base font-bold transition-all active:scale-[0.98]"
       style={{
         background: "#F5E090",
         color: "#080F1E",
         fontFamily: "var(--up-font)",
-        boxShadow: "0 6px 20px -4px rgba(245,224,144,0.50)",
-        letterSpacing: "0.02em",
+        boxShadow: "0 8px 28px -4px rgba(245,224,144,0.65)",
+        letterSpacing: "0.03em",
       }}
-      onMouseEnter={(e) => { e.currentTarget.style.opacity = "0.88"; }}
-      onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.boxShadow = "0 12px 36px -4px rgba(245,224,144,0.85)";
+        e.currentTarget.style.transform = "translateY(-1px)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.boxShadow = "0 8px 28px -4px rgba(245,224,144,0.65)";
+        e.currentTarget.style.transform = "translateY(0)";
+      }}
     >
-      <Download size={15} />
-      Télécharger le rapport complet (PDF)
+      <Download size={18} />
+      Télécharger mon rapport complet (PDF)
     </button>
+
     <p
       className="text-[10px] mt-3 text-center italic"
       style={{ color: "rgba(255,255,255,0.30)", fontFamily: "var(--up-font)" }}
     >
-      Génération en cours — peut prendre 30 à 60 secondes selon la longueur de l'analyse.
+      Génération en cours — 30 à 60 secondes selon la longueur de l'analyse.
     </p>
   </div>
 );

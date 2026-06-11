@@ -110,6 +110,64 @@ const clerkLocalization = {
 };
 
 
+function AuthEditorialPanel() {
+  const points = [
+    { icon: "🎯", text: "Analyse ta faisabilité et ta rentabilité en 10 étapes structurées" },
+    { icon: "📊", text: "Génère un rapport PDF complet avec indice de viabilité" },
+    { icon: "🌍", text: "Conçu pour les entrepreneurs francophones — Suisse, France, Afrique" },
+    { icon: "🤖", text: "Alimenté par l'IA, guidé par une méthode de consultant senior" },
+  ];
+  return (
+    <div
+      className="hidden lg:flex flex-col justify-center px-12 py-10"
+      style={{
+        flex: "1 1 0",
+        maxWidth: 480,
+        borderRight: "1px solid rgba(245,224,144,0.12)",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 28 }}>
+        <BrainLogoSm />
+        <span style={{ fontFamily: "var(--up-font)", fontSize: "1.5rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase" as const, color: "#F5E090" }}>
+          Édouard
+        </span>
+      </div>
+      <h2 style={{ fontFamily: "var(--up-font)", fontSize: "1.45rem", fontWeight: 700, lineHeight: 1.35, color: "#fff", marginBottom: 12 }}>
+        Votre consultant en faisabilité business
+      </h2>
+      <p style={{ fontFamily: "var(--up-font)", fontSize: "0.88rem", lineHeight: 1.75, color: "rgba(255,255,255,0.55)", marginBottom: 32 }}>
+        Édouard analyse votre idée de business avec structure et honnêteté. Pas de faux espoirs — juste un diagnostic rigoureux pour vous éviter des erreurs coûteuses.
+      </p>
+      <div style={{ display: "flex", flexDirection: "column" as const, gap: 16 }}>
+        {points.map((p, i) => (
+          <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+            <span style={{ fontSize: 18, lineHeight: 1, marginTop: 1, flexShrink: 0 }}>{p.icon}</span>
+            <p style={{ fontFamily: "var(--up-font)", fontSize: "0.83rem", lineHeight: 1.6, color: "rgba(255,255,255,0.65)", margin: 0 }}>
+              {p.text}
+            </p>
+          </div>
+        ))}
+      </div>
+      <div
+        style={{
+          marginTop: 40,
+          padding: "16px 20px",
+          borderRadius: 6,
+          background: "rgba(245,224,144,0.06)",
+          borderLeft: "3px solid #F5E090",
+        }}
+      >
+        <p style={{ fontFamily: "var(--up-font)", fontSize: "0.82rem", lineHeight: 1.7, color: "rgba(255,255,255,0.60)", fontStyle: "italic", margin: 0 }}>
+          "Ma mission est de te faire gagner du temps et d'éviter les erreurs coûteuses."
+        </p>
+        <p style={{ fontFamily: "var(--up-font)", fontSize: "0.75rem", color: "#F5E090", marginTop: 8, marginBottom: 0, letterSpacing: "0.05em" }}>
+          — Édouard
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function AuthHeader({ backTo = "/" }: { backTo?: string }) {
   const navigate = useNavigate();
   return (
@@ -193,37 +251,39 @@ function AuthRoute() {
   if (loading) return null;
   if (user) return <Navigate to="/" replace />;
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4 py-8">
-      <AuthHeader />
-      {/* routing="virtual" keeps the component stable — no URL sub-path navigation */}
-      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-      <SignIn
-        {...({ routing: "virtual" } as any)}
-        signUpUrl="/auth/sign-up"
-        forceRedirectUrl="/"
-        signUpForceRedirectUrl="/"
-        appearance={clerkAppearance}
-      />
-      <button
-        onClick={() => navigate("/forgot-password")}
-        style={{
-          marginTop: 16,
-          background: "none",
-          border: "none",
-          cursor: "pointer",
-          color: "rgba(255,255,255,0.35)",
-          fontFamily: "var(--up-font)",
-          fontSize: "0.78rem",
-          letterSpacing: "0.03em",
-          textDecoration: "underline",
-          padding: "4px 0",
-          transition: "color 0.2s",
-        }}
-        onMouseEnter={e => (e.currentTarget.style.color = "#F5E090")}
-        onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,0.35)")}
-      >
-        Mot de passe oublié ?
-      </button>
+    <div className="min-h-screen flex bg-background">
+      <AuthEditorialPanel />
+      <div className="flex-1 flex flex-col items-center justify-center px-4 py-8">
+        <AuthHeader />
+        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+        <SignIn
+          {...({ routing: "virtual" } as any)}
+          signUpUrl="/auth/sign-up"
+          forceRedirectUrl="/"
+          signUpForceRedirectUrl="/"
+          appearance={clerkAppearance}
+        />
+        <button
+          onClick={() => navigate("/forgot-password")}
+          style={{
+            marginTop: 16,
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            color: "rgba(255,255,255,0.35)",
+            fontFamily: "var(--up-font)",
+            fontSize: "0.78rem",
+            letterSpacing: "0.03em",
+            textDecoration: "underline",
+            padding: "4px 0",
+            transition: "color 0.2s",
+          }}
+          onMouseEnter={e => (e.currentTarget.style.color = "#F5E090")}
+          onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,0.35)")}
+        >
+          Mot de passe oublié ?
+        </button>
+      </div>
     </div>
   );
 }
@@ -374,47 +434,49 @@ function SignUpRoute() {
   if (loading) return null;
   if (user) return <Navigate to="/" replace />;
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4 py-8">
-      <AuthHeader backTo="/auth" />
-      {/* routing="virtual" keeps the component stable — no URL sub-path navigation */}
-      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-      <div
-        style={{
-          opacity: legalAccepted ? 1 : 0.45,
-          pointerEvents: legalAccepted ? "auto" : "none",
-          transition: "opacity 0.25s ease",
-          width: "100%",
-        }}
-      >
-        <SignUp
-          {...({ routing: "virtual" } as any)}
-          signInUrl="/auth"
-          forceRedirectUrl="/"
-          signInForceRedirectUrl="/"
-          appearance={clerkAppearance}
-        />
-      </div>
-      <div style={{ marginTop: 20, width: "100%", maxWidth: 440, display: "flex", flexDirection: "column", gap: 0 }}>
-        <LegalConsentCheckbox accepted={legalAccepted} onChange={setLegalAccepted} />
-        <OptionalCheckbox checked={marketingAccepted} onChange={setMarketingAccepted}>
-          J&apos;accepte de recevoir des communications d&apos;Édouard (conseils, actualités, offres). Vous pouvez vous désinscrire à tout moment.{" "}
-          <span style={{ color: "rgba(255,255,255,0.28)", fontSize: "0.70rem" }}>(Facultatif)</span>
-        </OptionalCheckbox>
-      </div>
-      {!legalAccepted && (
-        <p
+    <div className="min-h-screen flex bg-background">
+      <AuthEditorialPanel />
+      <div className="flex-1 flex flex-col items-center justify-center px-4 py-8">
+        <AuthHeader backTo="/auth" />
+        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+        <div
           style={{
-            marginTop: 8,
-            fontFamily: "var(--up-font)",
-            fontSize: "0.73rem",
-            color: "rgba(255,255,255,0.30)",
-            textAlign: "center",
-            letterSpacing: "0.02em",
+            opacity: legalAccepted ? 1 : 0.45,
+            pointerEvents: legalAccepted ? "auto" : "none",
+            transition: "opacity 0.25s ease",
+            width: "100%",
           }}
         >
-          Veuillez accepter les conditions ci-dessous pour continuer.
-        </p>
-      )}
+          <SignUp
+            {...({ routing: "virtual" } as any)}
+            signInUrl="/auth"
+            forceRedirectUrl="/"
+            signInForceRedirectUrl="/"
+            appearance={clerkAppearance}
+          />
+        </div>
+        <div style={{ marginTop: 20, width: "100%", maxWidth: 440, display: "flex", flexDirection: "column", gap: 0 }}>
+          <LegalConsentCheckbox accepted={legalAccepted} onChange={setLegalAccepted} />
+          <OptionalCheckbox checked={marketingAccepted} onChange={setMarketingAccepted}>
+            J&apos;accepte de recevoir des communications d&apos;Édouard (conseils, actualités, offres). Vous pouvez vous désinscrire à tout moment.{" "}
+            <span style={{ color: "rgba(255,255,255,0.28)", fontSize: "0.70rem" }}>(Facultatif)</span>
+          </OptionalCheckbox>
+        </div>
+        {!legalAccepted && (
+          <p
+            style={{
+              marginTop: 8,
+              fontFamily: "var(--up-font)",
+              fontSize: "0.73rem",
+              color: "rgba(255,255,255,0.30)",
+              textAlign: "center",
+              letterSpacing: "0.02em",
+            }}
+          >
+            Veuillez accepter les conditions ci-dessous pour continuer.
+          </p>
+        )}
+      </div>
     </div>
   );
 }

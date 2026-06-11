@@ -114,8 +114,8 @@ function AuthEditorialPanel() {
   const points = [
     { icon: "🎯", text: "Analyse ta faisabilité et ta rentabilité en 10 étapes structurées" },
     { icon: "📊", text: "Génère un rapport PDF complet avec indice de viabilité" },
-    { icon: "🌍", text: "Conçu pour les entrepreneurs francophones — Suisse, France, Afrique" },
-    { icon: "🤖", text: "Alimenté par l'IA, guidé par une méthode de consultant senior" },
+    { icon: "🇨🇭", text: "Confectionné en Suisse" },
+    { icon: "🎯", text: "Conçu pour les entrepreneurs, slasheurs et porteurs de projets qui veulent un diagnostic assertif sur la viabilité et la rentabilité de leurs idées avant leur mise en œuvre." },
   ];
   return (
     <div

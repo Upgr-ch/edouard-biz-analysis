@@ -4,6 +4,7 @@ import ChatPanel from "@/components/ChatPanel";
 import PdfProgressOverlay from "@/components/PdfProgressOverlay";
 import AppSidebar from "@/components/AppSidebar";
 import MainHeader from "@/components/MainHeader";
+import PromoBanner from "@/components/PromoBanner";
 import FiscalDisclaimer from "@/components/FiscalDisclaimer";
 import AcquisitionDisclaimer from "@/components/AcquisitionDisclaimer";
 import { useAuth } from "@/hooks/useAuth";
@@ -429,6 +430,7 @@ const Index = () => {
       />
       <main className="flex-1 min-w-0 flex flex-col">
         <MainHeader conversationTitle={activeConversationTitle} />
+        {user && <PromoBanner />}
         <div className="relative flex-1 min-h-0 flex flex-col">
           <PdfProgressOverlay
             isVisible={pdfLoadingStep !== null}

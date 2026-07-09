@@ -37,8 +37,6 @@ interface KpiData {
     tagBreakdown: { tag: string; count: number }[];
     dailyRegistrations: { date: string; count: number }[];
     nps: { score: number | null; promoters: number; detractors: number; passives: number; total: number };
-    geoAfrica: { country: string; count: number }[];
-    africaCompleted: { country: string; count: number }[];
   };
   byCountry: {
     pays: string;
@@ -425,13 +423,6 @@ export default function Admin() {
     ? "nodata"
     : nps.score !== null && nps.score >= 30 ? "ok" : "warn";
 
-  // KPI 3 — Afrique francophone : total ≥ 300 ET ≥ 2 pays avec ≥ 150 chacun
-  const africaTotalCompleted = sio.africaCompleted.reduce((s, c) => s + c.count, 0);
-  const africaStrongCountries = sio.africaCompleted.filter(c => c.count >= 150).length;
-  const africaStatus: AlertStatus = africaTotalCompleted === 0
-    ? "nodata"
-    : africaTotalCompleted >= 300 && africaStrongCountries >= 2 ? "ok" : "warn";
-
   return (
     <div style={{ minHeight: "100vh", background: NAVY, fontFamily: "var(--up-font)", color: "#fff" }}>
       {/* ── Header ── */}
@@ -514,17 +505,6 @@ export default function Admin() {
             status={npsStatus}
             recommendation="NPS insuffisant → recueillir des retours et améliorer la valeur perçue du diagnostic"
           />
-          <AlertCard
-            label="Diagnostics complets — Afrique francophone"
-            value={africaTotalCompleted}
-            threshold="≥ 300 total · ≥ 2 pays avec 150+"
-            status={africaStatus}
-            recommendation={
-              africaTotalCompleted < 300
-                ? `Volume trop bas (${africaTotalCompleted}/300) → renforcer l'acquisition en Afrique francophone`
-                : `Seulement ${africaStrongCountries} pays avec ≥150 diagnostics → diversifier la présence géographique`
-            }
-          />
         </div>
 
         {/* ── KPI Cards ── */}
@@ -540,7 +520,6 @@ export default function Admin() {
             sub={nps.total > 0 ? `${nps.promoters}P / ${nps.passives}N / ${nps.detractors}D` : "Tags nps_X non configurés"}
             color={nps.score !== null && nps.score >= 30 ? "#7EE8A2" : nps.score !== null ? "#F5A0A0" : "rgba(255,255,255,0.25)"}
           />
-          <KpiCard label="Afrique francophone" value={sio.geoAfrica.reduce((s, g) => s + g.count, 0)} sub="contacts détectés" />
         </div>
 
         {/* ── Funnel ── */}
@@ -624,29 +603,9 @@ export default function Admin() {
           </ChartBox>
         </div>
 
-        {/* ── Afrique + NPS ── */}
-        <SectionTitle>Géographie & NPS</SectionTitle>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 40 }}>
-          <ChartBox title="Afrique francophone — contacts par pays">
-            {sio.geoAfrica.length > 0 ? (
-              <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={sio.geoAfrica} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                  <XAxis dataKey="country" tick={{ fill: "rgba(255,255,255,0.40)", fontSize: 11 }} />
-                  <YAxis tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }} allowDecimals={false} />
-                  <Tooltip {...tooltipStyle} />
-                  <Bar dataKey="count" name="Contacts" fill="#8BB4C8" radius={[2, 2, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div style={{ paddingTop: 20 }}>
-                <p style={{ color: "rgba(255,255,255,0.25)", fontSize: "0.78rem", marginBottom: 12 }}>
-                  Aucun contact africain détecté. Le champ <code style={{ background: "rgba(255,255,255,0.05)", padding: "1px 5px", borderRadius: 3 }}>locale</code> de Systeme.io doit contenir le code pays (SN, CI, CM…).
-                </p>
-              </div>
-            )}
-          </ChartBox>
-
+        {/* ── NPS ── */}
+        <SectionTitle>NPS</SectionTitle>
+        <div style={{ marginBottom: 40 }}>
           <ChartBox title="Net Promoter Score (NPS)">
             {nps.total > 0 ? (
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 16 }}>
@@ -682,7 +641,7 @@ export default function Admin() {
         </div>
 
         {/* ── KPI par pays ── */}
-        <SectionTitle>KPI par pays — 6 marchés prioritaires</SectionTitle>
+        <SectionTitle>KPI par pays — 3 marchés prioritaires</SectionTitle>
         <div style={{ marginBottom: 40, overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.78rem" }}>
             <thead>

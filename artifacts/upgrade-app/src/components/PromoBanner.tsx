@@ -1,8 +1,27 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 
 const DISMISSED_KEY = "edouard.promoBannerDismissed";
 const MARKETING_KEY = "edouard_marketing_consent";
+
+type Currency = { single: string; bundle: string };
+
+function useCurrency(): Currency {
+  const [currency, setCurrency] = useState<Currency>({ single: "28 €", bundle: "50 €" });
+
+  useEffect(() => {
+    fetch("https://ipapi.co/country/")
+      .then((r) => r.text())
+      .then((country) => {
+        if (country.trim() === "CH") {
+          setCurrency({ single: "26 CHF", bundle: "47 CHF" });
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  return currency;
+}
 
 export default function PromoBanner() {
   const [visible, setVisible] = useState(() => {
@@ -11,6 +30,8 @@ export default function PromoBanner() {
     return true;
   });
 
+  const currency = useCurrency();
+
   if (!visible) return null;
 
   const dismiss = (e: React.MouseEvent) => {
@@ -18,6 +39,14 @@ export default function PromoBanner() {
     e.stopPropagation();
     localStorage.setItem(DISMISSED_KEY, "true");
     setVisible(false);
+  };
+
+  const priceStyle: React.CSSProperties = {
+    fontFamily: "var(--up-font)",
+    fontSize: "0.75rem",
+    fontWeight: 700,
+    color: "#F5E090",
+    flexShrink: 0,
   };
 
   return (
@@ -68,6 +97,7 @@ export default function PromoBanner() {
 
         {/* Books */}
         <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" as const }}>
+          {/* Book 1 */}
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <span style={{ fontFamily: "var(--up-font)", fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.10em", textTransform: "uppercase" as const, color: "rgba(245,224,144,0.45)" }}>
               Ebook
@@ -76,11 +106,13 @@ export default function PromoBanner() {
             <span style={{ fontFamily: "var(--up-font)", fontSize: "0.78rem", color: "rgba(255,255,255,0.85)", fontWeight: 600 }}>
               De l'idée au plan
             </span>
+            <span style={priceStyle}>{currency.single}</span>
             <span style={{ fontFamily: "var(--up-font)", fontSize: "0.72rem", color: "rgba(255,255,255,0.40)" }}>
               — Clarifiez vos idées floues et structurez-les avant de les soumettre à Édouard.
             </span>
           </div>
 
+          {/* Book 2 */}
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <span style={{ fontFamily: "var(--up-font)", fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.10em", textTransform: "uppercase" as const, color: "rgba(245,224,144,0.45)" }}>
               Ebook
@@ -89,10 +121,24 @@ export default function PromoBanner() {
             <span style={{ fontFamily: "var(--up-font)", fontSize: "0.78rem", color: "rgba(255,255,255,0.85)", fontWeight: 600 }}>
               Vos compétences humaines invisibles
             </span>
+            <span style={priceStyle}>{currency.single}</span>
             <span style={{ fontFamily: "var(--up-font)", fontSize: "0.72rem", color: "rgba(255,255,255,0.40)" }}>
               — Mobilisez ce que vous êtes pour exécuter ce que vous planifiez.
             </span>
           </div>
+        </div>
+
+        {/* Bundle offer */}
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+          <span style={{ fontFamily: "var(--up-font)", fontSize: "0.72rem", color: "rgba(255,255,255,0.45)" }}>
+            Offre groupée :
+          </span>
+          <span style={{ fontFamily: "var(--up-font)", fontSize: "0.82rem", fontWeight: 700, color: "#F5E090" }}>
+            {currency.bundle}
+          </span>
+          <span style={{ fontFamily: "var(--up-font)", fontSize: "0.68rem", color: "rgba(255,255,255,0.30)" }}>
+            les deux
+          </span>
         </div>
 
         {/* CTA button */}

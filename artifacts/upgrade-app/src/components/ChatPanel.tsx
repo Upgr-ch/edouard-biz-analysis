@@ -7,6 +7,8 @@ import { useAuth as useClerkAuth } from "@clerk/react";
 import { toast } from "sonner";
 import { Link, useNavigate } from "react-router-dom";
 import * as AnonChat from "@/lib/anonymousChat";
+import { ANON_MAX_MESSAGES } from "@/lib/anonymousChat";
+import { markEdouardEmailWallPending } from "@/lib/analytics";
 import { BrainLogoSm } from "@/components/BrainLogo";
 import AdSlot from "@/components/ads/AdSlot";
 
@@ -351,8 +353,9 @@ const ChatPanel = ({
   };
 
   useEffect(() => {
-    if (isAnonymous && totalUserMessages === 6 && !isLoading && !redirectScheduled.current) {
+    if (isAnonymous && totalUserMessages === ANON_MAX_MESSAGES && !isLoading && !redirectScheduled.current) {
       redirectScheduled.current = true;
+      markEdouardEmailWallPending();
       const timer = setTimeout(() => {
         saveTemporaryChat();
         navigate("/auth");
@@ -449,7 +452,8 @@ Avant de commencer, j'ai besoin de savoir où tu en es.
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
 
-    if (isAnonymous && totalUserMessages >= 6) {
+    if (isAnonymous && totalUserMessages >= ANON_MAX_MESSAGES) {
+      markEdouardEmailWallPending();
       saveTemporaryChat();
       navigate("/auth");
       return;

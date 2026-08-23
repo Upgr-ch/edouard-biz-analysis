@@ -1,0 +1,74 @@
+Je veux implémenter le suivi de conversion Google Ads / GA4 sur l'application Édouard (diagnostic business), exactement sur le même modèle que ce qui a été fait pour Eugène.
+
+Voici le fonctionnement et les contraintes à mettre en place :
+
+1. LOGIQUE DU MUR E-MAIL :
+- L'utilisateur teste Édouard gratuitement.
+- Lorsqu'il atteint la limite de messages gratuits (FREE_MESSAGE_LIMIT), nous stockons un flag dans le sessionStorage pour indiquer qu'il provient du mur :
+  sessionStorage.setItem("edouard.emailWallPending", "true");
+- L'utilisateur est ensuite redirigé vers l'écran d'inscription/connexion (/auth).
+
+2. FONCTION DE TRACKING (`trackEdouardEmailWallLeadOnce`) :
+Créer (ou adapter) la fonction qui sera appelée lors de la validation réussie du compte (<SignUpVirtual onComplete={trackEdouardEmailWallLeadOnce} />).
+
+La fonction doit respecter ces règles strictes :
+- Vérifier si l'évènement a déjà été envoyé durant cette session (clé : "edouard.emailWallLeadTracked"). Si oui, stopper.
+- Vérifier que l'utilisateur provient bien du mur (clé "edouard.emailWallPending" === "true"). Si non, stopper.
+- Déclencher l'évènement Google Analytics / Google Ads via `gtag` avec le label spécifique à Édouard :
+    window.gtag("event", "generate_lead", {
+      event_category: "engagement",
+      event_label: "email_wall_submission_edouard",
+      value: 1.0,
+    });
+- Déclencher l'évènement dans le dataLayer (GTM) :
+    window.dataLayer.push({
+      event: "lead_submitted",
+      form_type: "email_wall_edouard",
+    });
+- Marquer "edouard.emailWallLeadTracked" à "true" dans le sessionStorage et nettoyer "edouard.emailWallPending".
+
+Voici la structure de référence souhaitée pour la fonction :
+
+const EDOUARD_EMAIL_WALL_PENDING_KEY = "edouard.emailWallPending";
+const EDOUARD_EMAIL_WALL_LEAD_KEY = "edouard.emailWallLeadTracked";
+
+const trackEdouardEmailWallLeadOnce = () => {
+  if (typeof window === "undefined") return;
+
+  if (window.sessionStorage.getItem(EDOUARD_EMAIL_WALL_LEAD_KEY) === "true") return;
+  if (window.sessionStorage.getItem(EDOUARD_EMAIL_WALL_PENDING_KEY) !== "true") return;
+
+  const analyticsWindow = window as Window & {
+    gtag?: (...args: unknown[]) => void;
+    dataLayer?: unknown[];
+  };
+
+  if (typeof analyticsWindow.gtag === "function") {
+    try {
+      analyticsWindow.gtag("event", "generate_lead", {
+        event_category: "engagement",
+        event_label: "email_wall_submission_edouard",
+        value: 1.0,
+      });
+    } catch (error) {
+      console.warn("[Analytics Edouard] gtag lead event failed", error);
+    }
+  }
+
+  try {
+    analyticsWindow.dataLayer = analyticsWindow.dataLayer || [];
+    analyticsWindow.dataLayer.push({
+      event: "lead_submitted",
+      form_type: "email_wall_edouard",
+    });
+  } catch (error) {
+    console.warn("[Analytics Edouard] dataLayer lead event failed", error);
+  }
+
+  window.sessionStorage.setItem(EDOUARD_EMAIL_WALL_LEAD_KEY, "true");
+  window.sessionStorage.removeItem(EDOUARD_EMAIL_WALL_PENDING_KEY);
+
+  console.info("[Analytics Edouard] Lead email wall enregistré avec succès.");
+};
+
+Peux-tu inspecter les fichiers du module Édouard, intégrer ce mécanisme et me confirmer les fichiers impactés ?

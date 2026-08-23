@@ -9,6 +9,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
+import { trackEdouardEmailWallLeadOnce } from "@/lib/analytics";
 import { BrainLogoSm } from "@/components/BrainLogo";
 import Index from "./pages/Index.tsx";
 import Admin from "./pages/Admin.tsx";
@@ -452,6 +453,7 @@ function SignUpRoute() {
             signInUrl="/auth"
             forceRedirectUrl="/"
             signInForceRedirectUrl="/"
+            onComplete={trackEdouardEmailWallLeadOnce}
             appearance={clerkAppearance}
           />
         </div>

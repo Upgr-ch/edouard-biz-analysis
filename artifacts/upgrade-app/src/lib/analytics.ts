@@ -40,8 +40,13 @@ export function trackEdouardEmailWallLeadOnce() {
         event_label: "email_wall_submission_edouard",
         value: 1.0,
       });
+      analyticsWindow.gtag("event", "conversion", {
+        send_to: "AW-18294385008/HVHwCJeq2ckcEPDSuJNE",
+        value: 1.0,
+        currency: "EUR",
+      });
     } catch (error) {
-      console.warn("[Analytics Edouard] gtag lead event failed", error);
+      console.warn("[Analytics Edouard] gtag lead/conversion events failed", error);
     }
   }
 

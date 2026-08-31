@@ -8,7 +8,11 @@ import { toast } from "sonner";
 import { Link, useNavigate } from "react-router-dom";
 import * as AnonChat from "@/lib/anonymousChat";
 import { ANON_MAX_MESSAGES } from "@/lib/anonymousChat";
-import { markEdouardEmailWallPending, trackEdouardConversion } from "@/lib/analytics";
+import {
+  markEdouardEmailWallPending,
+  pushEdouardDataLayerEvent,
+  trackEdouardConversion,
+} from "@/lib/analytics";
 import { BrainLogoSm } from "@/components/BrainLogo";
 import AdSlot from "@/components/ads/AdSlot";
 
@@ -365,6 +369,7 @@ const ChatPanel = ({
       | "edouard_message_sent_6");
     if (messageNumber === ANON_MAX_MESSAGES) {
       trackEdouardConversion("edouard_conversation_completed");
+      pushEdouardDataLayerEvent("conversion_fin_de_conversation");
     }
   };
 

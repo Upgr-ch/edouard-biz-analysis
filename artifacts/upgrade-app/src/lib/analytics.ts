@@ -35,6 +35,14 @@ export function trackEdouardConversion(eventName: EdouardConversionEvent) {
   }
 }
 
+export function pushEdouardDataLayerEvent(eventName: string) {
+  if (typeof window === "undefined") return;
+
+  const analyticsWindow = window as AnalyticsWindow;
+  analyticsWindow.dataLayer = analyticsWindow.dataLayer || [];
+  analyticsWindow.dataLayer.push({ event: eventName });
+}
+
 export function markEdouardEmailWallPending() {
   if (typeof window === "undefined") return;
 

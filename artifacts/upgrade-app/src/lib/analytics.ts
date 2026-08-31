@@ -6,6 +6,35 @@ type AnalyticsWindow = Window & {
   dataLayer?: unknown[];
 };
 
+export type EdouardConversionEvent =
+  | "edouard_conversation_started"
+  | "edouard_message_sent_1"
+  | "edouard_message_sent_2"
+  | "edouard_message_sent_3"
+  | "edouard_message_sent_4"
+  | "edouard_message_sent_5"
+  | "edouard_message_sent_6"
+  | "edouard_conversation_completed"
+  | "edouard_email_wall_viewed"
+  | "edouard_email_submitted";
+
+const EDOUARD_GOOGLE_ADS_ID = "AW-18294385008";
+
+export function trackEdouardConversion(eventName: EdouardConversionEvent) {
+  if (typeof window === "undefined") return;
+
+  const analyticsWindow = window as AnalyticsWindow;
+  if (typeof analyticsWindow.gtag !== "function") return;
+
+  try {
+    analyticsWindow.gtag("event", "conversion", {
+      send_to: `${EDOUARD_GOOGLE_ADS_ID}/${eventName}`,
+    });
+  } catch (error) {
+    console.warn(`[Analytics Edouard] ${eventName} conversion failed`, error);
+  }
+}
+
 export function markEdouardEmailWallPending() {
   if (typeof window === "undefined") return;
 
@@ -49,6 +78,8 @@ export function trackEdouardEmailWallLeadOnce() {
       console.warn("[Analytics Edouard] gtag lead/conversion events failed", error);
     }
   }
+
+  trackEdouardConversion("edouard_email_submitted");
 
   try {
     analyticsWindow.dataLayer = analyticsWindow.dataLayer || [];

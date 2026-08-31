@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { Link, useNavigate } from "react-router-dom";
 import * as AnonChat from "@/lib/anonymousChat";
 import { ANON_MAX_MESSAGES } from "@/lib/anonymousChat";
-import { markEdouardEmailWallPending } from "@/lib/analytics";
+import { markEdouardEmailWallPending, trackEdouardConversion } from "@/lib/analytics";
 import { BrainLogoSm } from "@/components/BrainLogo";
 import AdSlot from "@/components/ads/AdSlot";
 
@@ -352,12 +352,29 @@ const ChatPanel = ({
     localStorage.setItem("temp_chat", JSON.stringify(latestMessages));
   };
 
+  const trackAnonymousMessage = (messageNumber: number) => {
+    if (messageNumber === 1) {
+      trackEdouardConversion("edouard_conversation_started");
+    }
+    trackEdouardConversion(`edouard_message_sent_${messageNumber}` as
+      | "edouard_message_sent_1"
+      | "edouard_message_sent_2"
+      | "edouard_message_sent_3"
+      | "edouard_message_sent_4"
+      | "edouard_message_sent_5"
+      | "edouard_message_sent_6");
+    if (messageNumber === ANON_MAX_MESSAGES) {
+      trackEdouardConversion("edouard_conversation_completed");
+    }
+  };
+
   useEffect(() => {
     if (isAnonymous && totalUserMessages === ANON_MAX_MESSAGES && !isLoading && !redirectScheduled.current) {
       redirectScheduled.current = true;
       markEdouardEmailWallPending();
       const timer = setTimeout(() => {
         saveTemporaryChat();
+        trackEdouardConversion("edouard_email_wall_viewed");
         navigate("/auth");
       }, 4000);
       return () => clearTimeout(timer);
@@ -390,6 +407,7 @@ const ChatPanel = ({
         if (isAnonymous) {
           AnonChat.appendAnonMessage("user", letter);
           forceUpdate((n) => n + 1);
+          trackAnonymousMessage(totalUserMessages + 1);
           const msgs = AnonChat.getAnonMessages();
           const reply = await invokeChat(msgs);
           if (reply) {
@@ -467,6 +485,7 @@ Avant de commencer, j'ai besoin de savoir où tu en es.
       if (isAnonymous) {
         AnonChat.appendAnonMessage("user", content);
         forceUpdate((n) => n + 1);
+        trackAnonymousMessage(totalUserMessages + 1);
         const msgs = AnonChat.getAnonMessages();
         const reply = await invokeChat(msgs);
         if (reply) {

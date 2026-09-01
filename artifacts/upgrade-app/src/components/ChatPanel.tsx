@@ -360,6 +360,7 @@ const ChatPanel = ({
     if (messageNumber === 1) {
       trackEdouardConversion("edouard_conversation_started");
     }
+    pushEdouardDataLayerEvent("edouard_message_sent");
     trackEdouardConversion(`edouard_message_sent_${messageNumber}` as
       | "edouard_message_sent_1"
       | "edouard_message_sent_2"
@@ -369,6 +370,7 @@ const ChatPanel = ({
       | "edouard_message_sent_6");
     if (messageNumber === ANON_MAX_MESSAGES) {
       trackEdouardConversion("edouard_conversation_completed");
+      pushEdouardDataLayerEvent("edouard_conversation_completed");
       pushEdouardDataLayerEvent("conversion_fin_de_conversation");
     }
   };
@@ -380,6 +382,7 @@ const ChatPanel = ({
       const timer = setTimeout(() => {
         saveTemporaryChat();
         trackEdouardConversion("edouard_email_wall_viewed");
+        pushEdouardDataLayerEvent("edouard_email_wall_viewed");
         navigate("/auth");
       }, 4000);
       return () => clearTimeout(timer);
@@ -450,6 +453,7 @@ const ChatPanel = ({
   const startConversation = async () => {
     if (!isChecked) return;
     setDisclaimerAccepted(true);
+    pushEdouardDataLayerEvent("edouard_conversation_started");
     const edouardIntro = `Je suis Édouard. Ne le prends pas pour toi, je m'exprime de manière ferme, assertive et juste. Mon travail est de te dire la vérité business, pas de te flatter.
 
 Avant de commencer, j'ai besoin de savoir où tu en es.

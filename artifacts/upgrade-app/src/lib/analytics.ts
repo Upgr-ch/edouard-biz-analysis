@@ -88,6 +88,7 @@ export function trackEdouardEmailWallLeadOnce() {
   }
 
   trackEdouardConversion("edouard_email_submitted");
+  pushEdouardDataLayerEvent("edouard_email_submitted");
 
   try {
     analyticsWindow.dataLayer = analyticsWindow.dataLayer || [];

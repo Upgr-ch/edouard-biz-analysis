@@ -360,7 +360,7 @@ const ChatPanel = ({
     if (messageNumber === 1) {
       trackEdouardConversion("edouard_conversation_started");
     }
-    pushEdouardDataLayerEvent("edouard_message_sent");
+    pushEdouardDataLayerEvent(`edouard_message_sent_${messageNumber}`);
     trackEdouardConversion(`edouard_message_sent_${messageNumber}` as
       | "edouard_message_sent_1"
       | "edouard_message_sent_2"

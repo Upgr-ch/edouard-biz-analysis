@@ -602,36 +602,17 @@ Avant de commencer, j'ai besoin de savoir où tu en es.
           >
             <div className="space-y-2">
               <h1 className="text-4xl font-bold text-foreground tracking-tight" style={{ fontFamily: "var(--up-font)" }}>
-                Je suis <span className="up-shimmer">Édouard.</span>
+                 <span className="up-shimmer">Édouard</span> analyse la viabilité et la rentabilité de votre projet business.
               </h1>
               <p className="text-muted-foreground text-[17px]">
-                Consultant en faisabilité et rentabilité de projets business.
+                 Un diagnostic direct en 10 étapes, ferme et sans filtre, basé sur des données réelles.
               </p>
             </div>
 
             <div className="space-y-5 text-muted-foreground text-[15px] leading-relaxed">
-              <p>Je vais t'aider à analyser ton idée de business avec structure et honnêteté.</p>
-              <p>
-                Je m'exprime de manière{" "}
-                <span className="font-semibold text-foreground">ferme, assertive et juste</span>, ne le
-                prends pas pour toi. Mon travail est de te dire la vérité business, pas de te flatter.
-              </p>
-              <p>
-                Si ton idée n'est pas viable, je te le dirai clairement. Si elle est améliorable, je
-                t'expliquerai comment.
-              </p>
-              <p className="font-semibold text-[16px] text-primary">
-                Ma mission est de te faire gagner du temps et d'éviter les erreurs coûteuses.
-              </p>
-            </div>
-
-            <div
-              className="pl-6 py-3 text-[13px] text-muted-foreground italic"
-              style={{ borderLeft: "2px solid rgba(245,224,144,0.25)", background: "rgba(245,224,144,0.03)" }}
-            >
-              J'utilise uniquement des données réelles et vérifiables issues du web. Je n'invente jamais
-              de chiffres, de marché ou de tendances. Si une information fiable n'est pas disponible, je
-              le dis clairement.
+               <p className="font-semibold text-[16px] text-primary">
+                 Outil 100% gratuit et illimité. Pas de limite de trafic, pas de version payante cachée.
+               </p>
             </div>
 
             {/* Disclaimer checkbox */}
@@ -655,11 +636,8 @@ Avant de commencer, j'ai besoin de savoir où tu en es.
               >
                 {isChecked && <Check size={13} strokeWidth={3} />}
               </div>
-              <p className="text-xs uppercase tracking-tight leading-relaxed" style={{ color: "#ffffff" }}>
-                <span className="font-bold" style={{ color: "#F5E090" }}>AVERTISSEMENT :</span> Les analyses sont
-                fournies à titre informatif et consultatif uniquement. Elles ne constituent pas une
-                garantie de résultat ni un conseil engageant. L'utilisation des informations et les
-                décisions prises relèvent entièrement de la responsabilité de l'utilisateur.
+               <p className="text-xs uppercase tracking-tight leading-relaxed" style={{ color: "#ffffff" }}>
+                 J'ai pris note que les analyses d'Édouard sont fournies à titre consultatif et informatif.
               </p>
             </div>
 

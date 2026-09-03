@@ -43,6 +43,32 @@ export function pushEdouardDataLayerEvent(eventName: string) {
   analyticsWindow.dataLayer.push({ event: eventName });
 }
 
+export function trackEdouardStartClick() {
+  if (typeof window === "undefined") return;
+
+  const analyticsWindow = window as AnalyticsWindow;
+
+  if (typeof analyticsWindow.gtag === "function") {
+    try {
+      analyticsWindow.gtag("event", "click_commencer_edouard", {
+        event_category: "conversion",
+        event_label: "Clic bouton Commencer Edouard",
+      });
+    } catch (error) {
+      console.warn("[Analytics Edouard] start click GA4 event failed", error);
+    }
+  }
+
+  try {
+    analyticsWindow.dataLayer = analyticsWindow.dataLayer || [];
+    analyticsWindow.dataLayer.push({
+      event: "conversion_edouard_clic",
+    });
+  } catch (error) {
+    console.warn("[Analytics Edouard] start click GTM event failed", error);
+  }
+}
+
 export function markEdouardEmailWallPending() {
   if (typeof window === "undefined") return;
 

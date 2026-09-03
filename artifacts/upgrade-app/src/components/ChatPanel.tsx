@@ -11,6 +11,7 @@ import { ANON_MAX_MESSAGES } from "@/lib/anonymousChat";
 import {
   markEdouardEmailWallPending,
   pushEdouardDataLayerEvent,
+  trackEdouardStartClick,
   trackEdouardConversion,
 } from "@/lib/analytics";
 import { BrainLogoSm } from "@/components/BrainLogo";
@@ -453,6 +454,7 @@ const ChatPanel = ({
   const startConversation = async () => {
     if (!isChecked) return;
     setDisclaimerAccepted(true);
+    trackEdouardStartClick();
     pushEdouardDataLayerEvent("edouard_conversation_started");
     const edouardIntro = `Je suis Édouard. Ne le prends pas pour toi, je m'exprime de manière ferme, assertive et juste. Mon travail est de te dire la vérité business, pas de te flatter.
 
@@ -642,6 +644,7 @@ Avant de commencer, j'ai besoin de savoir où tu en es.
             </div>
 
             <button
+              id="btn-commencer-edouard"
               disabled={!isChecked || isLoading}
               onClick={() => void startConversation()}
               className="w-full py-4 font-bold flex items-center justify-center gap-2 transition-all active:scale-95 disabled:cursor-not-allowed rounded-sm border"
@@ -652,7 +655,7 @@ Avant de commencer, j'ai besoin de savoir où tu en es.
                 boxShadow: isChecked ? "0 10px 30px -10px rgba(245,224,144,0.40)" : "none",
               }}
             >
-              {isLoading ? "Initialisation..." : "Commencer l'analyse"} <ArrowRight size={20} />
+              {isLoading ? "Initialisation..." : "Commencer l’analyse ->"} <ArrowRight size={20} />
             </button>
           </div>
         ) : (

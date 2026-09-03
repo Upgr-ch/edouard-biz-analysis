@@ -593,7 +593,7 @@ Avant de commencer, j'ai besoin de savoir où tu en es.
         {!disclaimerAccepted && displayMessages.length === 0 ? (
           /* ── Landing card ── */
           <div
-            className="max-w-2xl w-full border rounded-sm p-10 shadow-2xl space-y-8 my-auto animate-in fade-in zoom-in duration-500"
+             className="max-w-2xl w-full border rounded-sm p-10 shadow-2xl space-y-6 my-auto animate-in fade-in zoom-in duration-500"
             style={{
               background: "rgba(255,255,255,0.02)",
               borderColor: "rgba(245,224,144,0.15)",
@@ -602,7 +602,7 @@ Avant de commencer, j'ai besoin de savoir où tu en es.
           >
             <div className="space-y-2">
               <h1 className="text-4xl font-bold text-foreground tracking-tight" style={{ fontFamily: "var(--up-font)" }}>
-                 <span className="up-shimmer">Édouard</span> analyse la viabilité et la rentabilité de votre projet business.
+                 <span className="up-shimmer">Édouard analyse la viabilité et la rentabilité de votre projet business.</span>
               </h1>
               <p className="text-muted-foreground text-[17px]">
                  Un diagnostic direct en 10 étapes, ferme et sans filtre, basé sur des données réelles.

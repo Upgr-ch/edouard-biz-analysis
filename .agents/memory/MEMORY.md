@@ -1,0 +1,1 @@
+- [Authentification GitHub](github-auth.md) — Git doit lire le jeton depuis le secret Replit via un credential helper local, car GIT_ASKPASS peut rester obsolète.

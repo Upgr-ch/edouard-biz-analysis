@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, Fragment } from "react";
-import { Send, ArrowRight, Check, MessageCircle, Download } from "lucide-react";
+import { Send, ArrowRight, MessageCircle, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import { useAuth } from "@/hooks/useAuth";
@@ -11,7 +11,6 @@ import { ANON_MAX_MESSAGES } from "@/lib/anonymousChat";
 import {
   markEdouardEmailWallPending,
   pushEdouardDataLayerEvent,
-  trackEdouardStartClick,
   trackEdouardConversion,
 } from "@/lib/analytics";
 import { BrainLogoSm } from "@/components/BrainLogo";
@@ -21,6 +20,18 @@ interface DisplayMessage {
   role: "user" | "assistant";
   content: string;
 }
+
+const EDOUARD_INTRO_MESSAGE = `Je suis Édouard. Ne le prends pas pour toi, je m'exprime de manière ferme, assertive et juste. Mon travail est de te dire la vérité business, pas de te flatter.
+
+Précision préalable : mon analyse est consultative. L'accès est libre et illimité, sans version payante. La seule formalité est une inscription par email pour sauvegarder ton diagnostic.
+
+Avant de commencer, j'ai besoin de savoir où tu en es.
+
+A — Novice : "C'est mon tout premier projet, je pars de zéro"
+B — Intermédiaire : "J'ai déjà lancé un projet, je connais les bases"
+C — Confirmé : "J'ai plusieurs projets à mon actif, je veux aller vite"
+
+→ Clique sur ton profil ci-dessous.`;
 
 interface ChatPanelProps {
   conversationId: string | null;
@@ -319,8 +330,6 @@ const ChatPanel = ({
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [input, setInput] = useState("");
-  const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
-  const [isChecked, setIsChecked] = useState(false);
   const [titleValidated, setTitleValidated] = useState(false);
   const [, forceUpdate] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -330,9 +339,13 @@ const ChatPanel = ({
   const isDefaultTitle = !conversationTitle || conversationTitle === "Nouvelle analyse";
 
   const isAnonymous = !user;
-  const displayMessages: DisplayMessage[] = isAnonymous
+  const storedMessages: DisplayMessage[] = isAnonymous
     ? AnonChat.getAnonMessages()
     : persistedMessages;
+  const displayMessages: DisplayMessage[] =
+    storedMessages.length > 0
+      ? storedMessages
+      : [{ role: "assistant", content: EDOUARD_INTRO_MESSAGE }];
   const totalUserMessages = displayMessages.filter((m) => m.role === "user").length;
 
   useEffect(() => {
@@ -340,17 +353,6 @@ const ChatPanel = ({
     window.addEventListener("storage", handler);
     return () => window.removeEventListener("storage", handler);
   }, []);
-
-  // Reset disclaimer only when the parent signals a brand-new conversation was
-  // created from the sidebar (newConversationKey increments). This avoids false
-  // resets when startConversation() auto-creates the first conversation
-  // (null → newId) or when switching to an existing one.
-  const isFirstRender = useRef(true);
-  useEffect(() => {
-    if (isFirstRender.current) { isFirstRender.current = false; return; }
-    setDisclaimerAccepted(false);
-    setIsChecked(false);
-  }, [newConversationKey]);
 
   const saveTemporaryChat = () => {
     const latestMessages = AnonChat.getAnonMessages();
@@ -406,7 +408,7 @@ const ChatPanel = ({
   };
 
   /* true when intro is shown but no user reply yet */
-  const needsLevelChoice = disclaimerAccepted && totalUserMessages === 0 && !isLoading;
+  const needsLevelChoice = totalUserMessages === 0 && !isLoading;
 
   const handleLevelChoice = (letter: string) => {
     void (async () => {
@@ -414,6 +416,9 @@ const ChatPanel = ({
       setIsLoading(true);
       try {
         if (isAnonymous) {
+          if (AnonChat.getAnonMessages().length === 0) {
+            AnonChat.appendAnonMessage("assistant", EDOUARD_INTRO_MESSAGE);
+          }
           AnonChat.appendAnonMessage("user", letter);
           forceUpdate((n) => n + 1);
           trackAnonymousMessage(totalUserMessages + 1);
@@ -429,10 +434,17 @@ const ChatPanel = ({
           const activeConversationId =
             conversationId ?? (await onCreateConversation?.("Nouvelle analyse")) ?? null;
           if (!activeConversationId) return;
+          const conversationMessages =
+            persistedMessages.length > 0
+              ? persistedMessages
+              : [{ role: "assistant" as const, content: EDOUARD_INTRO_MESSAGE }];
+          if (persistedMessages.length === 0) {
+            await saveMessage(activeConversationId, "assistant", EDOUARD_INTRO_MESSAGE);
+          }
           await saveMessage(activeConversationId, "user", letter);
           const token = await getToken();
           const reply = await invokeChat([
-            ...persistedMessages,
+            ...conversationMessages,
             { role: "user", content: letter },
           ], token);
           if (reply) {
@@ -449,33 +461,6 @@ const ChatPanel = ({
         setIsLoading(false);
       }
     })();
-  };
-
-  const startConversation = async () => {
-    if (!isChecked) return;
-    setDisclaimerAccepted(true);
-    trackEdouardStartClick();
-    pushEdouardDataLayerEvent("edouard_conversation_started");
-    const edouardIntro = `Je suis Édouard. Ne le prends pas pour toi, je m'exprime de manière ferme, assertive et juste. Mon travail est de te dire la vérité business, pas de te flatter.
-
-Avant de commencer, j'ai besoin de savoir où tu en es.
-
-**A** — Novice : "C'est mon tout premier projet, je pars de zéro"
-**B** — Intermédiaire : "J'ai déjà lancé un projet, je connais les bases"
-**C** — Confirmé : "J'ai plusieurs projets à mon actif, je veux aller vite"
-
-→ Clique sur ton profil ci-dessous.`;
-
-    if (isAnonymous) {
-      AnonChat.appendAnonMessage("assistant", edouardIntro);
-      forceUpdate((n) => n + 1);
-    } else if (saveMessage) {
-      const activeConversationId =
-        conversationId ?? (await onCreateConversation?.("Nouvelle analyse")) ?? null;
-      if (activeConversationId) {
-        await saveMessage(activeConversationId, "assistant", edouardIntro);
-      }
-    }
   };
 
   const handleSend = async () => {
@@ -592,75 +577,8 @@ Avant de commencer, j'ai besoin de savoir où tu en es.
     <div className="flex flex-col h-full bg-background relative overflow-hidden">
 
       <div className="flex-1 flex flex-col items-center justify-start p-6 overflow-y-auto scrollbar-none">
-        {!disclaimerAccepted && displayMessages.length === 0 ? (
-          /* ── Landing card ── */
-          <div
-             className="max-w-2xl w-full border rounded-sm p-10 shadow-2xl space-y-6 my-auto animate-in fade-in zoom-in duration-500"
-            style={{
-              background: "rgba(255,255,255,0.02)",
-              borderColor: "rgba(245,224,144,0.15)",
-              boxShadow: "0 0 80px rgba(245,224,144,0.04)",
-            }}
-          >
-            <div className="space-y-2">
-              <h1 className="text-4xl font-bold text-foreground tracking-tight" style={{ fontFamily: "var(--up-font)" }}>
-                 <span className="up-shimmer">Édouard analyse la viabilité et la rentabilité de votre projet business.</span>
-              </h1>
-              <p className="text-muted-foreground text-[17px]">
-                 Un diagnostic direct en 10 étapes, ferme et sans filtre, basé sur des données réelles.
-              </p>
-            </div>
-
-            <div className="space-y-5 text-muted-foreground text-[15px] leading-relaxed">
-               <p className="font-semibold text-[16px] text-primary">
-                 Outil 100% gratuit et illimité. Pas de limite de trafic, pas de version payante cachée.
-               </p>
-            </div>
-
-            {/* Disclaimer checkbox */}
-            <div
-              onClick={() => setIsChecked(!isChecked)}
-              className="p-6 rounded-sm border-2 cursor-pointer flex gap-4 transition-all"
-              style={{
-                background: isChecked ? "rgba(245,224,144,0.06)" : "rgba(245,224,144,0.02)",
-                borderColor: isChecked ? "rgba(245,224,144,0.50)" : "rgba(245,224,144,0.25)",
-                boxShadow: isChecked ? "0 0 20px -6px rgba(245,224,144,0.20)" : "none",
-              }}
-            >
-              <div
-                className="mt-0.5 w-6 h-6 rounded-sm border-2 flex items-center justify-center shrink-0 transition-all"
-                style={{
-                  background: isChecked ? "#F5E090" : "rgba(245,224,144,0.08)",
-                  borderColor: isChecked ? "#F5E090" : "rgba(245,224,144,0.55)",
-                  color: "#080F1E",
-                  boxShadow: isChecked ? "none" : "0 0 8px rgba(245,224,144,0.15)",
-                }}
-              >
-                {isChecked && <Check size={13} strokeWidth={3} />}
-              </div>
-               <p className="text-xs uppercase tracking-tight leading-relaxed" style={{ color: "#ffffff" }}>
-                 J'ai pris note que les analyses d'Édouard sont fournies à titre consultatif et informatif.
-              </p>
-            </div>
-
-            <button
-              id="btn-commencer-edouard"
-              disabled={!isChecked || isLoading}
-              onClick={() => void startConversation()}
-              className="w-full py-4 font-bold flex items-center justify-center gap-2 transition-all active:scale-95 disabled:cursor-not-allowed rounded-sm border"
-              style={{
-                background: isChecked ? "#F5E090" : "rgba(245,224,144,0.07)",
-                color: isChecked ? "#080F1E" : "rgba(245,224,144,0.55)",
-                borderColor: isChecked ? "transparent" : "rgba(245,224,144,0.22)",
-                boxShadow: isChecked ? "0 10px 30px -10px rgba(245,224,144,0.40)" : "none",
-              }}
-            >
-              {isLoading ? "Initialisation..." : "Commencer l’analyse ->"} <ArrowRight size={20} />
-            </button>
-          </div>
-        ) : (
-          /* ── Messages ── */
-          <div className="max-w-2xl w-full flex-1 space-y-6 pb-20">
+        {/* ── Messages ── */}
+        <div className="max-w-2xl w-full flex-1 space-y-6 pb-20">
             {displayMessages.map((msg, i) => {
               if (msg.role === "user") userMsgCounter++;
               if (msg.role === "assistant") assistantMsgCounter++;
@@ -762,13 +680,11 @@ Avant de commencer, j'ai besoin de savoir où tu en es.
               </div>
             )}
             <div ref={messagesEndRef} />
-          </div>
-        )}
+        </div>
       </div>
 
       {/* ── Input bar ── */}
-      {(disclaimerAccepted || displayMessages.length > 0) && (
-        <div className="border-t border-border bg-background z-40">
+      <div className="border-t border-border bg-background z-40">
           <div className="max-w-2xl mx-auto px-4 py-3">
             {isAnonymous && !needsLevelChoice && (
               <div
@@ -819,8 +735,7 @@ Avant de commencer, j'ai besoin de savoir où tu en es.
               </button>
             </div>
           </div>
-        </div>
-      )}
+      </div>
       <Footer />
     </div>
   );

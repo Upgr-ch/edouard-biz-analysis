@@ -21,15 +21,15 @@ interface DisplayMessage {
   content: string;
 }
 
-const EDOUARD_INTRO_MESSAGE = `Je suis Édouard. Ne le prends pas pour toi, je m'exprime de manière ferme, assertive et juste. Mon travail est de te dire la vérité business, pas de te flatter.
+const EDOUARD_INTRO_MESSAGE = `Je suis Édouard. Ne le prends pas pour toi, je m'exprime de manière ferme, assertive et juste. Mon travail est de te dire la vérité business, pas de te flatter.<br><br>
 
-Précision préalable : mon analyse est consultative. L'accès est libre et illimité, sans version payante. La seule formalité est une inscription par email pour sauvegarder ton diagnostic.
+⚠️ Précision préalable : mon analyse est consultative. L'accès est libre et illimité, sans version payante. La seule formalité est une inscription par email pour sauvegarder ton diagnostic.<br><br>
 
-Avant de commencer, j'ai besoin de savoir où tu en es.
+Avant de commencer, j'ai besoin de savoir où tu en es.<br><br>
 
-A — Novice : "C'est mon tout premier projet, je pars de zéro"
-B — Intermédiaire : "J'ai déjà lancé un projet, je connais les bases"
-C — Confirmé : "J'ai plusieurs projets à mon actif, je veux aller vite"
+A — Novice : "C'est mon tout premier projet, je pars de zéro"<br>
+B — Intermédiaire : "J'ai déjà lancé un projet, je connais les bases"<br>
+C — Confirmé : "J'ai plusieurs projets à mon actif, je veux aller vite"<br><br>
 
 → Clique sur ton profil ci-dessous.`;
 
@@ -213,6 +213,19 @@ function renderContentWithFiche(
   onDownloadFiche?: (label: string) => void,
   onNextStep?: () => void,
 ) {
+  if (content === EDOUARD_INTRO_MESSAGE) {
+    return (
+      <>
+        {content.split("<br>").map((part, index) => (
+          <Fragment key={index}>
+            {index > 0 && <br />}
+            {part}
+          </Fragment>
+        ))}
+      </>
+    );
+  }
+
   const parts = content.split(/(%%FICHE:[^%]+%%|%%NEXT%%)/);
   if (parts.length === 1) {
     return <ReactMarkdown>{content}</ReactMarkdown>;

@@ -1,0 +1,35 @@
+Bonjour Replit. Je dois effectuer DEUX modifications strictes sur le site. 
+
+**CONSIGNE IMPÉRATIVE N°1 :** Tu conserves INTÉGRALEMENT la charte graphique existante (couleurs, polices, marges, espacements, animations, footer, et tous les styles CSS). Tu ne modifies ABSOLUMENT aucun fichier CSS, aucune couleur, aucune police, aucun espacement. Le design final doit être strictement identique à l'actuel, seul le contenu et la route changent.
+
+**CONSIGNE IMPÉRATIVE N°2 :** N'apporte AUCUNE autre modification que celles listées ci-dessous. Ne touche pas aux autres messages d'Édouard, ni à la logique du mur email, ni au code de tracking, ni à rien d'autre.
+
+Voici exactement ce que je veux :
+
+**Modification n°1 (Suppression de la page statique) :**
+
+- Supprime définitivement la page d'accueil statique qui sert actuellement de landing page (celle qui affiche le gros titre "Édouard analyse la viabilité...", la liste des "Étapes 1/10, 2/10...", le bouton "COMMENCER l'analyse" et les éventuelles cases à cocher).
+- Le nouveau point d'entrée (la racine du site / l'URL principale) doit être la page qui héberge le chat (celle qui s'ouvrait après le clic sur "COMMENCER").
+- Dans la configuration des routes, remplace l'ancienne route racine par la route du chat. Les visiteurs doivent arriver directement sur le chat, sans passer par une page intermédiaire.
+
+**Modification n°2 (Remplacement du premier message d'Édouard) :**
+
+- Va chercher le fichier qui contient le premier message envoyé par Édouard au chargement du chat (celui qui propose les choix A/B/C).
+- Remplace l'intégralité de son contenu par le texte suivant, strictement copié-collé (sans ajouter ni enlever un seul mot) :
+
+"Je suis Édouard. Ne le prends pas pour toi, je m'exprime de manière ferme, assertive et juste. Mon travail est de te dire la vérité business, pas de te flatter.
+
+Précision préalable : mon analyse est consultative. L'accès est libre et illimité, sans version payante. La seule formalité est une inscription par email pour sauvegarder ton diagnostic.
+
+Avant de commencer, j'ai besoin de savoir où tu en es.
+
+A — Novice : "C'est mon tout premier projet, je pars de zéro"
+B — Intermédiaire : "J'ai déjà lancé un projet, je connais les bases"
+C — Confirmé : "J'ai plusieurs projets à mon actif, je veux aller vite"
+
+→ Clique sur ton profil ci-dessous."
+
+**Rappel final :**
+- Tu conserves la charte graphique à l'identique.
+- Tu ne modifies rien d'autre (CGU, CGV, footer, décompte des messages, mur email à 6 messages, réponses suivantes, tracking, etc.).
+- Applique ces deux changements et confirme-moi quand c'est fait.

@@ -31,7 +31,7 @@ A — Novice : "C'est mon tout premier projet, je pars de zéro"<br>
 B — Intermédiaire : "J'ai déjà lancé un projet, je connais les bases"<br>
 C — Confirmé : "J'ai plusieurs projets à mon actif, je veux aller vite"<br><br>
 
-→ Clique sur ton profil ci-dessous.`;
+Clique ci dessus  sur la lettre de ton profil.`;
 
 interface ChatPanelProps {
   conversationId: string | null;

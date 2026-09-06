@@ -709,7 +709,7 @@ const ChatPanel = ({
                 }}
               >
                 <MessageCircle size={13} />
-                Message {totalUserMessages} / 6 avant inscription gratuite.
+                Message {totalUserMessages} / 6 avant inscription.
               </div>
             )}
 

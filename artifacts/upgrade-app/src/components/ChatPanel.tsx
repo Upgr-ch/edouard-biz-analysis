@@ -409,8 +409,9 @@ const ChatPanel = ({
   }, [totalUserMessages, isLoading, isAnonymous, navigate]);
 
   useEffect(() => {
+    if (storedMessages.length === 0) return;
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [displayMessages, isLoading]);
+  }, [storedMessages.length, isLoading]);
 
   const handleForceSignOut = async () => {
     try {

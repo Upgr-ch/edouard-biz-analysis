@@ -27,11 +27,13 @@ const EDOUARD_INTRO_MESSAGE = `Je suis Édouard. Ne le prends pas pour toi, je m
 
 Avant de commencer, j'ai besoin de savoir où tu en es.<br><br>
 
-A — Novice : "C'est mon tout premier projet, je pars de zéro"<br>
-B — Intermédiaire : "J'ai déjà lancé un projet, je connais les bases"<br>
-C — Confirmé : "J'ai plusieurs projets à mon actif, je veux aller vite"<br><br>
+A — "J'ai le concept, mais je n'ai pas encore creusé les détails"<br>
+B — "J'ai posé les bases, mais rien n'a encore été challengé"<br>
+C — "J'ai plusieurs projets à mon actif, je veux aller vite"<br><br>
 
-Clique ci dessous sur la lettre de ton profil.`;
+Peu importe ta réponse, le diagnostic s'adapte à ton avancement.<br><br>
+
+Clique ci-dessous sur la lettre de ton profil.`;
 
 interface ChatPanelProps {
   conversationId: string | null;
@@ -659,11 +661,7 @@ const ChatPanel = ({
             {/* ── Level choice chips — below the intro bubble ── */}
             {needsLevelChoice && !isLoading && (
               <div className="flex flex-wrap gap-2 ml-11 mt-1">
-                {[
-                  { key: "A", label: "Novice" },
-                  { key: "B", label: "Intermédiaire" },
-                  { key: "C", label: "Confirmé" },
-                ].map(({ key, label }) => (
+                {["A", "B", "C"].map((key) => (
                   <button
                     key={key}
                     onClick={() => handleLevelChoice(key)}
@@ -678,7 +676,6 @@ const ChatPanel = ({
                     onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(245,224,144,0.28)"; e.currentTarget.style.color = "rgba(255,255,255,0.80)"; e.currentTarget.style.background = "rgba(245,224,144,0.05)"; }}
                   >
                     <span className="font-bold text-[11px]" style={{ color: "#F5E090" }}>{key}</span>
-                    {label}
                   </button>
                 ))}
               </div>

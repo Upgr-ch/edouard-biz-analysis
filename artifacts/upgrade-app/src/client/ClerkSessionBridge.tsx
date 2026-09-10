@@ -49,9 +49,12 @@ function ClientRoute({ children }: { children?: ReactNode }) {
     return (
       <div className="absolute inset-0 z-20 flex items-center justify-center overflow-y-auto bg-background p-4">
         <SignUp
+          // Clerk supports virtual routing at runtime, but this version's
+          // public component type no longer includes it.
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          {...({ routing: "virtual" } as any)}
           forceRedirectUrl="/"
-          path="/auth/sign-up"
-          routing="path"
+          signInForceRedirectUrl="/"
           signInUrl="/auth"
         />
       </div>
@@ -62,9 +65,12 @@ function ClientRoute({ children }: { children?: ReactNode }) {
     return (
       <div className="absolute inset-0 z-20 flex items-center justify-center overflow-y-auto bg-background p-4">
         <SignIn
+          // Clerk supports virtual routing at runtime, but this version's
+          // public component type no longer includes it.
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          {...({ routing: "virtual" } as any)}
           forceRedirectUrl="/"
-          path="/auth"
-          routing="path"
+          signUpForceRedirectUrl="/"
           signUpUrl="/auth/sign-up"
         />
       </div>
@@ -78,19 +84,6 @@ function SessionProbe({
   onClientState,
 }: Pick<ClerkSessionBridgeProps, "onClientState">) {
   const { isLoaded, user } = useUser();
-
-  useEffect(() => {
-    const hasLocalConversation =
-      localStorage.getItem("edouard_anon_chat_v1") !== null ||
-      localStorage.getItem("temp_chat") !== null;
-
-    if (hasLocalConversation) {
-      onClientState({
-        authenticated: false,
-        hasLocalConversation: true,
-      });
-    }
-  }, [onClientState]);
 
   useEffect(() => {
     if (!isLoaded) return;

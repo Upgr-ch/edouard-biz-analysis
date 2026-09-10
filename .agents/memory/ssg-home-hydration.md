@@ -7,4 +7,4 @@ L’accueil doit être pré-rendu et hydraté avec un unique arbre public partag
 
 **Why:** Le premier pixel doit être le contenu public standard sans écran vide, loader, clignotement, saut ou remplacement de racine. Le HTML statique et le premier rendu client doivent être identiques.
 
-**How to apply:** Garder Clerk, le chatbot, le stockage et les API hors du graphe SSG. Après hydratation, conserver le contenu public visible pendant la lecture de la conversation locale et le chargement automatique de Clerk, puis restaurer l’état personnel en une seule mise à jour.
+**How to apply:** Garder Clerk, le chatbot, le stockage et les API hors du graphe SSG. Après hydratation, attendre explicitement la confirmation `isLoaded` de Clerk avant même de demander le chunk chatbot, y compris si un stockage local existe. Restaurer ensuite l’état personnel en une seule mise à jour.

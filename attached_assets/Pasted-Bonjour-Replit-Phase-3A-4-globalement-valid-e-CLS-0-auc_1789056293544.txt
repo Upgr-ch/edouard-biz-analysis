@@ -1,0 +1,45 @@
+Bonjour Replit,
+
+Phase 3A.4 globalement validée : CLS = 0, aucun appel API avant clic, un seul `/api/chat` par conversation, tunnel anonyme complet, restauration locale fonctionnelle.
+
+**MAIS deux points bloquants subsistent avant de passer à la Phase 4 :**
+
+**Point 1 : Le test Playwright a échoué sur les 3 corrections finales.**
+
+Tu indiques que le dernier passage navigateur a été bloqué par une erreur `performance is not defined`. Cela signifie que **les 3 petites corrections finales n'ont pas été re-validées en navigateur**, même si elles passent le typecheck et le build.
+
+Je veux :
+1. Identifier la cause de l'erreur `performance is not defined` (Playwright, Node, ou le code testé lui-même ?).
+2. Corriger le runtime Playwright ou adapter le test.
+3. **Re-exécuter le test complet** sur les 3 corrections finales, avec captures à l'appui.
+
+**Point 2 : La restauration de session Clerk n'a pas été testée.**
+
+Tu indiques qu'aucune session Clerk authentifiée n'était disponible. Or, c'est **le cœur du Comportement B** validé par l'utilisateur. Sans test, on ne peut pas confirmer que :
+- Une session existante est bien restaurée après hydratation.
+- L'interface publique reste affichée pendant la vérification.
+- Aucun flash ni modification visuelle ne se produit avant confirmation.
+
+**Deux options :**
+
+**Option A** : Créer un compte de test Clerk dédié (email jetable, mot de passe simple) dans un environnement sandbox, se connecter manuellement une fois, puis recharger la page pour vérifier la restauration de session.
+
+**Option B** : Si tu ne peux pas gérer de compte Clerk, documenter précisément pourquoi, et proposer une alternative de test (mock Clerk, environnement de staging, etc.) — sans jamais toucher au code de production.
+
+**Ce que je veux dans ton prochain rapport :**
+
+1. Le diagnostic de l'erreur Playwright et sa résolution.
+2. Le résultat du test complet des 3 corrections finales (avec captures).
+3. Le résultat du test de restauration Clerk (selon Option A ou B).
+4. Confirmation que `main.tsx`, `App.tsx`, `ChatPanel.tsx`, `PromoBanner.tsx` sont toujours inchangés.
+5. Confirmation que le build historique est intact (mêmes hashes).
+6. Confirmation qu'aucun commit ni push n'a été effectué.
+
+**Ne pas passer à la Phase 4 tant que ces deux points ne sont pas levés.**
+
+**Contraintes rappelées :**
+- Zéro changement visible pour l'utilisateur.
+- Aucun push, aucun commit sans validation explicite.
+- Eugène non touché.
+
+Merci.

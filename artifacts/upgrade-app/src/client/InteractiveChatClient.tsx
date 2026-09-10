@@ -342,7 +342,7 @@ export default function InteractiveChatClient({
   if (!visible) return null;
 
   return (
-    <div className="absolute inset-0 z-20 flex flex-col bg-background">
+    <div className="vike-chat-overlay absolute inset-0 z-20 flex flex-col bg-background">
       <ChatPanel
         conversationId={conversationId}
         conversationTitle={conversationTitle}

@@ -1,0 +1,78 @@
+Bonjour Replit,
+
+Diagnostic validé. Option C retenue : configuration Vite dédiée au build, séparée de la config dev, avec préflight obligatoire.
+
+**Étape 1 : rollback complet vers la fin de Phase 4.**
+
+Je veux revenir à `a0a7783` (le vrai retour à `23f0a76 Add legal pages and supporting components`). Confirme-moi quand c'est fait, et vérifie :
+
+1. `artifact.toml` : fallback restauré à `/index.html` (pas `/legacy-spa.html`).
+2. Scripts Phase 5 absents (`publish-static-output.mjs`, `build-production.mjs`).
+3. `dist/public` intact (hashes `index-DPnulqQV.css` et `index-BStk2gEK.js`).
+4. `main.tsx`, `App.tsx`, `ChatPanel.tsx`, `PromoBanner.tsx` inchangés.
+5. Workflow web actif.
+
+**Étape 2 : après confirmation du rollback, applique l'Option C.**
+
+Plan :
+
+1. **Créer `vite.config.build.ts`** (config Vite dédiée au build) :
+   - `base: "/"` fixé explicitement.
+   - **Ne lit PAS `PORT`** (un build n'ouvre aucun port).
+   - Sortie conditionnelle :
+     - `dist-spa/` si `LEGACY_FALLBACK_BUILD=1`.
+     - `dist-vike/` si `VIKE_PARALLEL_BUILD=1`.
+   - Ne touche pas à `vite.config.ts` (réservé au workflow dev).
+
+2. **Créer `scripts/build-production.mjs`** :
+   - **Préflight d'abord** :
+     - Vérifier `VITE_CLERK_PUBLISHABLE_KEY` (obligatoire).
+     - Vérifier que `base` est bien `/`.
+     - Signaler les variables optionnelles (AdSense, Clerk proxy).
+     - **Si une variable obligatoire manque → STOP, aucun nettoyage, aucun build.**
+   - **Puis build séquentiel** :
+     - Build SPA historique → `dist-spa/`.
+     - Build Vike → `dist-vike/`.
+     - Assemblage dans `dist-tmp/` (non destructif).
+     - Validation sur `dist-tmp/` :
+       - 6 HTML Vike présents et non vides.
+       - `legacy-spa.html` présent.
+       - Assets Vike + SPA présents.
+       - Fichiers publics présents (`robots.txt`, `llms.txt`, `sitemap.xml`, favicons).
+       - Aucune référence cassée.
+     - **Si tout passe** : swap atomique `dist/public` → `dist-tmp`.
+     - **Sinon** : `dist/public` reste intact, rollback du workflow.
+
+3. **Modifier `artifact.toml`** (via la procédure Replit) :
+   - Fallback : `/*` → `/legacy-spa.html`.
+   - Vérifier que les routes Vike (`/`, `/cgu`, etc.) sont servies en priorité.
+
+4. **Corriger le title persistant** (régression Vike identifiée en Phase 4).
+
+5. **Ajouter le lien `/cookies`** dans `HydratablePublicApp`.
+
+**Étape 3 : exécution contrôlée.**
+
+1. **Exécute d'abord le préflight SEUL.** Communique-moi son résultat exact (variables présentes, variables manquantes, décision).
+2. **Si le préflight passe**, lance le build complet.
+3. **Rapport attendu** :
+   - Résultat du préflight.
+   - Résultat du build SPA + Vike.
+   - Résultat de l'assemblage `dist-tmp`.
+   - Tableau de routage (URL → HTML attendu → HTML obtenu → statut).
+   - Tests fonctionnels (CLS = 0, hydratation, chat, Clerk, tracking).
+   - Contrôle Git.
+   - Statut des workflows.
+
+**Contraintes absolues :**
+- Aucune publication en production.
+- Aucun push, aucun commit.
+- Si un test échoue, rollback immédiat vers `a0a7783`.
+- Zéro changement visible pour l'utilisateur.
+- Eugène non touché.
+
+**Règle claire : c'est la dernière tentative. Si ça échoue, on arrête Vike définitivement et on garde ce qui fonctionne déjà (`llms.txt`, `robots.txt`, JSON-LD, `<noscript>`).**
+
+**Commence par le rollback. Confirme-moi quand il est fait avant de coder l'Option C.**
+
+Merci.

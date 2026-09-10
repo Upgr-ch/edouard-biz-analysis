@@ -1,0 +1,58 @@
+MISSION : Ajouter un balisage Schema.org JSON-LD de type `DefinedTermSet` pour le glossaire existant sur la page d'accueil du site Édouard.
+
+RÈGLES ABSOLUES :
+1. Ne modifie STRICTEMENT RIEN d'autre sur le site : pas de changement de design, de structure, de contenu (sauf l'ajout du script JSON-LD), de composants, de routes, de scripts, de styles existants.
+2. Le glossaire existant est déjà présent dans le fichier `HydratablePublicApp.tsx` (ou équivalent). Ne le supprime pas, ne le modifie pas, ne le duplique pas.
+3. Le balisage doit être ajouté dans le `<head>` de la page d'accueil pré-rendue. Identifie le fichier qui génère ce `<head>` (probablement `pages/index/+Head.tsx` ou similaire). S'il existe aussi un `index.html` statique utilisé pour l'entrée SPA, vérifie s'il est encore servi. Si oui, ajoute le même script dans les deux pour éviter les incohérences. Si tu as un doute, demande-moi AVANT de modifier.
+4. N'utilise NI `display:none` NI `visibility:hidden`.
+5. Si un balisage `DefinedTermSet` existe déjà, NE LE DUPLIQUE PAS. Vérifie d'abord et signale-le-moi.
+6. À la fin, montre-moi le diff exact et confirme que rien d'autre n'a été changé.
+
+ÉTAPE 1 — Analyser le glossaire existant
+- Parcours le contenu du glossaire dans `HydratablePublicApp.tsx`.
+- Extrais tous les termes (`<h3>`) et leurs définitions (`<p>`).
+- Ignore les balises `<h2>Glossaire</h2>` et tout autre élément non défini.
+
+ÉTAPE 2 — Générer le JSON-LD
+- Crée un objet JSON-LD avec la structure suivante (exemple pour 2 termes) :
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "DefinedTermSet",
+  "name": "Glossaire Édouard – Diagnostic Business",
+  "description": "Définitions des termes clés en création d'entreprise, viabilité et rentabilité.",
+  "url": "https://edouard-consultant.ch/",
+  "hasDefinedTerm": [
+    {
+      "@type": "DefinedTerm",
+      "name": "Viabilité business",
+      "description": "La viabilité business est la capacité d’un projet à atteindre un équilibre économique durable sans dépendre indéfiniment de financements externes. Elle s’évalue à partir du marché, du modèle économique, des coûts, de la trésorerie et de la capacité à acquérir des clients. Exemple concret : un éditeur de logiciel qui atteint 500 abonnés payants couvrant ses coûts fixes et variables devient viable à cette échelle. Erreur fréquente : confondre une idée séduisante ou un financement obtenu avec une réelle viabilité économique.",
+      "inDefinedTermSet": "https://edouard-consultant.ch/#glossaire"
+    },
+    {
+      "@type": "DefinedTerm",
+      "name": "Rentabilité",
+      "description": "La rentabilité est la capacité d’une activité à générer un profit après prise en compte de l’ensemble de ses charges. Elle se mesure notamment par la marge nette, le résultat d’exploitation ou le retour sur investissement. Exemple concret : une entreprise avec 100 000 € de chiffre d’affaires et 85 000 € de charges a une rentabilité de 15 000 € avant impôts. Erreur fréquente : confondre chiffre d’affaires élevé et rentabilité réelle.",
+      "inDefinedTermSet": "https://edouard-consultant.ch/#glossaire"
+    }
+  ]
+}
+</script>
+
+- Génère l'objet complet avec TOUS les termes du glossaire existant (ne pas en oublier, ne pas en inventer).
+- Le champ `description` doit contenir exactement le texte de la définition existante (sans les balises HTML).
+- L'URL `https://edouard-consultant.ch/` et l'ancre `#glossaire` sont des exemples : adapte-les à l'URL réelle du site si tu la connais, sinon laisse tel quel et signale-le-moi.
+
+ÉTAPE 3 — Insérer le script
+- Ajoute ce bloc `<script type="application/ld+json">...</script>` dans le `<head>` de la page d'accueil, juste avant la fermeture `</head>`.
+- Ne touche à aucune autre balise du `<head>` (meta, title, liens CSS, etc.).
+- Si tu dois modifier deux fichiers (`index.html` et `+Head.tsx`), fais-le de manière synchronisée.
+
+ÉTAPE 4 — Vérifications finales à me confirmer :
+- Le JSON-LD est valide (pas d'erreur de syntaxe).
+- Il contient bien tous les termes du glossaire existant.
+- Il est présent une seule fois par page d'accueil (pas de doublon).
+- Aucun autre fichier, composant, style ou contenu n'a été modifié.
+- La charte graphique existante est intacte.
+- Montre-moi le diff exact.

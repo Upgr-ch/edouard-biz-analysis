@@ -28,3 +28,45 @@ mtime_ms = 1789051497700
 storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:8cbe2961-eabf-4e08-bfb6-e7312322966e/c81da67d-05f3-49cd-8334-18be2b82c5ef/47ec7f3d-9cb6-4efb-9d45-9cd539986620"
 storage_version_token = "1789051690250595"
 content_type = "image/jpeg"
+
+[[outputs]]
+id = "-L73Ju1zQqfsqS7n5gT16"
+uri = "file://screenshots/step2-substep2-desktop.jpg"
+type = "image"
+title = "Sous-étape 2 — Desktop 1440 × 900"
+description = "Capture de contrôle comparée à la baseline validée."
+logical_id = "cece4f3b-8dd5-4cfc-bb21-45f5f346a838"
+content_hash = "sha256:da8159532bd67b02f068822257f20bfbe56c86a5c44baecc9841a229ed747c4b"
+size = 79931
+mtime_ms = 1789052794555
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:8cbe2961-eabf-4e08-bfb6-e7312322966e/cece4f3b-8dd5-4cfc-bb21-45f5f346a838/b8764274-7c18-4b1c-a7d5-eb3af5dda156"
+storage_version_token = "1789052809920494"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "X_N8SwA3aWXhBFCHNSNni"
+uri = "file://screenshots/step2-substep2-mobile-390.jpg"
+type = "image"
+title = "Sous-étape 2 — Mobile 390 × 844"
+description = "Capture de contrôle comparée à la baseline mobile validée."
+logical_id = "8bbf687a-5546-4ac4-8140-63b9f0f352e7"
+content_hash = "sha256:e587235c5d7bc2de22aea1eb0230d2b8dc5185582afb36f5daab305e6761d386"
+size = 39761
+mtime_ms = 1789052797695
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:8cbe2961-eabf-4e08-bfb6-e7312322966e/8bbf687a-5546-4ac4-8140-63b9f0f352e7/32e6aa3d-8080-4d9e-b576-f33eef247752"
+storage_version_token = "1789052810513668"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "yod5my4zTqhl2Knea8SHl"
+uri = "file://screenshots/step2-substep2-mobile-375.jpg"
+type = "image"
+title = "Sous-étape 2 — Mobile 375 × 667"
+description = "Capture complémentaire du petit viewport mobile."
+logical_id = "cb47650d-ae1d-4e26-91ad-da746db3c4f3"
+content_hash = "sha256:bdab210dde45b6546c6c8f5c358fd806587defaf11ba31b1f94d5d27a67cdb65"
+size = 38677
+mtime_ms = 1789052801179
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:8cbe2961-eabf-4e08-bfb6-e7312322966e/cb47650d-ae1d-4e26-91ad-da746db3c4f3/58ddb905-c681-4379-bd8c-d3ee2b0ebcf3"
+storage_version_token = "1789052811160471"
+content_type = "image/jpeg"

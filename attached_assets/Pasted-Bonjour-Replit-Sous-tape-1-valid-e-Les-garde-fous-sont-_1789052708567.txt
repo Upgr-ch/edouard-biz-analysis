@@ -1,0 +1,66 @@
+Bonjour Replit,
+
+Sous-étape 1 validée. Les garde-fous sont propres, dormants, et le script de contrôle fonctionne correctement (auto-test OK).
+
+**Passons à la sous-étape 2 : Créer les entrées dormantes de la frontière client/prerender.**
+
+Rappel des objectifs de la sous-étape 2 :
+- Créer les 3 fichiers dormants :
+  - `src/client/ClientApp.tsx`
+  - `src/client/mountClientApp.tsx`
+  - `src/prerender/PrerenderedApp.tsx`
+- Ces fichiers doivent être créés mais **non branchés au runtime actif**.
+- Aucune modification de `src/main.tsx`, `src/App.tsx`, ou des autres fichiers runtime.
+
+**Précisions attendues :**
+
+**A. Sur `PrerenderedApp.tsx` :**
+Ce fichier doit contenir uniquement du contenu public pré-rendable. À ce stade (sous-étape 2), il peut être minimal :
+- Le titre "Édouard – Diagnostic business IA pour entrepreneurs".
+- Une description courte et factuelle (le contenu public d'Édouard).
+- Aucun import de Clerk, ChatPanel, analytics, ou API.
+- Aucun accès à `window`, `document`, `localStorage`.
+
+Ce fichier servira de **base** à l'Étape 3 (prerendering de la page d'accueil). Ne pas encore le finaliser.
+
+**B. Sur `ClientApp.tsx` :**
+Ce fichier doit simplement importer l'actuel `App.tsx`. Il matérialise la frontière cliente. Aucun changement de comportement.
+
+**C. Sur `mountClientApp.tsx` :**
+Ce fichier doit contenir la logique de montage (équivalent de l'actuel `main.tsx`), mais dans un module séparé. Il ne doit PAS être branché à `main.tsx` à cette étape.
+
+**D. Vérifications attendues à la fin de la sous-étape 2 :**
+1. Le typecheck réussit.
+2. Le build Vite réussit (mêmes métriques que l'Étape 1).
+3. Le workflow démarre correctement.
+4. Le script `check-prerender-boundary.mjs` est exécuté sur `PrerenderedApp.tsx` et renvoie "OK" (aucune violation).
+5. Le runtime actif est inchangé : `main.tsx`, `App.tsx`, `ChatPanel.tsx`, `vite.config.ts` sont identiques à la baseline.
+6. Aucun push, aucun commit, aucune réécriture d'historique.
+7. Aucune différence visuelle sur desktop (1440×900) et mobile (390×844).
+
+**E. Contrôle Git obligatoire :**
+Comme à la sous-étape 1, tu dois vérifier que ces fichiers n'ont pas été modifiés :
+- `src/main.tsx`
+- `src/App.tsx`
+- `src/lib/anonymousChat.ts`
+- `src/lib/analytics.ts`
+- `src/components/ChatPanel.tsx`
+- `src/components/PromoBanner.tsx`
+- `vite.config.ts`
+
+Présente-moi le résultat du contrôle Git.
+
+**F. Sur le statut des fichiers créés :**
+À la fin de la sous-étape 2, les 3 nouveaux fichiers doivent être **dormants**. Aucun ne doit être importé par le runtime actif. C'est seulement à la sous-étape 3 (ou à l'Étape 3) qu'on les branchera.
+
+**Ne pas activer Vike. Ne pas activer le SSG. Ne pas toucher à Eugène.**
+
+Présente-moi :
+- La liste des fichiers créés.
+- Le résultat du typecheck.
+- Le résultat du build.
+- Le résultat du script `check-prerender-boundary.mjs` sur `PrerenderedApp.tsx`.
+- Le contrôle Git des fichiers runtime.
+- Les captures de référence (desktop + mobile).
+
+Merci.

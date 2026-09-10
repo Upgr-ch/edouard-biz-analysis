@@ -1,0 +1,63 @@
+Bonjour Replit,
+
+Sous-étape 2 validée. Les 3 entrées sont propres, dormantes, et aucune régression n'est constatée.
+
+**Passons à la sous-étape 3 : Validation finale de l'Étape 2.**
+
+Objectif : audit complet de la frontière créée et confirmation que tout est prêt pour l'Étape 3.
+
+**A. Audit final attendu :**
+
+1. Relancer le script `check-prerender-boundary.mjs` sur l'ensemble des entrées prévues pour l'Étape 3 :
+   - `src/prerender/PrerenderedApp.tsx`
+   - Les futures entrées de pages légales (à mentionner si elles existent déjà ou à prévoir)
+2. Confirmer que le script renvoie "OK" pour chaque entrée.
+3. Re-vérifier le contrôle Git des 7 fichiers runtime (résultat attendu : OK).
+4. Confirmer que les 3 nouveaux fichiers (`ClientApp.tsx`, `mountClientApp.tsx`, `PrerenderedApp.tsx`) ne sont importés par aucun fichier du runtime actif.
+5. Confirmer que `main.tsx` est strictement identique à la baseline.
+
+**B. Récapitulatif de l'Étape 2 :**
+
+Présente-moi un tableau récapitulatif complet de l'Étape 2 :
+- Fichiers créés (avec leur rôle).
+- Fichiers modifiés (normalement aucun runtime).
+- Fichiers dormants (avec confirmation qu'ils ne sont pas importés).
+- Scripts de contrôle créés.
+
+**C. Préparation de l'Étape 3 :**
+
+Avant de démarrer l'Étape 3, je veux un plan détaillé de ce que tu proposes pour :
+
+1. **La structure de `PrerenderedApp.tsx` finale :**
+   - Quel contenu public pré-rendre exactement ? (Titre, description, structure HTML, JSON-LD, liens)
+   - Comment structurer le HTML pour qu'il soit identique entre le rendu statique et le premier rendu client ?
+   - Quelles balises sémantiques utiliser ?
+
+2. **L'intégration Vike pour `/` :**
+   - Configuration Vike nécessaire pour pré-rendre uniquement la route `/`.
+   - Comment activer Vike sans casser le build actuel ?
+   - Comment générer `dist/public/index.html` complet à partir de `PrerenderedApp.tsx` ?
+
+3. **L'hydratation :**
+   - Comment garantir qu'aucune erreur d'hydratation ne se produise ?
+   - Quelle stratégie pour que le premier rendu client corresponde exactement au HTML statique ?
+   - Comment gérer les composants client-only (ChatPanel, Clerk) sans les monter avant l'hydratation ?
+
+4. **Les tests prévus :**
+   - Comment vérifier que le HTML brut contient bien le contenu pré-rendu ?
+   - Comment s'assurer que le chatbot reste inchangé côté utilisateur ?
+   - Comment détecter une éventuelle erreur d'hydratation en console ?
+
+**Ne rien implémenter pour l'Étape 3 tant que je n'ai pas validé ce plan.**
+
+**Rappel des contraintes :**
+- Aucune modification d'Eugène.
+- Aucun push, aucun commit sans validation explicite.
+- Le chatbot, Clerk et le tracking doivent rester strictement identiques côté utilisateur.
+
+Présente-moi :
+- Le résultat de l'audit final.
+- Le récapitulatif de l'Étape 2.
+- Le plan détaillé de l'Étape 3 (sans implémentation).
+
+Merci.

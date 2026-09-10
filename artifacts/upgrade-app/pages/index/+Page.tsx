@@ -10,6 +10,8 @@ import "./vike-hydration.css";
 import HydratablePublicApp from "../../src/public/HydratablePublicApp";
 import type { EdouardProfileKey } from "../../src/public/edouardPublicContent";
 
+const HOME_TITLE = "Édouard | Diagnostic business IA";
+
 interface ClientSessionState {
   authenticated: boolean;
   hasLocalConversation: boolean;
@@ -41,6 +43,10 @@ export default function Page() {
   >(null);
   const profileLoadPending = useRef(false);
   const nextProfileRequestId = useRef(0);
+
+  useEffect(() => {
+    document.title = HOME_TITLE;
+  }, []);
 
   const loadInteractiveChat = useCallback(async () => {
     if (!chatModulePromise.current) {

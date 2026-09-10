@@ -1,0 +1,69 @@
+Préflight validé. GO pour le build complet en Option C.
+
+**Lance la séquence complète dans l'ordre :**
+
+1. **Build SPA historique** → sortie dans `dist-spa/`.
+2. **Build Vike** → sortie dans `dist-vike/`.
+3. **Assemblage non-destructif** dans `dist-tmp/` :
+   - 6 HTML Vike (accueil + 5 légales).
+   - `legacy-spa.html` (SPA historique renommée).
+   - Assets Vike + SPA.
+   - Fichiers publics (`robots.txt`, `llms.txt`, `sitemap.xml`, favicons).
+4. **Validation complète sur `dist-tmp/`** :
+   - Les 6 HTML présents et non vides.
+   - `legacy-spa.html` présent.
+   - Assets Vike et SPA présents.
+   - Fichiers publics présents.
+   - Aucune référence cassée.
+5. **Test du routage sur `dist-tmp/`** (avant tout swap) :
+   - `/` → Vike `index.html`
+   - `/cgu` → Vike `cgu/index.html`
+   - `/cgv` → Vike `cgv/index.html`
+   - `/mentions-legales` → Vike `mentions-legales/index.html`
+   - `/confidentialite` → Vike `confidentialite/index.html`
+   - `/cookies` → Vike `cookies/index.html`
+   - `/auth` → `legacy-spa.html`
+   - `/auth/sign-up` → `legacy-spa.html`
+   - `/admin` → `legacy-spa.html`
+   - `/route-inconnue` → `legacy-spa.html`
+
+   **Si UNE page Vike retourne `legacy-spa.html` → STOP et rollback immédiat.**
+
+6. **Si tous les contrôles passent → swap atomique** `dist/public` → `dist-tmp`.
+7. **Si un contrôle échoue → `dist/public` reste intact, rollback immédiat.**
+
+**Corrections à intégrer pendant ce build :**
+- Title persistant après retour SPA vers `/` (régression Vike).
+- Ajout du lien `/cookies` dans `HydratablePublicApp`.
+
+**Modification de `artifact.toml`** (via procédure Replit) :
+- Fallback : `/*` → `/legacy-spa.html`.
+- Vérifier que les routes Vike sont servies en priorité.
+
+**Tests fonctionnels après swap :**
+- CLS = 0 sur chaque page.
+- Aucune erreur d'hydratation.
+- Chat (A/B/C + envoi + mur email).
+- Clerk (SignIn + SignUp).
+- Tracking (GTM, dataLayer, Google Ads).
+- Footer visible une seule fois.
+
+**Contraintes absolues :**
+- Aucune publication en production.
+- Aucun push, aucun commit.
+- Si un test échoue, rollback immédiat vers `a0a7783`.
+- Zéro changement visible pour l'utilisateur.
+- Eugène non touché.
+
+**Rapport attendu :**
+1. Résultat du build SPA + Vike.
+2. Résultat de l'assemblage `dist-tmp/`.
+3. Tableau de routage (URL → HTML attendu → HTML obtenu → statut).
+4. Tests fonctionnels (CLS, hydratation, chat, Clerk, tracking).
+5. Contrôle Git.
+6. Statut des workflows.
+7. État final de `dist/public`.
+
+**Règle claire : c'est la dernière tentative. Si ça échoue, on arrête Vike définitivement et on garde le SEO/GEO de base déjà en place.**
+
+Merci.

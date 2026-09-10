@@ -1,0 +1,48 @@
+Bonjour Replit,
+
+Phase 3A.2 validée. Le build Vike parallèle fonctionne, le HTML brut est complet, et le build historique est intact (SHA-256 match).
+
+**Passons à la Phase 3A.3 : Activer l'hydratation en place sur `/`.**
+
+Rappel des objectifs :
+- Activer Vike pour la route `/` **en production**.
+- Hydrater `HydratablePublicApp` en place (pas de remplacement, pas de fallback).
+- Attacher les événements FAQ, menu mobile, liens légaux.
+- **Ne pas encore brancher le chatbot** (A/B/C resteront statiques pour cette phase).
+- **Ne pas encore charger Clerk.**
+
+**Architecture à mettre en place :**
+
+1. **`main.tsx`** doit rester inchangé (le runtime historique est toujours actif).
+2. **Créer une nouvelle entrée Vike** pour le rendu client (Vike gère l'entrée automatiquement).
+3. **`HydratablePublicApp.tsx`** doit être le composant partagé entre build et client.
+4. **Les événements** (clic FAQ, clic menu mobile) doivent être attachés après hydratation, sans modifier le HTML.
+5. **Les profils A/B/C** restent non interactifs dans cette phase (ils déclencheront le chatbot en 3A.4).
+
+**Vérifications attendues à la fin de la Phase 3A.3 :**
+
+1. **Build Vike complet** (avec hydratation).
+2. **HTML brut** : toujours identique (H1, description, A/B/C, FAQ, JSON-LD).
+3. **Premier rendu client** : identique au HTML statique → **CLS = 0** (mesuré avec `PerformanceObserver`).
+4. **Aucune erreur d'hydratation** : pas de `Hydration failed`, `hydration mismatch`, `Text content did not match`, `server HTML was replaced`.
+5. **FAQ fonctionne** : ouverture/fermeture au clic, sans changer le reste.
+6. **Menu mobile fonctionne** : ouverture/fermeture.
+7. **Liens légaux** : cliquables et fonctionnels.
+8. **A/B/C** : visibles mais non interactifs (pour l'instant).
+9. **Aucun appel API, aucun Clerk, aucun chatbot** pendant le chargement.
+10. **Capture vidéo ou série de captures** montrant le chargement (1er pixel, après hydratation) pour valider l'absence de flash.
+
+**Important : le build principal (`vite build`) reste le build actif. Vike n'est pas encore basculé en production.**
+
+**Ne pas toucher à `App.tsx`, `ChatPanel.tsx`, `PromoBanner.tsx`, ni aux appels API.**
+
+Présente-moi :
+- Les fichiers créés/modifiés.
+- Le résultat du build Vike complet.
+- Le résultat du build historique (doit rester identique).
+- Le contenu HTML brut (extrait représentatif).
+- Le résultat du test d'hydratation (CLS, erreurs console).
+- Le résultat de la frontière.
+- Le contrôle Git.
+
+Merci.

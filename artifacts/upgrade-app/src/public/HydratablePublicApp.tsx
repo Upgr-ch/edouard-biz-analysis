@@ -19,6 +19,11 @@ interface HydratablePublicAppProps {
   onProfileSelect?: (profile: EdouardProfileKey) => void;
 }
 
+interface PublicSidebarProps {
+  mobile?: boolean;
+  onClose?: () => void;
+}
+
 function MenuIcon() {
   return (
     <svg
@@ -56,11 +61,15 @@ function LoginIcon() {
   );
 }
 
-function PublicSidebar() {
+function PublicSidebar({ mobile = false, onClose }: PublicSidebarProps) {
   return (
     <aside
       aria-label="Progression du diagnostic"
-      className="hidden h-screen w-64 shrink-0 flex-col border-r border-border md:flex"
+      className={
+        mobile
+          ? "relative z-10 flex h-full w-64 shrink-0 flex-col border-r border-border"
+          : "hidden h-screen w-64 shrink-0 flex-col border-r border-border md:flex"
+      }
       style={{ background: "rgba(8,15,30,0.95)" }}
     >
       <div className="flex shrink-0 items-center gap-2.5 border-b border-border p-4">
@@ -79,6 +88,20 @@ function PublicSidebar() {
             Consultant en faisabilité et rentabilité de projets business.
           </span>
         </div>
+        {mobile ? (
+          <button
+            aria-label="Fermer le menu"
+            className="ml-auto flex h-7 w-7 items-center justify-center rounded border"
+            onClick={onClose}
+            style={{
+              borderColor: "rgba(245,224,144,0.20)",
+              color: "#F5E090",
+            }}
+            type="button"
+          >
+            ×
+          </button>
+        ) : null}
       </div>
 
       <div className="shrink-0 border-b border-border px-4 py-3">
@@ -262,6 +285,7 @@ export default function HydratablePublicApp({
   onProfileSelect,
 }: HydratablePublicAppProps) {
   const [faqOpen, setFaqOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background">
@@ -270,6 +294,25 @@ export default function HydratablePublicApp({
         <p>{EDOUARD_PUBLIC_DESCRIPTION}</p>
       </div>
       <PublicSidebar />
+      <div
+        aria-hidden={!mobileMenuOpen}
+        className={
+          mobileMenuOpen ? "fixed inset-0 z-50 flex md:hidden" : "hidden"
+        }
+      >
+        <button
+          aria-label="Fermer le menu"
+          className="absolute inset-0"
+          onClick={() => setMobileMenuOpen(false)}
+          style={{ background: "rgba(0,0,0,0.62)" }}
+          tabIndex={mobileMenuOpen ? 0 : -1}
+          type="button"
+        />
+        <PublicSidebar
+          mobile
+          onClose={() => setMobileMenuOpen(false)}
+        />
+      </div>
 
       <main className="flex min-w-0 flex-1 flex-col">
         <header
@@ -283,6 +326,7 @@ export default function HydratablePublicApp({
           <button
             aria-label="Ouvrir le menu"
             className="fixed left-3 top-3 z-50 rounded border p-2 backdrop-blur-sm md:hidden"
+            onClick={() => setMobileMenuOpen(true)}
             style={{
               background: "rgba(8,15,30,0.85)",
               borderColor: "rgba(245,224,144,0.18)",
@@ -366,8 +410,13 @@ export default function HydratablePublicApp({
                 {EDOUARD_PROFILES.map(({ key, label }) => (
                   <button
                     className="inline-flex w-full items-center gap-2.5 rounded-sm border px-3 py-2 text-left text-[11px] font-medium sm:gap-3 sm:px-4 sm:py-3 sm:text-[12px]"
+                    disabled={!onProfileSelect}
                     key={key}
-                    onClick={() => onProfileSelect?.(key)}
+                    onClick={
+                      onProfileSelect
+                        ? () => onProfileSelect(key)
+                        : undefined
+                    }
                     style={{
                       background: "rgba(245,224,144,0.05)",
                       borderColor: "rgba(245,224,144,0.28)",

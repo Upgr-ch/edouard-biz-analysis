@@ -21,19 +21,21 @@ interface DisplayMessage {
   content: string;
 }
 
-const EDOUARD_INTRO_MESSAGE = `Je suis Édouard. Ne le prends pas pour toi, je m'exprime de manière ferme, assertive et juste. Mon travail est de te dire la vérité business, pas de te flatter.<br><br>
+const EDOUARD_INTRO_MESSAGE = `Je suis Édouard. Ne le prends pas pour toi, je m’exprime de manière ferme, assertive et juste. Mon travail est de te dire la vérité business, pas de te flatter.<br><br>
 
-⚠️ Précision préalable : mon analyse est consultative. L'accès est libre et illimité, sans version payante. La seule formalité est une inscription par email pour sauvegarder ton diagnostic.<br><br>
+Sélectionne ton profil.<br><br>
 
-Avant de commencer, j'ai besoin de savoir où tu en es.<br><br>
+Peu importe ta réponse, le diagnostic s’adapte à ton avancement.<br><br>
 
-A — "J'ai le concept, mais je n'ai pas encore creusé les détails"<br>
-B — "J'ai posé les bases, mais rien n'a encore été challengé"<br>
-C — "J'ai plusieurs projets à mon actif, je veux aller vite"<br><br>
+Clique ci-dessous sur la lettre de ton profil.<br><br>
 
-Peu importe ta réponse, le diagnostic s'adapte à ton avancement.<br><br>
+⚠️ Analyse consultative. Accès libre et illimité, sans version payante. Inscription par email pour sauvegarder ton diagnostic.`;
 
-Clique ci-dessous sur la lettre de ton profil.`;
+const LEVEL_CHOICES = [
+  { key: "A", label: "« J’ai le concept, mais je n’ai pas encore creusé les détails »" },
+  { key: "B", label: "« J’ai posé les bases, mais rien n’a encore été challengé »" },
+  { key: "C", label: "« J’ai plusieurs projets à mon actif, je veux aller vite »" },
+] as const;
 
 interface ChatPanelProps {
   conversationId: string | null;
@@ -659,14 +661,14 @@ const ChatPanel = ({
               );
             })}
 
-            {/* ── Level choice chips — below the intro bubble ── */}
+            {/* ── Level choice buttons — below the intro bubble ── */}
             {needsLevelChoice && !isLoading && (
-              <div className="flex flex-wrap gap-2 ml-11 mt-1">
-                {["A", "B", "C"].map((key) => (
+              <div className="flex flex-col gap-2 ml-11 mt-1">
+                {LEVEL_CHOICES.map(({ key, label }) => (
                   <button
                     key={key}
                     onClick={() => handleLevelChoice(key)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[12px] font-medium transition-all"
+                    className="w-full inline-flex items-center gap-3 px-4 py-3 rounded-sm border text-left text-[12px] font-medium transition-all"
                     style={{
                       background: "rgba(245,224,144,0.05)",
                       borderColor: "rgba(245,224,144,0.28)",
@@ -676,7 +678,8 @@ const ChatPanel = ({
                     onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#F5E090"; e.currentTarget.style.color = "#F5E090"; e.currentTarget.style.background = "rgba(245,224,144,0.10)"; }}
                     onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(245,224,144,0.28)"; e.currentTarget.style.color = "rgba(255,255,255,0.80)"; e.currentTarget.style.background = "rgba(245,224,144,0.05)"; }}
                   >
-                    <span className="font-bold text-[11px]" style={{ color: "#F5E090" }}>{key}</span>
+                    <span className="shrink-0 font-bold text-[13px]" style={{ color: "#F5E090" }}>{key}</span>
+                    <span>{label}</span>
                   </button>
                 ))}
               </div>
@@ -695,9 +698,10 @@ const ChatPanel = ({
       </div>
 
       {/* ── Input bar ── */}
-      <div className="border-t border-border bg-background z-40">
+      {!needsLevelChoice && (
+        <div className="border-t border-border bg-background z-40">
           <div className="max-w-2xl mx-auto px-4 py-3">
-            {isAnonymous && !needsLevelChoice && (
+            {isAnonymous && (
               <div
                 className="mb-2 inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest border"
                 style={{
@@ -721,15 +725,15 @@ const ChatPanel = ({
                     void handleSend();
                   }
                 }}
-                placeholder={needsLevelChoice ? "Clique sur ton profil ci-dessus…" : "Réponse"}
-                disabled={needsLevelChoice || isLoading}
+                placeholder="Réponse"
+                disabled={isLoading}
                 className="flex-1 border rounded-sm p-3 resize-none h-12 outline-none text-sm text-foreground transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                 style={{
                   background: "rgba(255,255,255,0.03)",
                   borderColor: "rgba(255,255,255,0.10)",
                   fontFamily: "var(--up-font)",
                 }}
-                onFocus={(e) => { if (!needsLevelChoice) e.currentTarget.style.borderColor = "rgba(245,224,144,0.40)"; }}
+                onFocus={(e) => { e.currentTarget.style.borderColor = "rgba(245,224,144,0.40)"; }}
                 onBlur={(e)  => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.10)"; }}
               />
               <button
@@ -746,7 +750,8 @@ const ChatPanel = ({
               </button>
             </div>
           </div>
-      </div>
+        </div>
+      )}
       <Footer />
     </div>
   );

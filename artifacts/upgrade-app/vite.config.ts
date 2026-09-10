@@ -4,6 +4,7 @@ import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
 const rawPort = process.env.PORT;
+const isVikeParallelBuild = process.env.VIKE_PARALLEL_BUILD === "1";
 
 if (!rawPort) {
   throw new Error(
@@ -36,6 +37,9 @@ export default defineConfig({
     },
   },
   plugins: [
+    ...(isVikeParallelBuild
+      ? [(await import("vike/plugin")).default()]
+      : []),
     react(),
     ...(process.env.NODE_ENV !== "production" &&
     process.env.REPL_ID !== undefined
@@ -60,7 +64,10 @@ export default defineConfig({
   },
   root: path.resolve(import.meta.dirname),
   build: {
-    outDir: path.resolve(import.meta.dirname, "dist/public"),
+    outDir: path.resolve(
+      import.meta.dirname,
+      isVikeParallelBuild ? "dist-vike" : "dist/public",
+    ),
     emptyOutDir: true,
   },
   server: {

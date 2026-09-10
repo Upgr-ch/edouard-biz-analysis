@@ -2,6 +2,7 @@
 
 # compiled output
 dist
+artifacts/upgrade-app/dist-vike/
 tmp
 out-tsc
 *.tsbuildinfo

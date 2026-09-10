@@ -7,6 +7,8 @@ import {
   EDOUARD_INTRO_PARAGRAPHS,
   EDOUARD_LEGAL_LINKS,
   EDOUARD_PROFILES,
+  EDOUARD_PUBLIC_DESCRIPTION,
+  EDOUARD_PUBLIC_TITLE,
   EDOUARD_SIDEBAR_GUIDE,
   EDOUARD_STEPS,
   EDOUARD_WARNING_TEXT,
@@ -263,6 +265,10 @@ export default function HydratablePublicApp({
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background">
+      <div className="sr-only">
+        <h1>{EDOUARD_PUBLIC_TITLE}</h1>
+        <p>{EDOUARD_PUBLIC_DESCRIPTION}</p>
+      </div>
       <PublicSidebar />
 
       <main className="flex min-w-0 flex-1 flex-col">

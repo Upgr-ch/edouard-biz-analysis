@@ -594,7 +594,7 @@ const ChatPanel = ({
   return (
     <div className="flex flex-col h-full bg-background relative overflow-hidden">
 
-      <div className="flex-1 flex flex-col items-center justify-start p-6 overflow-y-auto scrollbar-none">
+      <div className="flex-1 flex flex-col items-center justify-start p-3 sm:p-6 overflow-y-auto scrollbar-none">
         {/* ── Messages ── */}
         <div className="max-w-2xl w-full flex-1 space-y-6 pb-20">
             {displayMessages.map((msg, i) => {
@@ -615,7 +615,7 @@ const ChatPanel = ({
                       msg.role === "user" ? "items-end" : "items-start",
                     )}
                   >
-                    <div className={cn("flex gap-3 max-w-[85%]", msg.role === "user" ? "flex-row-reverse" : "")}>
+                    <div className={cn("flex gap-2 sm:gap-3 max-w-full sm:max-w-[85%]", msg.role === "user" ? "flex-row-reverse" : "")}>
                       {/* Avatar */}
                       {msg.role === "assistant" ? (
                         <BrainLogoSm className="shrink-0 mt-0.5" />
@@ -634,7 +634,7 @@ const ChatPanel = ({
 
                       {/* Bubble */}
                       <div
-                        className="rounded-sm px-4 py-3 text-sm border"
+                        className="rounded-sm px-3 py-2 sm:px-4 sm:py-3 text-[13px] sm:text-sm border"
                         style={
                           msg.role === "assistant"
                             ? {
@@ -663,12 +663,12 @@ const ChatPanel = ({
 
             {/* ── Level choice buttons — below the intro bubble ── */}
             {needsLevelChoice && !isLoading && (
-              <div className="flex flex-col gap-2 ml-11 mt-1">
+              <div className="flex flex-col gap-1.5 ml-10 sm:ml-11 mt-1">
                 {LEVEL_CHOICES.map(({ key, label }) => (
                   <button
                     key={key}
                     onClick={() => handleLevelChoice(key)}
-                    className="w-full inline-flex items-center gap-3 px-4 py-3 rounded-sm border text-left text-[12px] font-medium transition-all"
+                    className="w-full inline-flex items-center gap-2.5 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-sm border text-left text-[11px] sm:text-[12px] font-medium transition-all"
                     style={{
                       background: "rgba(245,224,144,0.05)",
                       borderColor: "rgba(245,224,144,0.28)",

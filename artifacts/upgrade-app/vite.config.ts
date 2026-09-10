@@ -5,6 +5,7 @@ import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
 const rawPort = process.env.PORT;
 const isVikeParallelBuild = process.env.VIKE_PARALLEL_BUILD === "1";
+const isLegacyFallbackBuild = process.env.LEGACY_FALLBACK_BUILD === "1";
 
 if (!rawPort) {
   throw new Error(
@@ -66,7 +67,11 @@ export default defineConfig({
   build: {
     outDir: path.resolve(
       import.meta.dirname,
-      isVikeParallelBuild ? "dist-vike" : "dist/public",
+      isVikeParallelBuild
+        ? "dist-vike"
+        : isLegacyFallbackBuild
+          ? "dist-spa"
+          : "dist/public",
     ),
     emptyOutDir: true,
   },

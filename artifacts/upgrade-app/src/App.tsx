@@ -252,9 +252,9 @@ function AuthRoute() {
   if (loading) return null;
   if (user) return <Navigate to="/" replace />;
   return (
-    <div className="min-h-screen flex bg-background">
+    <div className="min-h-screen w-full overflow-x-hidden flex bg-background">
       <AuthEditorialPanel />
-      <div className="flex-1 flex flex-col items-center justify-center px-4 py-8">
+      <div className="w-full min-w-0 flex-1 flex flex-col items-center justify-center px-4 py-8">
         <AuthHeader />
         {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
         <SignIn

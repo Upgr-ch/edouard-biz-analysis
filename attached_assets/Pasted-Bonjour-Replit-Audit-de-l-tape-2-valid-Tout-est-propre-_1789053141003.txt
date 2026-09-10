@@ -1,0 +1,44 @@
+Bonjour Replit,
+
+Audit de l'Étape 2 validé. Tout est propre, aucun runtime touché, `main.tsx` identique à la baseline, aucune régression.
+
+**Le plan de l'Étape 3 est globalement validé, mais je veux clarifier UN point critique avant de démarrer.**
+
+**Point critique : le "remplacement visuel" après hydratation.**
+
+Dans ton plan (section 4, "Limitation à surveiller"), tu mentionnes qu'il peut y avoir "un léger remplacement visuel après hydratation" quand on passe de `PrerenderedApp` (statique) à `ClientApp` (interactif).
+
+**Ma contrainte absolue depuis le début de ce chantier : ZÉRO changement visuel pour l'UX.**
+
+Concrètement : un utilisateur qui ouvre la page ne doit voir AUCUN flash, AUCUN saut, AUCUN déplacement de contenu, AUCUNE transition visible entre le HTML statique et l'app hydratée. La page doit apparaître comme si elle avait toujours été interactive.
+
+Avant de démarrer l'implémentation, je veux que tu répondes précisément à ces questions :
+
+1. **Comment garantis-tu que le premier rendu client de `ClientApp` est visuellement identique au HTML statique de `PrerenderedApp` ?**
+   - Mêmes dimensions ?
+   - Mêmes positions ?
+   - Mêmes couleurs de fond ?
+   - Mêmes textes au même endroit ?
+
+2. **Que se passe-t-il exactement au moment de la transition ?**
+   - Le `PrerenderedApp` est-il retiré du DOM ?
+   - Ou est-il hydraté en place et React prend-il le relais sans changer le DOM ?
+   - Y a-t-il un `useEffect` ou un état qui déclenche un re-render visible ?
+
+3. **Quel est le délai typique entre le premier pixel affiché et le moment où l'app interactive est prête ?**
+   - Si c'est < 100ms, le flash est probablement invisible.
+   - Si c'est > 300ms, l'utilisateur va le percevoir.
+
+4. **Y a-t-il un cas où `PrerenderedApp` et `ClientApp` ne peuvent PAS être visuellement identiques ?**
+   - Par exemple : le chat statique ne peut pas simuler les états A/B/C sélectionnés sans JavaScript.
+   - Si oui, comment comptes-tu gérer ces cas ?
+
+**Je ne veux PAS de "on verra à l'implémentation". Je veux une réponse technique précise.**
+
+**Si tu ne peux pas garantir zéro différence visuelle, arrête-toi ici et propose une autre stratégie.**
+
+**Prochaine étape :**
+
+Une fois ces questions clarifiées, on démarrera la Phase 3A (build Vike parallèle uniquement, sans basculer le build principal). Mais d'abord, réponds-moi précisément.
+
+Merci.

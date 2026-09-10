@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { BrainLogoSm } from "../components/BrainLogo";
 import {
   EDOUARD_COPYRIGHT,
@@ -16,6 +16,7 @@ import {
 } from "./edouardPublicContent";
 
 interface HydratablePublicAppProps {
+  conversationOverlay?: ReactNode;
   onProfileSelect?: (profile: EdouardProfileKey) => void;
 }
 
@@ -282,10 +283,13 @@ function PublicSidebar({ mobile = false, onClose }: PublicSidebarProps) {
 }
 
 export default function HydratablePublicApp({
+  conversationOverlay,
   onProfileSelect,
 }: HydratablePublicAppProps) {
   const [faqOpen, setFaqOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [profileSelectionLocked, setProfileSelectionLocked] =
+    useState(false);
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background">
@@ -410,11 +414,17 @@ export default function HydratablePublicApp({
                 {EDOUARD_PROFILES.map(({ key, label }) => (
                   <button
                     className="inline-flex w-full items-center gap-2.5 rounded-sm border px-3 py-2 text-left text-[11px] font-medium sm:gap-3 sm:px-4 sm:py-3 sm:text-[12px]"
-                    disabled={!onProfileSelect}
+                    disabled={
+                      !onProfileSelect || profileSelectionLocked
+                    }
                     key={key}
                     onClick={
                       onProfileSelect
-                        ? () => onProfileSelect(key)
+                        ? () => {
+                            if (profileSelectionLocked) return;
+                            setProfileSelectionLocked(true);
+                            onProfileSelect(key);
+                          }
                         : undefined
                     }
                     style={{
@@ -437,6 +447,7 @@ export default function HydratablePublicApp({
               </div>
             </div>
           </div>
+          {conversationOverlay}
         </section>
 
         <footer className="relative z-50 w-full shrink-0 border-t border-border bg-background py-3">

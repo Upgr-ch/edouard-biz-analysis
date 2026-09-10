@@ -1,0 +1,70 @@
+Bonjour Replit,
+
+Phase 3A.3 validée. CLS = 0, aucune erreur d'hydratation, HTML brut complet, build historique intact.
+
+**Passons à la Phase 3A.4 : Brancher le chatbot et Clerk.**
+
+Rappel des objectifs :
+- Activer le clic sur A/B/C pour déclencher le chatbot (import dynamique).
+- Restaurer la conversation locale si elle existe.
+- Charger Clerk après hydratation (Comportement B).
+- **Zéro flash visuel** au moment du clic.
+- **Zéro changement** dans le comportement du chatbot.
+
+**Architecture à mettre en place :**
+
+1. **Au clic sur A/B/C :**
+   - Le bouton reste dans son état actuel (pas de loader).
+   - Import dynamique du module client (`loadInteractiveChat.ts` ou équivalent).
+   - Attente de la disponibilité du module.
+   - Initialisation de la conversation avec le profil choisi.
+   - Remplacement **uniquement** de la zone de conversation.
+   - Les clics suivants pendant le chargement sont ignorés (pas de double initialisation).
+
+2. **Restauration de conversation locale :**
+   - Lecture de `localStorage` dans un effet après hydratation.
+   - Si aucune conversation n'existe → rien ne change.
+   - Si une conversation existe → import dynamique du chatbot, préparation complète en mémoire, puis **une seule mise à jour React**.
+   - Pas de spinner, pas de skeleton, pas de zone vide.
+   - Le contenu public reste affiché pendant tout le chargement.
+
+3. **Clerk (Comportement B) :**
+   - Chargé automatiquement après hydratation, dans un effet client.
+   - Aucune requête Clerk pendant le build.
+   - L'interface ne change pas tant que la session n'est pas confirmée.
+   - Si une session existe → restauration de l'état personnel.
+   - Si aucune session → le contenu public reste inchangé.
+
+**Vérifications attendues à la fin de la Phase 3A.4 :**
+
+1. **CLS = 0** sur une visite anonyme (sans conversation sauvegardée, sans session Clerk).
+2. **Aucune erreur d'hydratation**.
+3. **Clic sur A → chatbot s'initialise** : conversation démarre, pas de flash, pas de saut.
+4. **Envoi d'un message** : `/api/chat` répond en HTTP 200.
+5. **Progression jusqu'au mur email** : le 6e message déclenche le mur.
+6. **Aucun double envoi** si l'utilisateur clique plusieurs fois sur A/B/C.
+7. **Conversation sauvegardée restaurée sans clignotement** (tester avec un `localStorage` pré-rempli).
+8. **Clerk chargé automatiquement** après hydratation (visible dans le réseau).
+9. **Session Clerk existante restaurée** sans modifier l'interface avant confirmation.
+10. **A/B/C ne déclenchent aucun appel API avant le clic.**
+
+**Ce que je veux voir dans ton rapport :**
+
+- Les fichiers créés/modifiés.
+- Le résultat du build Vike complet.
+- Le résultat du build historique (doit rester identique).
+- Le contenu HTML brut (extrait représentatif).
+- Le résultat du test d'hydratation (CLS, erreurs console).
+- Le résultat du test clic A → chatbot (capture réseau montrant `/api/chat` en HTTP 200).
+- Le résultat du test de restauration de conversation (avec capture avant/après).
+- Le résultat du test Clerk (session restaurée).
+- Le résultat de la frontière.
+- Le contrôle Git.
+
+**Rappel des contraintes :**
+- Ne pas toucher à `App.tsx`, `ChatPanel.tsx`, `PromoBanner.tsx`.
+- Ne pas modifier `main.tsx`.
+- Aucun push, aucun commit sans validation.
+- Eugène non touché.
+
+Merci.

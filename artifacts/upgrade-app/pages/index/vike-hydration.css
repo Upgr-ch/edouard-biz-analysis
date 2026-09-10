@@ -1,0 +1,34 @@
+@keyframes upLaserScanSmWithoutLayout {
+  0% {
+    background-position: 0 -33px;
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.9;
+  }
+  90% {
+    opacity: 0.9;
+  }
+  100% {
+    background-position: 0 33px;
+    opacity: 0;
+  }
+}
+
+.up-brain-laser-sm {
+  top: 0;
+  bottom: 0;
+  height: auto;
+  background:
+    linear-gradient(
+      to bottom,
+      transparent 13px,
+      rgba(245, 224, 144, 0.18) 14px,
+      #f5e090 16px,
+      rgba(245, 224, 144, 0.18) 18px,
+      transparent 19px
+    );
+  background-repeat: no-repeat;
+  box-shadow: none;
+  animation-name: upLaserScanSmWithoutLayout;
+}

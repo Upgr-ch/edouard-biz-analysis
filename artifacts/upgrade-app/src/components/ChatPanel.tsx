@@ -21,7 +21,8 @@ interface DisplayMessage {
   content: string;
 }
 
-const EDOUARD_WARNING = "⚠️ Analyse consultative. Accès libre et illimité, sans version payante. Inscription par email pour sauvegarder ton diagnostic.";
+const EDOUARD_WARNING_TEXT = "Analyse consultative. Accès libre et illimité, sans version payante. Inscription par email pour sauvegarder ton diagnostic.";
+const EDOUARD_WARNING = `⚠️ ${EDOUARD_WARNING_TEXT}`;
 
 const EDOUARD_INTRO_MESSAGE = `Je suis Édouard. Ne le prends pas pour toi, je m’exprime de manière ferme, assertive et juste. Mon travail est de te dire la vérité business, pas de te flatter.<br><br>
 
@@ -226,7 +227,10 @@ function renderContentWithFiche(
           <Fragment key={index}>
             {index > 0 && <br />}
             {part.trim() === EDOUARD_WARNING ? (
-              <em className="edouard-warning-shimmer">{EDOUARD_WARNING}</em>
+              <>
+                <span>⚠️ </span>
+                <em className="edouard-warning-shimmer">{EDOUARD_WARNING_TEXT}</em>
+              </>
             ) : (
               part
             )}

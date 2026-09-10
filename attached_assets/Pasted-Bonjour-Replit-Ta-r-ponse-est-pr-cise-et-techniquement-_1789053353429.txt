@@ -1,0 +1,53 @@
+Bonjour Replit,
+
+Ta réponse est précise et techniquement juste. Je valide ton refus de démarrer la Phase 3A avec la stratégie `ClientOnly + fallback`. Elle ne respecte pas la contrainte "zéro changement visuel".
+
+**Décision : on part sur l'Option A — Accueil hydratable partagé.**
+
+Raisons :
+- L'accueil est la page critique pour le SEO/GEO.
+- L'Option B ne résout pas notre problème principal (les robots ne verraient pas le contenu d'Édouard).
+- L'Option A garantit zéro flash pour une visite anonyme (cas 99%).
+
+**Clarification sur les visiteurs avec état préexistant :**
+
+Pour les visiteurs qui ont une conversation sauvegardée ou une session Clerk active, voici la règle que je veux :
+
+1. **Premier pixel** : contenu public standard (identique à une visite anonyme).
+2. **Après hydratation** : restauration de l'état personnel (conversation, session) — c'est attendu, ce n'est pas un flash.
+3. **Aucun écran vide**, **aucun loader**, **aucun clignotement** pendant la transition.
+4. **Le contenu public reste visible** pendant que l'état personnel se restaure.
+
+Ce comportement est normal pour un utilisateur qui revient avec un historique : il s'attend à voir ses messages réapparaître.
+
+**Avant d'implémenter, je veux un plan détaillé de l'Option A :**
+
+1. **Structure de `HydratablePublicApp.tsx`** :
+   - Quel contenu exactement ? (fond, header, sidebar, intro, profils A/B/C, footer, FAQ)
+   - Comment garantir que le HTML statique et le premier rendu client sont identiques ?
+
+2. **Intégration Vike** :
+   - Comment Vike utilise `HydratablePublicApp` au build ?
+   - Comment le même composant est-il hydraté en place côté client ?
+
+3. **Interactivité** :
+   - Comment les events (clic A/B/C, FAQ, mobile) sont-ils attachés après hydratation ?
+   - Comment Clerk est-il chargé uniquement après action utilisateur (clic Connexion, /auth, mur email) ?
+
+4. **Chatbot** :
+   - Comment le premier clic sur A/B/C déclenche-t-il l'initialisation du chatbot ?
+
+5. **Restauration d'état** :
+   - Comment le HTML statique reste-t-il visible pendant la restauration ?
+   - Comment éviter tout saut visuel lors de la restauration ?
+
+6. **Tests prévus** :
+   - Comment vérifier le HTML brut ?
+   - Comment vérifier l'absence de flash sur une visite anonyme ?
+   - Comment vérifier la restauration d'état sans clignotement ?
+
+**Ne rien implémenter tant que je n'ai pas validé ce plan.**
+
+**Rappel : zéro push, zéro commit, zéro réécriture sans validation explicite.**
+
+Merci.

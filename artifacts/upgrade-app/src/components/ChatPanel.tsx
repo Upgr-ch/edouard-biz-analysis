@@ -225,8 +225,8 @@ function renderContentWithFiche(
         {content.split("<br>").map((part, index) => (
           <Fragment key={index}>
             {index > 0 && <br />}
-            {part === EDOUARD_WARNING ? (
-              <em className="up-shimmer">{part}</em>
+            {part.trim() === EDOUARD_WARNING ? (
+              <em className="edouard-warning-shimmer">{EDOUARD_WARNING}</em>
             ) : (
               part
             )}

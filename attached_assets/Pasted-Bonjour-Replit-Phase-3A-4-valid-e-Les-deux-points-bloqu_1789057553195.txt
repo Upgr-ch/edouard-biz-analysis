@@ -1,0 +1,64 @@
+Bonjour Replit,
+
+Phase 3A.4 validée. Les deux points bloquants sont levés. CLS = 0 au premier pixel, restauration Clerk fonctionnelle, A/B/C et mur email conformes, build historique intact.
+
+**Deux notes :**
+
+1. **CLS de 0,0286 après réponse A** : c'est négligeable (< 0,1), ça arrive après action utilisateur, aucun impact sur le "zéro flash" au premier pixel. Je valide tel quel.
+
+2. **Conversation synthétique restée en base dev** : à nettoyer plus tard, zéro impact en prod. Note-le pour la Phase 8 (revue finale).
+
+**Passons à la Phase 4 : Pré-rendre les 5 pages légales.**
+
+Rappel des objectifs :
+- Pré-rendre `/mentions-legales`, `/cgu`, `/cgv`, `/confidentialite`, `/cookies`.
+- Ces 5 pages contiennent du contenu statique pur (pas de chat, pas de Clerk, pas d'API).
+- Elles doivent avoir un HTML brut complet pour Google et les IA.
+- Aucune modification de la page d'accueil.
+
+**Architecture à mettre en place :**
+
+1. Créer les entrées Vike pour les 5 routes légales :
+   - `pages/mentions-legales/+Page.tsx`, `+config.ts`, `+Head.tsx`
+   - `pages/cgu/+Page.tsx`, `+config.ts`, `+Head.tsx`
+   - `pages/cgv/+Page.tsx`, `+config.ts`, `+Head.tsx`
+   - `pages/confidentialite/+Page.tsx`, `+config.ts`, `+Head.tsx`
+   - `pages/cookies/+Page.tsx`, `+config.ts`, `+Head.tsx`
+
+2. Chaque `+Head.tsx` doit contenir :
+   - Title spécifique à la page (ex : "Mentions légales | Édouard").
+   - Meta description appropriée.
+   - Canonical `https://edouard-consultant.ch/[route]`.
+   - Liens internes vers les autres pages légales.
+
+3. Le contenu de chaque page doit être un composant statique pur, réutilisable entre SSG et client (comme `HydratablePublicApp` pour l'accueil).
+
+**Vérifications attendues à la fin de la Phase 4 :**
+
+1. **Build Vike** : 6 documents HTML pré-rendus (accueil + 5 légales).
+2. **Pour chaque page légale** :
+   - HTML brut contient le contenu complet.
+   - HTTP 200.
+   - Title et meta description spécifiques.
+   - Canonical correct.
+3. **Navigation** : depuis la page d'accueil, les liens vers les 5 pages légales fonctionnent.
+4. **CLS = 0** sur chaque page légale.
+5. **Aucune erreur d'hydratation**.
+6. **Build historique** : intact (hashes identiques).
+7. **Frontière prerender** : OK.
+8. **Fichiers interdits** : inchangés.
+9. **Aucun push, aucun commit.**
+
+**Ce que je veux dans ton rapport :**
+
+- Les fichiers créés.
+- Le résultat du build Vike (nombre de documents HTML pré-rendus).
+- Le HTML brut de chaque page légale (extrait représentatif avec title + canonical).
+- Le test CLS sur chaque page.
+- Le test de navigation depuis l'accueil.
+- Le contrôle Git des fichiers interdits.
+- Confirmation build historique intact.
+
+**Ne pas passer à la Phase 5 (bascule du build principal) tant que la Phase 4 n'est pas validée.**
+
+Merci.

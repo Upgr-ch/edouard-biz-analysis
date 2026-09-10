@@ -24,7 +24,7 @@ serve = "static"
 
 [[services.production.rewrites]]
 from = "/*"
-to = "/legacy-spa.html"
+to = "/index.html"
 
 [services.env]
 PORT = "21133"

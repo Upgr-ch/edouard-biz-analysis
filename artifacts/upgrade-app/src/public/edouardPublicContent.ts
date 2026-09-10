@@ -96,7 +96,6 @@ export const EDOUARD_LEGAL_LINKS = [
   { href: "/cgu", label: "CGU" },
   { href: "/cgv", label: "CGV" },
   { href: "/confidentialite", label: "Confidentialité" },
-  { href: "/cookies", label: "Cookies" },
 ] as const;
 
 export const EDOUARD_SIDEBAR_GUIDE = {

@@ -55,10 +55,6 @@ export default function Page() {
   }, []);
 
   useEffect(() => {
-    document.title = "Édouard | Diagnostic business IA";
-  }, []);
-
-  useEffect(() => {
     let active = true;
 
     void import(

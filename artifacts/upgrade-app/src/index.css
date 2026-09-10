@@ -217,8 +217,8 @@
 }
 
 @keyframes edouardWarningShimmer {
-  0%   { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0%, 28%   { background-position: 200% 0; }
+  72%, 100% { background-position: -200% 0; }
 }
 
 .edouard-warning-shimmer {
@@ -239,7 +239,7 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: edouardWarningShimmer 5.6s ease-in-out infinite;
+  animation: edouardWarningShimmer 14s ease-in-out infinite;
   filter: drop-shadow(0 0 2px rgba(245,224,144,0.16));
 }
 

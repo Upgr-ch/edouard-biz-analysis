@@ -1,0 +1,101 @@
+MISSION : ajouter un glossaire SEO/GEO en bas de la page d'accueil du site Édouard Consultant.
+
+RÈGLES ABSOLUES À RESPECTER (ne pas déroger) :
+1. Ne modifie STRICTEMENT RIEN d'autre sur le site : pas de changement de design, de structure, de contenu, de composants, de routes, de scripts, de styles existants.
+2. Ne touche à AUCUN fichier en dehors de celui de la page d'accueil (ou du fichier de style global si la classe sr-only n'existe pas déjà).
+3. Respecte la charte graphique existante : polices, couleurs, espacements, variables CSS, nommage des classes, conventions du projet.
+4. Le glossaire doit être INVISIBLE à l'écran pour l'utilisateur, mais présent dans le code HTML pour Google, les IA et les lecteurs d'écran. Utilise la classe `sr-only`. N'utilise NI `display:none` NI `visibility:hidden`.
+5. Ne touche à AUCUNE autre classe, règle CSS, ou fichier de style existant. Si la classe `sr-only` existe déjà, réutilise-la telle quelle, sans la redéfinir.
+6. Ne modifie aucun autre bloc HTML, aucun texte, aucun bouton, aucun lien existant.
+7. Si tu as le moindre doute, demande-moi AVANT de modifier quoi que ce soit.
+8. À la fin, montre-moi précisément le diff / les lignes ajoutées, et confirme que rien d'autre n'a été changé.
+
+ÉTAPE 1 — Vérifier si la classe `.sr-only` existe déjà dans le projet.
+- Si oui : ne pas la redéfinir, l'utiliser telle quelle.
+- Si non : ajouter uniquement cette règle, dans le fichier de style global existant, sans toucher au reste :
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+ÉTAPE 2 — Insérer le bloc suivant juste avant la fermeture de `</main>` (ou `</body>` si `</main>` n'existe pas) de la page d'accueil, sans rien modifier autour.
+
+<div class="sr-only">
+  <h2>Glossaire</h2>
+
+  <h3>Viabilité business</h3>
+  <p>La viabilité business est la capacité d’un projet à atteindre un équilibre économique durable sans dépendre indéfiniment de financements externes. Elle s’évalue à partir du marché, du modèle économique, des coûts, de la trésorerie et de la capacité à acquérir des clients. Exemple concret : un éditeur de logiciel qui atteint 500 abonnés payants couvrant ses coûts fixes et variables devient viable à cette échelle. Erreur fréquente : confondre une idée séduisante ou un financement obtenu avec une réelle viabilité économique.</p>
+
+  <h3>Rentabilité</h3>
+  <p>La rentabilité est la capacité d’une activité à générer un profit après prise en compte de l’ensemble de ses charges. Elle se mesure notamment par la marge nette, le résultat d’exploitation ou le retour sur investissement. Exemple concret : une entreprise avec 100 000 € de chiffre d’affaires et 85 000 € de charges a une rentabilité de 15 000 € avant impôts. Erreur fréquente : confondre chiffre d’affaires élevé et rentabilité réelle.</p>
+
+  <h3>Seuil de rentabilité (point mort)</h3>
+  <p>Le seuil de rentabilité, ou point mort, est le niveau de chiffre d’affaires à partir duquel une entreprise couvre tous ses coûts et commence à générer un résultat nul puis positif. Il dépend des coûts fixes, des coûts variables et du prix de vente moyen. Exemple concret : si une entreprise a 10 000 € de coûts fixes mensuels et une marge sur coûts variables de 50 %, son seuil de rentabilité est de 20 000 € de chiffre d’affaires par mois. Erreur fréquente : oublier les coûts variables dans le calcul ou supposer que le seuil est atteint dès le premier client.</p>
+
+  <h3>Business model</h3>
+  <p>Le business model est la logique selon laquelle une organisation crée, délivre et capte de la valeur. Il décrit la proposition de valeur, les clients ciblés, les canaux, les ressources et les revenus. Exemple concret : un service de streaming fonctionne avec un abonnement mensuel, une bibliothèque de contenus et des serveurs de diffusion. Erreur fréquente : réduire le business model au seul prix de vente.</p>
+
+  <h3>Étude de marché</h3>
+  <p>Une étude de marché est la collecte et l’analyse d’informations sur un marché, ses clients, ses concurrents et ses tendances. Elle peut être quantitative, qualitative ou documentaire. Exemple concret : réaliser 20 entretiens avec des entrepreneurs cibles avant de lancer un outil de diagnostic business. Erreur fréquente : se limiter à des données secondaires sans interroger directement le marché.</p>
+
+  <h3>Analyse concurrentielle</h3>
+  <p>L’analyse concurrentielle consiste à identifier et comparer les forces et faiblesses des acteurs présents sur un marché. Elle aide à repérer les positionnements, les prix, les canaux et les différenciations possibles. Exemple concret : construire un tableau comparant cinq concurrents sur le prix, les fonctionnalités et la cible. Erreur fréquente : croire qu’une absence de concurrent signifie automatiquement une opportunité sans risque.</p>
+
+  <h3>Modèle économique</h3>
+  <p>Le modèle économique désigne la manière dont une entreprise génère des revenus et couvre ses coûts. Il précise les sources de revenus, la structure de prix et la logique de monétisation. Exemple concret : un modèle freemium repose sur une version gratuite qui alimente une version payante. Erreur fréquente : confondre modèle économique et plan d’affaires, qui est un document plus large.</p>
+
+  <h3>Coûts fixes / variables</h3>
+  <p>Les coûts fixes sont indépendants du volume d’activité, tandis que les coûts variables évoluent avec ce volume. Cette distinction permet de calculer la marge sur coûts variables et le seuil de rentabilité. Exemple concret : le loyer d’un atelier est un coût fixe, tandis que la matière première utilisée pour fabriquer un produit est un coût variable. Erreur fréquente : classer un coût dans la mauvaise catégorie, ce qui fausse les prévisions.</p>
+
+  <h3>Marge brute / nette</h3>
+  <p>La marge brute est la différence entre le chiffre d’affaires et les coûts directs, tandis que la marge nette intègre toutes les charges, y compris les frais généraux, les impôts et les intérêts. Exemple concret : une boutique qui vend un article 100 € acheté 60 € a une marge brute de 40 € ; si elle ajoute 30 € de charges indirectes, sa marge nette est de 10 €. Erreur fréquente : confondre marge et coefficient multiplicateur appliqué au prix d’achat.</p>
+
+  <h3>Trésorerie</h3>
+  <p>La trésorerie correspond aux flux d’entrées et de sorties d’argent disponibles à court terme. Elle ne dépend pas seulement du résultat comptable, mais aussi des délais de paiement et du besoin en fonds de roulement. Exemple concret : une entreprise rentable peut manquer de trésorerie si ses clients paient à 90 jours alors qu’elle paie ses fournisseurs à 30 jours. Erreur fréquente : confondre bénéfice comptable et trésorerie disponible.</p>
+
+  <h3>Indice de viabilité</h3>
+  <p>Un indice de viabilité est un score synthétique qui évalue la probabilité qu’un projet atteigne un équilibre économique durable. Il agrège généralement plusieurs critères : marché, rentabilité, trésorerie, acquisition client et risque concurrentiel. Exemple concret : un projet noté 72/100 sur une grille de viabilité peut être considéré comme prometteur mais encore fragile sur la trésorerie. Erreur fréquente : traiter cet indice comme une vérité absolue plutôt que comme une aide à la décision.</p>
+
+  <h3>Go / No-Go / Pivot</h3>
+  <p>Go / No-Go / Pivot est une grille de décision qui conduit soit à poursuivre un projet, soit à l’arrêter, soit à le réorienter. Elle s’appuie sur des critères explicites et des données vérifiables. Exemple concret : après une étude de marché, une équipe décide un No-Go car le coût d’acquisition dépasse la valeur vie client estimée. Erreur fréquente : prendre une décision Go ou No-Go sans critères définis au préalable.</p>
+
+  <h3>Proposition de valeur</h3>
+  <p>La proposition de valeur est le bénéfice clair qu’une offre apporte à un client pour résoudre un problème ou satisfaire un besoin. Elle doit être compréhensible, spécifique et différenciante. Exemple concret : une plateforme qui permet à un formateur de créer un plan de formation en 30 minutes propose un gain de temps mesurable. Erreur fréquente : présenter une liste de fonctionnalités au lieu d’un bénéfice client.</p>
+
+  <h3>Client idéal (ICP)</h3>
+  <p>Le client idéal, ou ICP, est le profil type de client qu’une entreprise cible en priorité. Il regroupe des caractéristiques démographiques, comportementales, économiques et des problèmes récurrents. Exemple concret : un ICP peut être « formateur indépendant, 35-55 ans, vendant des formations en ligne, sans diplôme pédagogique ». Erreur fréquente : vouloir cibler tout le monde, ce qui affaiblit le message et l’acquisition.</p>
+
+  <h3>Funnel de conversion</h3>
+  <p>Le funnel de conversion décrit les étapes par lesquelles passe un prospect avant de devenir client. Il comprend généralement la découverte, l’intérêt, la considération, la décision et l’achat. Exemple concret : une page de vente qui convertit 3 % de ses visiteurs en inscrits puis 20 % des inscrits en clients payants. Erreur fréquente : optimiser le trafic avant d’avoir mesuré les taux de conversion à chaque étape.</p>
+
+  <h3>Coût d’acquisition client (CAC)</h3>
+  <p>Le coût d’acquisition client, ou CAC, est le montant total dépensé pour acquérir un nouveau client. Il inclut les dépenses publicitaires, les outils, les salaires et les commissions commerciales. Exemple concret : si une entreprise dépense 5 000 € pour acquérir 50 clients, son CAC est de 100 €. Erreur fréquente : omettre les coûts internes et ne compter que la publicité.</p>
+
+  <h3>Lifetime Value (LTV)</h3>
+  <p>La Lifetime Value, ou LTV, est la valeur économique totale qu’un client génère sur toute la durée de sa relation avec une entreprise. Elle se calcule souvent à partir du panier moyen, de la fréquence d’achat et de la durée de rétention. Exemple concret : un client qui paie 30 € par mois pendant 24 mois génère une LTV brute de 720 €. Erreur fréquente : comparer une LTV brute à un CAC sans déduire les coûts de service et de rétention.</p>
+
+  <h3>Plan d’affaires</h3>
+  <p>Un plan d’affaires est un document qui structure un projet entrepreneurial : marché, offre, stratégie, équipe, prévisions financières et risques. Il sert à piloter le projet et à convaincre des partenaires ou financeurs. Exemple concret : un plan d’affaires sur trois ans avec compte de résultat, plan de trésorerie et seuil de rentabilité. Erreur fréquente : produire un document figé qui n’est jamais mis à jour avec les données réelles.</p>
+
+  <h3>Slasheur</h3>
+  <p>Un slasheur est une personne qui exerce plusieurs activités professionnelles, souvent salariées ou indépendantes, de manière simultanée ou combinée. Ce modèle se développe avec le travail à distance et la monétisation de compétences variées. Exemple concret : une consultante qui est à la fois formatrice, rédactrice et coach en organisation. Erreur fréquente : confondre slasheur et amateurisme, alors qu’il s’agit souvent d’une stratégie de diversification.</p>
+
+  <h3>Économie de la connaissance</h3>
+  <p>L’économie de la connaissance est un modèle économique dans lequel la valeur repose principalement sur la production, le traitement et la diffusion du savoir. Elle s’appuie sur la formation, les données, les logiciels et les services intellectuels. Exemple concret : une entreprise qui vend des formations en ligne sur l’ingénierie pédagogique participe à l’économie de la connaissance. Erreur fréquente : croire que la connaissance seule suffit, sans modèle économique ni canal de diffusion.</p>
+
+</div>
+
+ÉTAPE 3 — Vérifications finales à me confirmer :
+- La classe `sr-only` existe et fonctionne (sans `display:none`).
+- Le bloc est bien inséré avant `</main>` ou `</body>` de la page d'accueil.
+- Aucun autre fichier, composant, style ou contenu n'a été modifié.
+- La charte graphique existante est intacte.
+- Montre-moi le diff exact.

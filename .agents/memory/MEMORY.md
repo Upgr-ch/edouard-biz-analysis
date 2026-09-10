@@ -1,1 +1,2 @@
 - [Authentification GitHub](github-auth.md) — Git doit lire le jeton depuis le secret Replit via un credential helper local, car GIT_ASKPASS peut rester obsolète.
+- [Hydratation SSG de l’accueil](ssg-home-hydration.md) — Pré-rendre et hydrater le même arbre public; restaurer conversation et session Clerk seulement après hydratation.

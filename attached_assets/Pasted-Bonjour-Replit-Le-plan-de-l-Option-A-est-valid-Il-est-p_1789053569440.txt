@@ -1,0 +1,48 @@
+Bonjour Replit,
+
+Le plan de l'Option A est validé. Il est précis, complet, et respecte la contrainte "zéro flash visuel".
+
+**Décision sur le comportement Clerk : je choisis le Comportement B.**
+
+Raisons :
+- Un utilisateur déjà connecté doit retrouver sa session automatiquement.
+- Le contenu public reste affiché pendant la vérification Clerk → aucun flash, aucun loader.
+- Clerk reste absent du build SSG (pas d'impact SEO/GEO).
+- Le premier pixel est identique pour tous les visiteurs.
+
+**Confirmations sur le plan :**
+
+1. **`HydratablePublicApp.tsx`** : validé tel que décrit (fond, header, sidebar, intro, A/B/C, footer, FAQ).
+2. **Module `edouardPublicContent.ts`** : validé. Une seule source de vérité pour les contenus publics.
+3. **Intégration Vike** : validée (`pages/index/+Page.tsx`, `+config.ts`, `+Head.tsx`).
+4. **Hydratation en place** : validée. Aucun `createRoot()`, aucun fallback, aucun loader.
+5. **Import dynamique du chatbot** au premier clic A/B/C : validé. Pas de loader, pas de skeleton.
+6. **Restauration de conversation locale** : validée. Une seule mise à jour React après lecture de `localStorage`.
+7. **Clerk (Comportement B)** : chargé automatiquement après hydratation, dans un effet client, sans modifier l'interface avant d'avoir un résultat.
+8. **Tests prévus** : validés (HTML brut, CLS = 0, hydratation, conversation sauvegardée, session Clerk, non-régression).
+
+**Découpage d'implémentation :**
+
+Je valide le découpage en 4 sous-phases (3A.1 à 3A.4). On les fera une par une, avec validation à chaque étape.
+
+**Prochaine étape : démarre la Phase 3A.1.**
+
+Phase 3A.1 doit :
+- Créer `src/public/edouardPublicContent.ts` (module pur, aucune dépendance React/API/navigateur).
+- Créer `src/public/HydratablePublicApp.tsx` (composant hydratable, aucun import client).
+- **Ne pas activer Vike.**
+- **Ne pas toucher au runtime actif.**
+- **Ne pas modifier `main.tsx`, `App.tsx`, `ChatPanel.tsx`, `vite.config.ts`.**
+
+Vérifications attendues à la fin de la Phase 3A.1 :
+1. Typecheck réussi.
+2. Build Vite historique réussi (mêmes métriques).
+3. Script `check-prerender-boundary.mjs` exécuté sur `HydratablePublicApp.tsx` → `RESULT: OK`.
+4. Contrôle Git des 7 fichiers runtime → aucun modifié.
+5. Aucun push, aucun commit, aucune réécriture.
+
+Présente-moi les fichiers créés, le résultat du typecheck, du build, du script, et le contrôle Git.
+
+**Ne pas activer Vike ni le SSG à cette étape.**
+
+Merci.

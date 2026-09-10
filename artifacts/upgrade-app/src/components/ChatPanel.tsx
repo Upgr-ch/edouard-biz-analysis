@@ -21,6 +21,8 @@ interface DisplayMessage {
   content: string;
 }
 
+const EDOUARD_WARNING = "⚠️ Analyse consultative. Accès libre et illimité, sans version payante. Inscription par email pour sauvegarder ton diagnostic.";
+
 const EDOUARD_INTRO_MESSAGE = `Je suis Édouard. Ne le prends pas pour toi, je m’exprime de manière ferme, assertive et juste. Mon travail est de te dire la vérité business, pas de te flatter.<br><br>
 
 Sélectionne ton profil.<br><br>
@@ -29,7 +31,7 @@ Peu importe ta réponse, le diagnostic s’adapte à ton avancement.<br><br>
 
 Clique ci-dessous sur la lettre de ton profil.<br><br>
 
-⚠️ Analyse consultative. Accès libre et illimité, sans version payante. Inscription par email pour sauvegarder ton diagnostic.`;
+${EDOUARD_WARNING}`;
 
 const LEVEL_CHOICES = [
   { key: "A", label: "« J’ai le concept, mais je n’ai pas encore creusé les détails »" },
@@ -223,7 +225,11 @@ function renderContentWithFiche(
         {content.split("<br>").map((part, index) => (
           <Fragment key={index}>
             {index > 0 && <br />}
-            {part}
+            {part === EDOUARD_WARNING ? (
+              <em className="up-shimmer">{part}</em>
+            ) : (
+              part
+            )}
           </Fragment>
         ))}
       </>

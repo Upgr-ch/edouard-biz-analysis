@@ -5,8 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --config vite.config.ts --host 0.0.0.0",
-    "build": "node scripts/build-production.mjs",
-    "build:spa": "UPGRADE_BUILD_TARGET=spa vite build --config vite.config.build.ts",
+    "build": "vite build --config vite.config.ts",
     "build:vike": "VIKE_PARALLEL_BUILD=1 vike build",
     "serve": "vite preview --config vite.config.ts --host 0.0.0.0",
     "typecheck": "tsc -p tsconfig.json --noEmit"

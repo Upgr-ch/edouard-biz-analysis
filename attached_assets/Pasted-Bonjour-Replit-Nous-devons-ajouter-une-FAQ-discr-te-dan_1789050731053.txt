@@ -1,0 +1,136 @@
+Bonjour Replit,
+
+Nous devons ajouter une FAQ discrète dans le footer de `edouard-consultant.ch`. Objectif SEO/GEO : rendre les questions/réponses visibles sur la page pour Google et les IA, tout en gardant le design épuré et sans toucher au chat.
+
+Consignes strictes :
+- Le chatbot doit rester strictement inchangé (design, position, fonctionnement).
+- Le tunnel de conversion doit rester strictement inchangé.
+- La charte graphique doit être respectée à l'identique (mêmes couleurs, mêmes polices, mêmes espacements, même style que les éléments existants).
+- Aucune autre modification visible que l'ajout de la FAQ.
+
+---
+
+## 1. Emplacement
+
+Dans le footer existant, à côté de "MENTIONS LÉGALES", "CGU", "CGV", "CONFIDENTIALITÉ", ajouter un nouveau lien : **"Questions fréquentes"**.
+
+Au clic sur ce lien, un accordéon doit se déployer **au-dessus du footer** (ou dans le footer lui-même selon l'intégration la plus propre), affichant la FAQ ci-dessous. Le lien doit avoir exactement le même style visuel que les autres liens du footer.
+
+---
+
+## 2. Contenu de la FAQ (à afficher dans l'accordéon)
+
+**Q : Qu'est-ce qu'Édouard ?**
+R : Édouard est un assistant IA qui analyse la viabilité et la rentabilité d'un projet business. Il fournit un diagnostic en 10 étapes, basé sur des données réelles, avec une approche assertive et sans filtre.
+
+**Q : À qui s'adresse Édouard ?**
+R : Aux entrepreneurs, porteurs de projets, slasheurs, mais aussi aux formateurs et experts qui veulent structurer leur savoir pour le commercialiser.
+
+**Q : Comment fonctionne le diagnostic ?**
+R : Le diagnostic se déroule en 10 étapes, sous forme de conversation. Vous répondez à des questions précises sur votre projet, et Édouard vous donne une analyse structurée.
+
+**Q : Combien coûte Édouard ?**
+R : L'accès est 100 % gratuit et illimité. Aucune version payante n'est cachée. La seule formalité est une inscription par email au 6e message pour sauvegarder votre diagnostic.
+
+**Q : Combien de temps dure un diagnostic ?**
+R : Environ 15 à 20 minutes. Le diagnostic est conçu pour être direct et efficace, sans questions inutiles.
+
+**Q : Que se passe-t-il après le diagnostic ?**
+R : Vous recevez une décision claire : Go, No-Go ou Pivot. Vous pouvez sauvegarder votre diagnostic par email et accéder à des ressources complémentaires si vous souhaitez aller plus loin.
+
+**Q : Édouard remplace-t-il un consultant ?**
+R : Non. Édouard fournit un diagnostic assertif et chiffré, mais il ne remplace pas un accompagnement humain. Il vous aide à prendre une décision éclairée avant de vous lancer.
+
+**Q : Dans quelle langue Édouard est-il disponible ?**
+R : Édouard est disponible en français.
+
+**Q : Comment mes données sont-elles traitées ?**
+R : Votre email est utilisé uniquement pour sauvegarder votre diagnostic. Aucune donnée n'est revendue ni utilisée à des fins publicitaires.
+
+---
+
+## 3. Balisage JSON-LD (FAQPage)
+
+Ajouter dans le `<head>` de la page le bloc JSON-LD suivant, qui correspond exactement au contenu visible de la FAQ (Google exige que le balisage corresponde au contenu affiché) :
+
+```html
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Qu'est-ce qu'Édouard ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Édouard est un assistant IA qui analyse la viabilité et la rentabilité d'un projet business. Il fournit un diagnostic en 10 étapes, basé sur des données réelles, avec une approche assertive et sans filtre."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "À qui s'adresse Édouard ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Aux entrepreneurs, porteurs de projets, slasheurs, mais aussi aux formateurs et experts qui veulent structurer leur savoir pour le commercialiser."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Comment fonctionne le diagnostic ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Le diagnostic se déroule en 10 étapes, sous forme de conversation. Vous répondez à des questions précises sur votre projet, et Édouard vous donne une analyse structurée."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Combien coûte Édouard ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "L'accès est 100 % gratuit et illimité. Aucune version payante n'est cachée. La seule formalité est une inscription par email au 6e message pour sauvegarder votre diagnostic."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Combien de temps dure un diagnostic ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Environ 15 à 20 minutes. Le diagnostic est conçu pour être direct et efficace, sans questions inutiles."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Que se passe-t-il après le diagnostic ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Vous recevez une décision claire : Go, No-Go ou Pivot. Vous pouvez sauvegarder votre diagnostic par email et accéder à des ressources complémentaires si vous souhaitez aller plus loin."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Édouard remplace-t-il un consultant ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Non. Édouard fournit un diagnostic assertif et chiffré, mais il ne remplace pas un accompagnement humain. Il vous aide à prendre une décision éclairée avant de vous lancer."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Dans quelle langue Édouard est-il disponible ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Édouard est disponible en français."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Comment mes données sont-elles traitées ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Votre email est utilisé uniquement pour sauvegarder votre diagnostic. Aucune donnée n'est revendue ni utilisée à des fins publicitaires."
+      }
+    }
+  ]
+}
+</script>

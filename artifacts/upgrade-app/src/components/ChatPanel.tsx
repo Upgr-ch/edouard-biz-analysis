@@ -24,6 +24,45 @@ interface DisplayMessage {
 const EDOUARD_WARNING_TEXT = "Analyse consultative. Accès libre et illimité, sans version payante. Inscription par email pour sauvegarder ton diagnostic.";
 const EDOUARD_WARNING = `⚠️ ${EDOUARD_WARNING_TEXT}`;
 
+const FAQ_ITEMS = [
+  {
+    question: "Qu'est-ce qu'Édouard ?",
+    answer: "Édouard est un assistant IA qui analyse la viabilité et la rentabilité d'un projet business. Il fournit un diagnostic en 10 étapes, basé sur des données réelles, avec une approche assertive et sans filtre.",
+  },
+  {
+    question: "À qui s'adresse Édouard ?",
+    answer: "Aux entrepreneurs, porteurs de projets, slasheurs, mais aussi aux formateurs et experts qui veulent structurer leur savoir pour le commercialiser.",
+  },
+  {
+    question: "Comment fonctionne le diagnostic ?",
+    answer: "Le diagnostic se déroule en 10 étapes, sous forme de conversation. Vous répondez à des questions précises sur votre projet, et Édouard vous donne une analyse structurée.",
+  },
+  {
+    question: "Combien coûte Édouard ?",
+    answer: "L'accès est 100 % gratuit et illimité. Aucune version payante n'est cachée. La seule formalité est une inscription par email au 6e message pour sauvegarder votre diagnostic.",
+  },
+  {
+    question: "Combien de temps dure un diagnostic ?",
+    answer: "Environ 15 à 20 minutes. Le diagnostic est conçu pour être direct et efficace, sans questions inutiles.",
+  },
+  {
+    question: "Que se passe-t-il après le diagnostic ?",
+    answer: "Vous recevez une décision claire : Go, No-Go ou Pivot. Vous pouvez sauvegarder votre diagnostic par email et accéder à des ressources complémentaires si vous souhaitez aller plus loin.",
+  },
+  {
+    question: "Édouard remplace-t-il un consultant ?",
+    answer: "Non. Édouard fournit un diagnostic assertif et chiffré, mais il ne remplace pas un accompagnement humain. Il vous aide à prendre une décision éclairée avant de vous lancer.",
+  },
+  {
+    question: "Dans quelle langue Édouard est-il disponible ?",
+    answer: "Édouard est disponible en français.",
+  },
+  {
+    question: "Comment mes données sont-elles traitées ?",
+    answer: "Votre email est utilisé uniquement pour sauvegarder votre diagnostic. Aucune donnée n'est revendue ni utilisée à des fins publicitaires.",
+  },
+] as const;
+
 const EDOUARD_INTRO_MESSAGE = `Je suis Édouard. Ne le prends pas pour toi, je m’exprime de manière ferme, assertive et juste. Mon travail est de te dire la vérité business, pas de te flatter.<br><br>
 
 Sélectionne ton profil.<br><br>
@@ -296,25 +335,60 @@ function extractChosenName(letter: string, messages: DisplayMessage[]): string |
   return match ? match[1].trim().replace(/\s*→.*$/, "") : null;
 }
 
-const Footer = () => (
-  <footer className="w-full py-3 border-t border-border bg-background z-50 shrink-0">
-    <div className="max-w-3xl mx-auto px-4 flex flex-wrap justify-center gap-x-5 gap-y-2 text-[10px] text-muted-foreground uppercase tracking-widest font-medium">
-      <Link to="/mentions-legales" className="hover:text-primary transition-colors">
-        Mentions Légales
-      </Link>
-      <Link to="/cgu" className="hover:text-primary transition-colors">
-        CGU
-      </Link>
-      <Link to="/cgv" className="hover:text-primary transition-colors">
-        CGV
-      </Link>
-      <Link to="/confidentialite" className="hover:text-primary transition-colors">
-        Confidentialité
-      </Link>
-      <span className="opacity-50 ml-2">© 2026 - Kévin Lavergne – UpGrade</span>
-    </div>
-  </footer>
-);
+const Footer = () => {
+  const [isFaqOpen, setIsFaqOpen] = useState(false);
+
+  return (
+    <footer className="relative w-full py-3 border-t border-border bg-background z-50 shrink-0">
+      {isFaqOpen && (
+        <section
+          id="frequently-asked-questions"
+          aria-label="Questions fréquentes"
+          className="absolute bottom-full left-0 w-full border-t border-border bg-background shadow-2xl"
+        >
+          <div className="max-w-3xl max-h-[60vh] mx-auto overflow-y-auto px-4 py-5">
+            <div className="space-y-4">
+              {FAQ_ITEMS.map((item) => (
+                <div key={item.question}>
+                  <h2 className="text-xs font-semibold text-foreground">
+                    {item.question}
+                  </h2>
+                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                    {item.answer}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+      <div className="max-w-3xl mx-auto px-4 flex flex-wrap justify-center gap-x-5 gap-y-2 text-[10px] text-muted-foreground uppercase tracking-widest font-medium">
+        <Link to="/mentions-legales" className="hover:text-primary transition-colors">
+          Mentions Légales
+        </Link>
+        <Link to="/cgu" className="hover:text-primary transition-colors">
+          CGU
+        </Link>
+        <Link to="/cgv" className="hover:text-primary transition-colors">
+          CGV
+        </Link>
+        <Link to="/confidentialite" className="hover:text-primary transition-colors">
+          Confidentialité
+        </Link>
+        <button
+          type="button"
+          aria-expanded={isFaqOpen}
+          aria-controls="frequently-asked-questions"
+          onClick={() => setIsFaqOpen((open) => !open)}
+          className="hover:text-primary transition-colors uppercase tracking-widest"
+        >
+          Questions fréquentes
+        </button>
+        <span className="opacity-50 ml-2">© 2026 - Kévin Lavergne – UpGrade</span>
+      </div>
+    </footer>
+  );
+};
 
 async function invokeChat(messages: DisplayMessage[], token?: string | null): Promise<string> {
   const res = await fetch("/api/chat", {

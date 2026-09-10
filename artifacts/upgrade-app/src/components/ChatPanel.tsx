@@ -344,9 +344,10 @@ const Footer = () => {
         <section
           id="frequently-asked-questions"
           aria-label="Questions fréquentes"
-          className="absolute bottom-full left-0 w-full border-t border-border bg-background shadow-2xl"
+          className="absolute bottom-full left-0 w-full max-h-[60dvh] overflow-y-auto overscroll-contain border-t border-border bg-background shadow-2xl"
+          style={{ WebkitOverflowScrolling: "touch", touchAction: "pan-y" }}
         >
-          <div className="max-w-3xl max-h-[60vh] mx-auto overflow-y-auto px-4 py-5">
+          <div className="max-w-3xl mx-auto px-4 py-5">
             <div className="space-y-4">
               {FAQ_ITEMS.map((item) => (
                 <div key={item.question}>

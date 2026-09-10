@@ -1,7 +1,7 @@
 import { EDOUARD_FAQ_ITEMS } from "../../src/public/edouardPublicContent";
 
 const canonicalUrl = "https://edouard-consultant.ch/";
-const title = "Édouard | Diagnostic business IA";
+const title = "Édouard-consultant";
 const description =
   "Obtenez un diagnostic assertif et chiffré sur la viabilité de votre projet business. Édouard vous dit la vérité, sans filtre.";
 

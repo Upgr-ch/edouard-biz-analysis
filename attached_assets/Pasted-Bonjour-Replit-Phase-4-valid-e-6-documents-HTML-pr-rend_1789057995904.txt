@@ -1,0 +1,68 @@
+Bonjour Replit,
+
+Phase 4 validée. 6 documents HTML pré-rendus, CLS = 0, build historique intact, aucun fichier interdit touché.
+
+**Deux points notés (non bloquants) :**
+
+1. **Le title persiste après retour SPA de `/cookies` vers `/`.** Avant la Phase 5, je veux savoir : ce comportement existait-il AVANT Vike ? Si oui, il n'est pas dans le périmètre. Si non, il faudra le corriger dans la Phase 5.
+2. **Le lien `/cookies` n'est pas dans l'accueil.** À ajouter éventuellement dans la Phase 5 (petite modification d'HydratablePublicApp).
+
+**Passons à la Phase 5 : Basculer le build principal sur Vike.**
+
+C'est LA phase critique. Le site change réellement. Aucune marge d'erreur.
+
+**Objectifs :**
+
+1. Remplacer le script `build` par `vike build` (ou un script qui enchaîne Vike + copie vers `dist/public`).
+2. Vérifier que le déploiement Replit continue de servir `dist/public/`.
+3. Vérifier que les 6 pages (accueil + 5 légales) sont servies correctement en production.
+4. **Zéro changement visuel** pour l'utilisateur.
+5. **Le chat, Clerk, tracking fonctionnent exactement comme avant.**
+
+**Avant toute bascule, je veux un plan détaillé :**
+
+1. Comment vas-tu enchaîner Vike + copie vers `dist/public/` ?
+   - Un script `publish-static-output.mjs` qui copie `dist-vike/client/*` vers `dist/public/` ?
+   - Ou une config Vike qui écrit directement dans `dist/public/` ?
+2. Comment vas-tu t'assurer que le fallback SPA (pour `/auth`, `/admin`, routes inconnues) continue de fonctionner ?
+3. Comment vas-tu gérer les fichiers publics (`robots.txt`, `llms.txt`, `favicon.ico`, images, etc.) ?
+4. Quelle est la procédure de rollback si la bascule casse quelque chose ?
+
+**Vérifications prévues avant bascule :**
+
+- Build Vike en parallèle (déjà fait).
+- Comparaison des 6 HTML bruts.
+- Tests navigateur sur chaque route (CLS, hydratation, title, canonical).
+- Test du fallback SPA sur `/auth`, `/admin`, route inconnue.
+- Test du chat (A/B/C + envoi + mur email).
+- Test Clerk (SignIn + SignUp).
+- Test tracking (GTM, dataLayer, Google Ads).
+
+**Vérifications post-bascule (mais AVANT push) :**
+
+- Tous les tests ci-dessus re-passés.
+- Comparaison hashes historiques vs nouveaux.
+- Vérification que `dist/public/` contient bien les 6 HTML pré-rendus + assets + fichiers publics.
+
+**Contraintes :**
+
+- **Aucun push sans ma validation explicite.**
+- **Aucun changement visible pour l'utilisateur.**
+- **Le chat doit rester strictement identique.**
+- **Ne pas toucher à Eugène.**
+- **Si un test échoue, rollback immédiat.**
+
+**Ce que je veux dans ton prochain rapport :**
+
+1. Le plan détaillé (avant bascule).
+2. Le résultat de la bascule.
+3. Le résultat des tests navigateur.
+4. Le résultat des tests de fallback SPA.
+5. Le résultat du build Vike complet.
+6. Confirmation que `dist/public/` contient tout ce qu'il faut.
+7. Le contrôle Git des fichiers interdits.
+8. Le statut des workflows Replit (à jour ou pas).
+
+**Ne pas pusher. Ne pas modifier la production Replit tant que je n'ai pas validé.**
+
+Merci.

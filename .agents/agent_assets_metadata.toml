@@ -1,0 +1,30 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "qSXE5XTUZgR6xTxFpui-O"
+uri = "file://screenshots/reference-desktop.jpg"
+type = "image"
+title = "Référence Édouard — ordinateur"
+description = "État initial validé avant tout travail SSG, viewport 1440 × 900."
+logical_id = "7737166b-a9b8-409f-a798-f2da5f9a4f70"
+content_hash = "sha256:da8159532bd67b02f068822257f20bfbe56c86a5c44baecc9841a229ed747c4b"
+size = 79931
+mtime_ms = 1789051494028
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:8cbe2961-eabf-4e08-bfb6-e7312322966e/7737166b-a9b8-409f-a798-f2da5f9a4f70/8c58f038-b7b1-4cdd-b001-ae4bce8e063f"
+storage_version_token = "1789051689678012"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "VVdYkp0bw812m_g2kgTJL"
+uri = "file://screenshots/reference-mobile.jpg"
+type = "image"
+title = "Référence Édouard — mobile"
+description = "État initial validé avant tout travail SSG, viewport 390 × 844."
+logical_id = "c81da67d-05f3-49cd-8334-18be2b82c5ef"
+content_hash = "sha256:e83416142029500451f802b71dcee907908cb606e5db808114791f356c9af04f"
+size = 39759
+mtime_ms = 1789051497700
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:8cbe2961-eabf-4e08-bfb6-e7312322966e/c81da67d-05f3-49cd-8334-18be2b82c5ef/47ec7f3d-9cb6-4efb-9d45-9cd539986620"
+storage_version_token = "1789051690250595"
+content_type = "image/jpeg"

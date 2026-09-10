@@ -1,0 +1,46 @@
+Bonjour Replit,
+
+Le plan pour l'Étape 2 est validé. Il est précis, complet et bien structuré.
+
+**Décisions :**
+
+1. **L'approche "frontière d'import stricte" est validée.** Pas de conditions `typeof window` partout, mais une séparation nette entre graphe SSG et graphe client.
+
+2. **Les garde-fous explicites sont validés.** Aucun fallback silencieux. Le build doit échouer si une opération interdite est tentée.
+
+3. **Les 3 sous-étapes sont validées.**
+
+**Précisions importantes :**
+
+**A. Sur le statut des fichiers créés :**
+Tous les fichiers créés à l'Étape 2 doivent être **dormants** à la fin de cette étape. Aucun ne doit être branché au runtime actif. Cela inclut :
+- `src/client/ClientApp.tsx`
+- `src/client/mountClientApp.tsx`
+- `src/prerender/PrerenderedApp.tsx`
+- `src/runtime/environment.ts`
+- `src/runtime/clientFetch.ts`
+- `src/prerender/installPrerenderGuards.ts`
+- `scripts/check-prerender-boundary.mjs`
+
+Aucune modification de `src/main.tsx`, `src/App.tsx`, `src/lib/anonymousChat.ts`, `src/lib/analytics.ts`, `ChatPanel.tsx`, `PromoBanner.tsx` ou des appels réseau ne doit être effectuée à cette étape. **Ces modifications viendront plus tard, une fois la frontière en place et testée.**
+
+**B. Sur la sous-étape 3 (validation finale) :**
+Je veux que tu sois explicite sur les tests. Présente-moi :
+
+1. Le résultat du typecheck.
+2. Le résultat du build Vite (avec les mêmes métriques que l'Étape 1 : modules transformés, durée).
+3. Le démarrage du workflow.
+4. Une comparaison visuelle desktop (1440×900) et mobile (390×844 + 375×667) avec la baseline.
+5. Test chatbot : A/B/C + envoi message + mur email.
+6. Test Clerk : chargement de la page, bouton Google, champ email, sans inscription réelle.
+7. Test tracking : présence de GTM-KMH7VCTK, AW-18294385008, dataLayer intact.
+8. Test FAQ : défilement mobile jusqu'à la 9e question.
+9. Le statut Git : aucun push, aucun commit, aucun historique réécrit.
+
+**C. Sur le script `check-prerender-boundary.mjs` :**
+Peux-tu me montrer un exemple de ce que ce script va produire comme sortie ? (Un rapport texte ? Un fichier JSON ? Comment je saurai si c'est OK ou KO ?)
+
+**Prochaine étape :**
+Démarre la **sous-étape 1** (créer les assertions et le contrôle de frontière, sans modifier le runtime). Présente-moi les fichiers créés et le résultat du script de contrôle. **Ne pas toucher au runtime actif. Ne pas activer Vike.**
+
+Merci.

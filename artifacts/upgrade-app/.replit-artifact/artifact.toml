@@ -18,7 +18,7 @@ localPort = 21133
 run = "pnpm --filter @workspace/upgrade-app run dev"
 
 [services.production]
-build = [ "pnpm", "--filter", "@workspace/upgrade-app", "run", "build" ]
+build = [ "pnpm", "--filter", "@workspace/upgrade-app", "run", "build:public" ]
 publicDir = "artifacts/upgrade-app/dist/public"
 serve = "static"
 

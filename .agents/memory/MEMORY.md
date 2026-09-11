@@ -1,3 +1,4 @@
 - [Authentification GitHub](github-auth.md) — Git doit lire le jeton depuis le secret Replit via un credential helper local, car GIT_ASKPASS peut rester obsolète.
 - [Animations et CLS Vike](vike-animation-cls.md) — Pour les décors animés du premier pixel, animer un fond dans une boîte fixe plutôt que déplacer l’élément.
 - [Hydratation SSG de l’accueil](ssg-home-hydration.md) — Pré-rendre et hydrater le même arbre public; restaurer conversation et session Clerk seulement après hydratation.
+- [Build des pages publiques](public-prerender-build.md) — Les pages Vike publiques coexistent avec la SPA historique : publier les sorties SSG sans remplacer les parcours applicatifs.

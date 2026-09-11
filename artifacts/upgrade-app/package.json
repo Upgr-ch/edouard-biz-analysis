@@ -7,6 +7,7 @@
     "dev": "vite --config vite.config.ts --host 0.0.0.0",
     "build": "vite build --config vite.config.ts",
     "build:vike": "VIKE_PARALLEL_BUILD=1 vike build",
+    "build:public": "pnpm run build && pnpm run build:vike && cp -R dist-vike/client/assets/. dist/public/assets/ && for page in cgu cgv confidentialite cookies glossaire mentions-legales; do rm -rf \"dist/public/$page\" && cp -R \"dist-vike/client/$page\" \"dist/public/$page\"; done",
     "serve": "vite preview --config vite.config.ts --host 0.0.0.0",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },

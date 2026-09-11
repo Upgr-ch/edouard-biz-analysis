@@ -21,6 +21,7 @@ import Confidentialite from "./pages/legal/Confidentialite.tsx";
 import MentionsLegales from "./pages/legal/MentionsLegales.tsx";
 import CGV from "./pages/legal/CGV.tsx";
 import CGU from "./pages/legal/CGU.tsx";
+import GlossairePage from "../pages/glossaire/+Page.tsx";
 
 const queryClient = new QueryClient();
 
@@ -538,6 +539,7 @@ function AppRoutes() {
             <Route path="/mentions-legales" element={<MentionsLegales />} />
             <Route path="/cgv" element={<CGV />} />
             <Route path="/cgu" element={<CGU />} />
+            <Route path="/glossaire" element={<GlossairePage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </TooltipProvider>

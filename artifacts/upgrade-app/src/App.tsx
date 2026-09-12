@@ -239,9 +239,8 @@ function AuthHeader({ backTo = "/" }: { backTo?: string }) {
           maxWidth: 340,
         }}
       >
-        Afin de garantir la continuité de votre service et de sécuriser
-        l'historique de vos échanges, la création d'un compte est nécessaire
-        pour poursuivre cette session.
+        Continuez votre analyse sans perdre votre progression. Créez gratuitement
+        votre compte pour sauvegarder vos échanges.
       </p>
     </div>
   );

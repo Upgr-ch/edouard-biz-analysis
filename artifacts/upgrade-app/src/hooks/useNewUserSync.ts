@@ -1,14 +1,12 @@
 // Contact sync is now handled server-side via Clerk webhook (POST /api/webhooks/clerk).
 // This hook is kept as a lightweight fallback in case the webhook misses an event
 // (e.g. webhook not yet configured in Clerk dashboard).
-// It also forwards the marketing consent preference set during sign-up.
 
 import { useEffect, useRef } from "react";
 import { useUser } from "@clerk/react";
 
 const API_BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 const STORAGE_KEY = "edouard_synced";
-const MARKETING_KEY = "edouard_marketing_consent";
 
 export function useNewUserSync() {
   const { user, isLoaded } = useUser();
@@ -28,8 +26,6 @@ export function useNewUserSync() {
 
     if (!email) return;
 
-    const marketingConsent = localStorage.getItem(MARKETING_KEY) === "1";
-
     void (async () => {
       try {
         const r = await fetch(`${API_BASE}/api/integrations/signup`, {
@@ -42,13 +38,11 @@ export function useNewUserSync() {
             email,
             firstName: user.firstName ?? "",
             lastName: user.lastName ?? "",
-            marketingConsent,
           }),
         });
         if (r.ok) {
           localStorage.setItem(`${STORAGE_KEY}_${user.id}`, "1");
-          localStorage.removeItem(MARKETING_KEY);
-          console.info("[useNewUserSync] contact sync ok, marketingConsent:", marketingConsent);
+          console.info("[useNewUserSync] contact sync ok");
         } else {
           const body = await r.json().catch(() => ({})) as { error?: string };
           console.warn("[useNewUserSync] sync failed", r.status, body.error);

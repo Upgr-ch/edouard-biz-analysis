@@ -2,11 +2,9 @@ import { useState } from "react";
 import { X } from "lucide-react";
 
 const DISMISSED_KEY = "edouard.promoBannerDismissed";
-const MARKETING_KEY = "edouard_marketing_consent";
 
 export default function PromoBanner() {
   const [visible, setVisible] = useState(() => {
-    if (localStorage.getItem(MARKETING_KEY) === "1") return false;
     if (localStorage.getItem(DISMISSED_KEY) === "true") return false;
     return true;
   });

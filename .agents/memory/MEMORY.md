@@ -4,3 +4,4 @@
 - [Build des pages publiques](public-prerender-build.md) — Les pages Vike publiques coexistent avec la SPA historique : publier les sorties SSG sans remplacer les parcours applicatifs.
 - [Limite de tags Systeme.io](systemeio-tag-limit.md) — La création automatique d’un tag peut échouer si le forfait a atteint sa limite; ne jamais substituer un tag existant.
 - [Suivi des diagnostics](diagnostic-tracking.md) — Les étapes du diagnostic sont suivies dans GA4, pas avec des tags Systeme.io.
+- [Campagnes e-mail Systeme.io](systemeio-email-campaigns.md) — Les campagnes partent des tags Édouard et Eugène; le tag Email Marketing est inutile.

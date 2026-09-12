@@ -362,6 +362,11 @@ function LegalConsentCheckbox({
 function SignUpRoute() {
   const { user, loading } = useAuth();
   const [legalAccepted, setLegalAccepted] = useState(false);
+  const [marketingAccepted, setMarketingAccepted] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem("edouard_marketing_consent", marketingAccepted ? "1" : "0");
+  }, [marketingAccepted]);
 
   if (loading) return null;
   if (user) return <Navigate to="/" replace />;
@@ -390,6 +395,37 @@ function SignUpRoute() {
         </div>
         <div style={{ marginTop: 20, width: "100%", maxWidth: 440, display: "flex", flexDirection: "column", gap: 0 }}>
           <LegalConsentCheckbox accepted={legalAccepted} onChange={setLegalAccepted} />
+          <label
+            style={{
+              width: "100%",
+              marginBottom: 12,
+              display: "flex",
+              alignItems: "flex-start",
+              gap: 10,
+              padding: "11px 16px",
+              border: "1px solid rgba(255,255,255,0.08)",
+              borderRadius: 2,
+              cursor: "pointer",
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={marketingAccepted}
+              onChange={(event) => setMarketingAccepted(event.target.checked)}
+              style={{ marginTop: 3, accentColor: "#F5E090" }}
+            />
+            <span
+              style={{
+                fontFamily: "var(--up-font)",
+                fontSize: "0.74rem",
+                lineHeight: 1.65,
+                color: "rgba(255,255,255,0.55)",
+              }}
+            >
+              Je souhaite recevoir par e-mail les conseils, actualités et offres commerciales d&apos;Édouard. Je pourrai retirer mon consentement à tout moment.{" "}
+              <span style={{ color: "rgba(255,255,255,0.30)", fontSize: "0.70rem" }}>(Facultatif)</span>
+            </span>
+          </label>
         </div>
         {!legalAccepted && (
           <p

@@ -7,6 +7,7 @@ import { useUser } from "@clerk/react";
 
 const API_BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 const STORAGE_KEY = "edouard_synced";
+const MARKETING_KEY = "edouard_marketing_consent";
 
 export function useNewUserSync() {
   const { user, isLoaded } = useUser();
@@ -26,6 +27,8 @@ export function useNewUserSync() {
 
     if (!email) return;
 
+    const marketingConsent = localStorage.getItem(MARKETING_KEY) === "1";
+
     void (async () => {
       try {
         const r = await fetch(`${API_BASE}/api/integrations/signup`, {
@@ -38,11 +41,13 @@ export function useNewUserSync() {
             email,
             firstName: user.firstName ?? "",
             lastName: user.lastName ?? "",
+            marketingConsent,
           }),
         });
         if (r.ok) {
           localStorage.setItem(`${STORAGE_KEY}_${user.id}`, "1");
-          console.info("[useNewUserSync] contact sync ok");
+          localStorage.removeItem(MARKETING_KEY);
+          console.info("[useNewUserSync] contact sync ok, marketingConsent:", marketingConsent);
         } else {
           const body = await r.json().catch(() => ({})) as { error?: string };
           console.warn("[useNewUserSync] sync failed", r.status, body.error);

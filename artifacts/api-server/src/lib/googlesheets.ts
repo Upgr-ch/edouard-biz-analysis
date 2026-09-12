@@ -8,14 +8,17 @@ export async function appendContactRow(contact: {
   email: string;
   firstName?: string;
   lastName?: string;
+  marketingConsent?: boolean;
 }): Promise<void> {
   if (!SPREADSHEET_ID) {
     console.warn("[googlesheets] GOOGLE_SHEET_ID not set — skipping");
     return;
   }
 
+  const consentLabel = contact.marketingConsent === true ? "Oui" : "Non";
+
   try {
-    const range = "A:D";
+    const range = "A:E";
     const res = await connectors.proxy(
       "google-sheet",
       `/v4/spreadsheets/${SPREADSHEET_ID}/values/${range}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`,
@@ -29,6 +32,7 @@ export async function appendContactRow(contact: {
               contact.email,
               contact.firstName ?? "",
               contact.lastName ?? "",
+              consentLabel,
             ],
           ],
         }),
@@ -41,7 +45,7 @@ export async function appendContactRow(contact: {
       return;
     }
 
-    console.info("[googlesheets] row appended for", contact.email);
+    console.info("[googlesheets] row appended for", contact.email, "| consentement Édouard:", consentLabel);
   } catch (err) {
     console.error("[googlesheets] error", err);
   }

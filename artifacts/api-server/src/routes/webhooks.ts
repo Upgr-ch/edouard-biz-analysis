@@ -1,7 +1,6 @@
 import { Router } from "express";
 import { Webhook } from "svix";
 import { upsertContact } from "../lib/systemeio";
-import { appendContactRow } from "../lib/googlesheets";
 
 const router = Router();
 
@@ -59,11 +58,9 @@ router.post(
           email,
           firstName: data.first_name ?? "",
           lastName: data.last_name ?? "",
+          marketingConsent: undefined,
         };
-        await Promise.allSettled([
-          upsertContact(contact),
-          appendContactRow(contact),
-        ]);
+        await upsertContact(contact);
       }
     }
 

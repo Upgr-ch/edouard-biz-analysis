@@ -12,10 +12,11 @@ router.post("/signup", async (req, res) => {
     return;
   }
 
-  const { email, firstName, lastName } = req.body as {
+  const { email, firstName, lastName, marketingConsent } = req.body as {
     email?: string;
     firstName?: string;
     lastName?: string;
+    marketingConsent?: boolean;
   };
 
   if (!email) {
@@ -27,9 +28,10 @@ router.post("/signup", async (req, res) => {
     email,
     firstName,
     lastName,
+    marketingConsent: marketingConsent === true,
   };
 
-  console.info("[integrations/signup] syncing contact", email);
+  console.info("[integrations/signup] syncing contact", email, "| Édouard consent:", marketingConsent === true);
 
   const [siResult, gsResult] = await Promise.allSettled([
     upsertContact(contact),

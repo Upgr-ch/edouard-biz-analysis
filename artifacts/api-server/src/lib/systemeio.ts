@@ -5,6 +5,7 @@ export interface SystemeContact {
   email: string;
   firstName?: string;
   lastName?: string;
+  marketingConsent?: boolean;
 }
 
 // ── Internal helpers ─────────────────────────────────────────────────────────
@@ -63,7 +64,8 @@ async function findContactByEmail(email: string): Promise<number | null> {
 // ── Public API ────────────────────────────────────────────────────────────────
 
 /**
- * Create or update a contact in Systeme.io and tag them "Édouard".
+ * Create or update a contact in Systeme.io.
+ * The "Édouard" tag is applied only after explicit marketing consent.
  */
 export async function upsertContact(contact: SystemeContact): Promise<void> {
   if (!API_KEY) {
@@ -98,7 +100,9 @@ export async function upsertContact(contact: SystemeContact): Promise<void> {
     throw new Error(`Systeme.io contact upsert failed (${res.status}): ${body}`);
   }
 
-  await addTagToContact(contactId, "Édouard");
+  if (contact.marketingConsent === true) {
+    await addTagToContact(contactId, "Édouard");
+  }
 
-  console.info("[systemeio] contact upserted + tagged", contact.email);
+  console.info("[systemeio] contact upserted", contact.email, "| Édouard consent:", contact.marketingConsent === true);
 }

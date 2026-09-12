@@ -61,26 +61,6 @@ async function findContactByEmail(email: string): Promise<number | null> {
   return data.items?.[0]?.id ?? null;
 }
 
-async function getEmailFromClerk(clerkUserId: string): Promise<string | null> {
-  const secretKey = process.env.CLERK_SECRET_KEY ?? "";
-  if (!secretKey) return null;
-  try {
-    const res = await fetch(`https://api.clerk.com/v1/users/${clerkUserId}`, {
-      headers: { Authorization: `Bearer ${secretKey}` },
-    });
-    if (!res.ok) return null;
-    const user = await res.json() as {
-      email_addresses: { id: string; email_address: string }[];
-      primary_email_address_id: string;
-    };
-    return user.email_addresses.find(
-      (e) => e.id === user.primary_email_address_id,
-    )?.email_address ?? null;
-  } catch {
-    return null;
-  }
-}
-
 // ── Public API ────────────────────────────────────────────────────────────────
 
 /**
@@ -128,54 +108,4 @@ export async function upsertContact(contact: SystemeContact): Promise<void> {
   }
 
   console.info("[systemeio] contact upserted + tagged", contact.email, "| marketing:", contact.marketingConsent ?? false);
-}
-
-/**
- * Add a diagnostic progression tag to a Systeme.io contact identified
- * by their Clerk user ID. Runs asynchronously — never blocks a response.
- *
- * Tags applied:
- *   step undefined / "debut"  → "diagnostic_debut"
- *   step 4                    → "diagnostic_mi_parcours"
- *   step 9                    → "diagnostic_complet"
- */
-export async function tagDiagnosticProgress(
-  clerkUserId: string,
-  event: "debut" | "mi_parcours" | "complet",
-): Promise<void> {
-  if (!API_KEY) return;
-
-  const email = await getEmailFromClerk(clerkUserId);
-  if (!email) {
-    console.warn("[systemeio] could not resolve email for userId", clerkUserId);
-    return;
-  }
-
-  // Find contact — if not found, create it on the fly so tags always land
-  let contactId = await findContactByEmail(email);
-  if (!contactId) {
-    console.info("[systemeio] contact not found, creating on-the-fly for", email);
-    const createRes = await fetch(`${BASE}/contacts`, {
-      method: "POST",
-      headers: { "X-API-Key": API_KEY, "Content-Type": "application/json", Accept: "application/json" },
-      body: JSON.stringify({ email }),
-    });
-    if (createRes.ok) {
-      const created = (await createRes.json()) as { id: number };
-      contactId = created.id;
-      // Also apply the base "Édouard" tag
-      await addTagToContact(contactId, "Édouard");
-    } else if (createRes.status === 422) {
-      // Race condition: created between our GET and POST — try lookup again
-      contactId = await findContactByEmail(email);
-    }
-    if (!contactId) {
-      console.error("[systemeio] could not create or find contact for", email);
-      return;
-    }
-  }
-
-  const tagName = `diagnostic_${event}`;
-  await addTagToContact(contactId, tagName);
-  console.info(`[systemeio] tagged "${tagName}" for`, email);
 }

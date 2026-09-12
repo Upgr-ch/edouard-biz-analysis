@@ -40,6 +40,8 @@ router.post("/signup", async (req, res) => {
 
   if (siResult.status === "rejected") {
     console.error("[integrations/signup] systemeio error", siResult.reason);
+    res.status(502).json({ error: "Systeme.io synchronization failed" });
+    return;
   }
   if (gsResult.status === "rejected") {
     console.error("[integrations/signup] googlesheets error", gsResult.reason);

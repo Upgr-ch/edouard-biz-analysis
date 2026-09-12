@@ -4,7 +4,7 @@
 // It also forwards the marketing consent preference set during sign-up.
 
 import { useEffect, useRef } from "react";
-import { useUser, useAuth } from "@clerk/react";
+import { useUser } from "@clerk/react";
 
 const API_BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 const STORAGE_KEY = "edouard_synced";
@@ -12,7 +12,6 @@ const MARKETING_KEY = "edouard_marketing_consent";
 
 export function useNewUserSync() {
   const { user, isLoaded } = useUser();
-  const { getToken } = useAuth();
   const called = useRef(false);
 
   useEffect(() => {
@@ -33,13 +32,11 @@ export function useNewUserSync() {
 
     void (async () => {
       try {
-        const token = await getToken();
         const r = await fetch(`${API_BASE}/api/integrations/signup`, {
           method: "POST",
           credentials: "include",
           headers: {
             "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
           body: JSON.stringify({
             email,
@@ -62,5 +59,5 @@ export function useNewUserSync() {
         called.current = false;
       }
     })();
-  }, [isLoaded, user, getToken]);
+  }, [isLoaded, user]);
 }

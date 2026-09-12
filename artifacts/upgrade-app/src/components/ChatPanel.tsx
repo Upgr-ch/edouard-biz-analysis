@@ -481,16 +481,13 @@ const ChatPanel = ({
   };
 
   useEffect(() => {
-    if (isAnonymous && totalUserMessages === ANON_MAX_MESSAGES && !isLoading && !redirectScheduled.current) {
+    if (isAnonymous && totalUserMessages >= ANON_MAX_MESSAGES && !isLoading && !redirectScheduled.current) {
       redirectScheduled.current = true;
       markEdouardEmailWallPending();
-      const timer = setTimeout(() => {
-        saveTemporaryChat();
-        trackEdouardConversion("edouard_email_wall_viewed");
-        pushEdouardDataLayerEvent("edouard_email_wall_viewed");
-        navigate("/auth");
-      }, 4000);
-      return () => clearTimeout(timer);
+      saveTemporaryChat();
+      trackEdouardConversion("edouard_email_wall_viewed");
+      pushEdouardDataLayerEvent("edouard_email_wall_viewed");
+      navigate("/auth");
     }
     return undefined;
   }, [totalUserMessages, isLoading, isAnonymous, navigate]);

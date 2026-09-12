@@ -14,7 +14,9 @@ async function resolveTagId(tagName: string): Promise<number | null> {
   const listRes = await fetch(`${BASE}/tags?limit=100`, {
     headers: { "X-API-Key": API_KEY, Accept: "application/json" },
   });
-  if (!listRes.ok) return null;
+  if (!listRes.ok) {
+    throw new Error(`Could not list Systeme.io tags (${listRes.status})`);
+  }
   const { items } = (await listRes.json()) as { items: { id: number; name: string }[] };
   let tag = items.find((t) => t.name === tagName);
 
@@ -24,7 +26,10 @@ async function resolveTagId(tagName: string): Promise<number | null> {
       headers: { "X-API-Key": API_KEY, "Content-Type": "application/json", Accept: "application/json" },
       body: JSON.stringify({ name: tagName }),
     });
-    if (!createRes.ok) return null;
+    if (!createRes.ok) {
+      const body = await createRes.text().catch(() => "");
+      throw new Error(`Could not create Systeme.io tag "${tagName}" (${createRes.status}): ${body}`);
+    }
     tag = (await createRes.json()) as { id: number; name: string };
   }
   return tag.id;
@@ -33,8 +38,7 @@ async function resolveTagId(tagName: string): Promise<number | null> {
 async function addTagToContact(contactId: number, tagName: string): Promise<void> {
   const tagId = await resolveTagId(tagName);
   if (!tagId) {
-    console.error("[systemeio] could not resolve tag id for", tagName);
-    return;
+    throw new Error(`Could not resolve Systeme.io tag "${tagName}"`);
   }
   const res = await fetch(`${BASE}/contacts/${contactId}/tags`, {
     method: "POST",
@@ -43,7 +47,7 @@ async function addTagToContact(contactId: number, tagName: string): Promise<void
   });
   if (!res.ok) {
     const body = await res.text().catch(() => "");
-    console.error(`[systemeio] addTagToContact failed (${res.status}) contact=${contactId} tag=${tagName}`, body);
+    throw new Error(`Could not add Systeme.io tag "${tagName}" (${res.status}): ${body}`);
   }
 }
 
@@ -107,14 +111,13 @@ export async function upsertContact(contact: SystemeContact): Promise<void> {
   } else if (res.status === 422) {
     contactId = await findContactByEmail(contact.email);
     if (!contactId) {
-      console.error("[systemeio] contact exists but could not be found by email", contact.email);
-      return;
+      const body = await res.text().catch(() => "");
+      throw new Error(`Systeme.io rejected contact (${res.status}): ${body}`);
     }
     console.info("[systemeio] contact already exists, tagging existing id", contactId);
   } else {
     const body = await res.text();
-    console.error("[systemeio] upsertContact failed", res.status, body);
-    return;
+    throw new Error(`Systeme.io contact upsert failed (${res.status}): ${body}`);
   }
 
   await addTagToContact(contactId, "Édouard");

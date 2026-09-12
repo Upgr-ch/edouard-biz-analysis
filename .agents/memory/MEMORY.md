@@ -2,3 +2,4 @@
 - [Animations et CLS Vike](vike-animation-cls.md) — Pour les décors animés du premier pixel, animer un fond dans une boîte fixe plutôt que déplacer l’élément.
 - [Hydratation SSG de l’accueil](ssg-home-hydration.md) — Pré-rendre et hydrater le même arbre public; restaurer conversation et session Clerk seulement après hydratation.
 - [Build des pages publiques](public-prerender-build.md) — Les pages Vike publiques coexistent avec la SPA historique : publier les sorties SSG sans remplacer les parcours applicatifs.
+- [Limite de tags Systeme.io](systemeio-tag-limit.md) — La création automatique d’un tag peut échouer si le forfait a atteint sa limite; ne jamais substituer un tag existant.
